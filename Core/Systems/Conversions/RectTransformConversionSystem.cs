@@ -1,5 +1,3 @@
-using Unity.Mathematics;
-using Unity.Transforms;
 using UnityEngine;
 
 namespace UGUIDots.Conversions.Systems {
@@ -13,9 +11,14 @@ namespace UGUIDots.Conversions.Systems {
         protected override void OnUpdate() {
             Entities.ForEach((RectTransform transform) => {
                 var entity = GetPrimaryEntity(transform);
-                DstEntityManager.AddComponentData(entity, new NonUniformScale { Value = transform.localScale });
 
-                // TODO: Add the relative distances to the anchors
+                Debug.Log($"Position of {transform.name}: {transform.position}, Anchoered: {transform.anchoredPosition}");
+
+                // Adding the anchors - which is taking the anchored position
+                DstEntityManager.AddComponentData(entity, new Anchor {
+                    Distance = transform.anchoredPosition,
+                    State    = transform.ToAnchor()
+                });
             });
         }
     }

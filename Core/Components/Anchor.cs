@@ -22,13 +22,13 @@ namespace UGUIDots {
 
     public struct Anchor : IComponentData {
         public AnchoredState State;
-        public float2 DistanceFromAnchor;
+        public float2 Distance;
     }
 
     public static class AnchorExtensions {
 
         public static float2 RecomputeAnchoredPosition(this Anchor anchor) {
-            return anchor.State.AnchoredTo() - anchor.DistanceFromAnchor;
+            return anchor.State.AnchoredTo() - anchor.Distance;
         }
 
         /// <summary>

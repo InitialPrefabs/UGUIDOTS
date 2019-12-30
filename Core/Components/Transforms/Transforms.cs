@@ -1,33 +1,14 @@
-using Unity.Entities;
 using Unity.Mathematics;
-using UnityEngine;
+using Unity.Transforms;
 
-namespace UGUIDots {
+namespace UGUIDots.Transforms {
 
-    /*
-    /// <summary>
-    /// A representation of the LocalToWorld matrix.
-    /// </summary>
-    public struct LTW : IComponentData {
-        public float4x4 Value;
+    public static class TransformExtensions {
 
-        public static implicit operator Matrix4x4(LTW value) => (Matrix4x4)value.Value;
-        public static implicit operator LTW(Matrix4x4 value) => new LTW { Value = value };
+        public static float3 Scale(this LocalToWorld ltw) {
+            var m = ltw.Value;
 
-        public static implicit operator LTW(float4x4 value) => new LTW { Value = value };
-        public static implicit operator float4x4(LTW value) => value.Value;
+            return new float3(m.c0[0], m.c1[1], m.c2[2]) / m.c3[3];
+        }
     }
-
-    /// <summary>
-    /// A presentation of the LocalToParent matrix.
-    /// </summary>
-    public struct LTP : IComponentData {
-        public float4x4 Value;
-
-        public static implicit operator Matrix4x4(LTP value) => (Matrix4x4)value.Value;
-        public static implicit operator LTP(Matrix4x4 value) => new LTP { Value = value };
-        public static implicit operator LTP(float4x4 value) => new LTP { Value = value };
-        public static implicit operator float4x4(LTP value) => value.Value;
-    }
-    */
 }
