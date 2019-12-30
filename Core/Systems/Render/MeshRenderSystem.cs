@@ -52,7 +52,7 @@ namespace UGUIDots.Render.Systems {
         }
 
         protected override JobHandle OnUpdate(JobHandle inputDeps) {
-            // TODO: Figure out a way to bypass this...maybe turn this into a ComponentSystem instead...?
+            // TODO: See if there's a better way of doing this...
             inputDeps.Complete();
 
             Entities.WithoutBurst().WithStoreEntityQueryInField(ref drawableQuery)

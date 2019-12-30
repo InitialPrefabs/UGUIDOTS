@@ -18,7 +18,7 @@ namespace UGUIDots {
         LeftColumn   = 1 << 4,
         MiddleColumn = 1 << 5,
         RightColumn  = 1 << 6
-    };
+    }
 
     public struct Anchor : IComponentData {
         public AnchoredState State;

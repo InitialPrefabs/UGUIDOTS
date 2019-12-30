@@ -12,8 +12,6 @@ namespace UGUIDots.Conversions.Systems {
             Entities.ForEach((RectTransform transform) => {
                 var entity = GetPrimaryEntity(transform);
 
-                Debug.Log($"Position of {transform.name}: {transform.position}, Anchoered: {transform.anchoredPosition}");
-
                 // Adding the anchors - which is taking the anchored position
                 DstEntityManager.AddComponentData(entity, new Anchor {
                     Distance = transform.anchoredPosition,

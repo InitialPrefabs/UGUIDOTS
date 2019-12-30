@@ -7,10 +7,43 @@ using UnityEngine;
 
 namespace UGUIDots.Transforms.Systems {
 
+    public struct ResolutionChangeEvt : IComponentData {
+        public byte Value;
+    }
+
+    [UpdateInGroup(typeof(PresentationSystemGroup))]
+    public class ConsumeChangeEvtSystem : JobComponentSystem {
+
+        private struct ConsumeJob : IJobForEachWithEntity<ResolutionChangeEvt> {
+
+            public EntityCommandBuffer.Concurrent CmdBuffer;
+
+            public void Execute(Entity entity, int index, ref ResolutionChangeEvt c0) {
+                CmdBuffer.DestroyEntity(index, entity);
+            }
+        }
+
+        private EntityCommandBufferSystem cmdBufferSystem;
+
+        protected override void OnCreate() {
+            cmdBufferSystem = World.GetOrCreateSystem<BeginPresentationEntityCommandBufferSystem>();
+        }
+
+        protected override JobHandle OnUpdate(JobHandle inputDeps) {
+            var cleanDeps = new ConsumeJob {
+                CmdBuffer = cmdBufferSystem.CreateCommandBuffer().ToConcurrent()
+            }.ScheduleSingle(this, inputDeps);
+
+            cmdBufferSystem.AddJobHandleForProducer(cleanDeps);
+            return cleanDeps;
+        }
+    }
+
     /// <summary>
     /// Scales all the canvases if the resolution of the window changes.
     /// </summary>
     [UpdateInGroup(typeof(PresentationSystemGroup))]
+    [UpdateAfter(typeof(ConsumeChangeEvtSystem))]
     public class CanvasScalerSystem : JobComponentSystem {
 
         private struct ResizeCanvasJob : IJobForEach<ReferenceResolution, WidthHeightWeight, LocalToWorld> {
@@ -27,6 +60,17 @@ namespace UGUIDots.Transforms.Systems {
             }
         }
 
+        private struct ProduceJob : IJob {
+
+            public EntityCommandBuffer CmdBuffer;
+
+            public void Execute() {
+                var entity = CmdBuffer.CreateEntity();
+                CmdBuffer.AddComponent<ResolutionChangeEvt>(entity);
+            }
+        }
+
+        private EntityCommandBufferSystem cmdBufferSystem;
         private EntityQuery scaleQuery;
         private int2 res;
 
@@ -39,14 +83,29 @@ namespace UGUIDots.Transforms.Systems {
                 }
             });
 
+            cmdBufferSystem = World.GetOrCreateSystem<BeginPresentationEntityCommandBufferSystem>();
             res = new int2(Screen.width, Screen.height);
         }
 
         protected override JobHandle OnUpdate(JobHandle inputDeps) {
             var current = new int2(Screen.width, Screen.height);
-            return new ResizeCanvasJob {
-                Resolution = current
-            }.Schedule(this, inputDeps);
+
+            if (!res.Equals(current)) {
+                res = current;
+                var resizeDeps = new ResizeCanvasJob {
+                    Resolution = current
+                }.Schedule(this, inputDeps);
+
+                var productionJob = new ProduceJob {
+                    CmdBuffer = cmdBufferSystem.CreateCommandBuffer()
+                }.Schedule(resizeDeps);
+
+                cmdBufferSystem.AddJobHandleForProducer(productionJob);
+
+                return productionJob;
+            }
+
+            return inputDeps;
         }
     }
 }

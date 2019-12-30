@@ -19,8 +19,10 @@ namespace UGUIDots.Transforms.Systems {
 
             private struct AnchorInfo {
                 public float2 Distance;
-                public float2 WorldPosition;
+                public LocalToWorld LTW;
             }
+
+            public int2 Resolution;
 
             [ReadOnly]
             public ArchetypeChunkEntityType EntityType;
@@ -44,17 +46,28 @@ namespace UGUIDots.Transforms.Systems {
                     var current = entities[i];
                     var anchor  = anchors[i];
                     var ltw     = LTW[current];
-                    var adjustedAnchors = AdjustAnchorsWithScale(current, anchor.Distance, ltw);
+                    var adjustedAnchors = AdjustAnchorsWithScale(current, anchor.Distance, in ltw);
 
-                    Debug.Log($"Adjusted Distance: {adjustedAnchors.Distance} | {adjustedAnchors.WorldPosition}");
+                    Debug.Log($"Adjusted Distance: {adjustedAnchors.Distance} | {adjustedAnchors.LTW.Position}");
+
+                    var anchoredRefPos = anchor.State.AnchoredTo(Resolution);
+                    var newPos = anchoredRefPos + adjustedAnchors.Distance;
+
+                    Debug.Log($" Scale: {ltw.Scale()}");
+
+                    /*
+                    CmdBuffer.SetComponent(i, current, new LocalToWorld {
+
+                    });
+                    */
                 }
             }
 
-            AnchorInfo AdjustAnchorsWithScale(Entity e, float2 distance, LocalToWorld ltw) {
+            private AnchorInfo AdjustAnchorsWithScale(Entity e, float2 distance, in LocalToWorld ltw) {
                 if (!Parents.Exists(e)) {
                     return new AnchorInfo {
-                        Distance      = distance,
-                        WorldPosition = ltw.Position.xy
+                        Distance = distance,
+                        LTW      = ltw,
                     };
                 } 
 
@@ -78,6 +91,8 @@ namespace UGUIDots.Transforms.Systems {
         }
 
         private EntityQuery anchorQuery;
+
+        // TODO: Remove the pointer...don't think I need this anymore...
         private int2* res;
 
         protected override void OnCreate() {
@@ -97,7 +112,10 @@ namespace UGUIDots.Transforms.Systems {
             var current = new int2(Screen.width, Screen.height);
 
             if (!res->Equals(current)) {
+                // TODO: Need to change this because this might not scale well...? 
+                inputDeps.Complete();
                 var anchorDeps = new RecomputeAnchorJob {
+                    Resolution = current,
                     LTW        = GetComponentDataFromEntity<LocalToWorld>(true),
                     AnchorType = GetArchetypeChunkComponentType<Anchor>(true),
                     Parents    = GetComponentDataFromEntity<Parent>(true),
@@ -105,7 +123,7 @@ namespace UGUIDots.Transforms.Systems {
                 }.Schedule(anchorQuery, inputDeps);
 
                 return new UpdateResolution {
-                    Resolution = res,
+                    Resolution        = res,
                     CurrentResolution = current
                 }.Schedule(anchorDeps);
             }
