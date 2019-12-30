@@ -36,30 +36,42 @@ namespace UGUIDots.Transforms.Systems {
             [ReadOnly]
             public ArchetypeChunkComponentType<Anchor> AnchorType;
 
+            [ReadOnly]
+            public ComponentDataFromEntity<Translation> Translations; 
+
             public EntityCommandBuffer.Concurrent CmdBuffer;
 
             public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex) {
                 var entities = chunk.GetNativeArray(EntityType);
-                var anchors  = chunk.GetNativeArray(AnchorType);
+                var anchors = chunk.GetNativeArray(AnchorType);
 
                 for (int i = 0; i < chunk.Count; i++) {
                     var current = entities[i];
-                    var anchor  = anchors[i];
-                    var ltw     = LTW[current];
+                    var anchor = anchors[i];
+                    var ltw = LTW[current];
                     var adjustedAnchors = AdjustAnchorsWithScale(current, anchor.Distance, in ltw);
-
-                    Debug.Log($"Adjusted Distance: {adjustedAnchors.Distance} | {adjustedAnchors.LTW.Position}");
 
                     var anchoredRefPos = anchor.State.AnchoredTo(Resolution);
                     var newPos = anchoredRefPos + adjustedAnchors.Distance;
-
-                    Debug.Log($" Scale: {ltw.Scale()}");
-
                     /*
-                    CmdBuffer.SetComponent(i, current, new LocalToWorld {
+                    var dir = newPos - ltw.Position.xy;
 
-                    });
+                    Debug.Log($" Scale: {ltw.Scale()}, newPos: {newPos}, dir: {dir}");
+
+                    var m = ltw.Value;
+                    m.c3 = new float4(newPos, 0, 1);
+
+                    var dest = Translations[current].Value + new float3(dir, 0);
+                    CmdBuffer.SetComponent(i, current, new Translation { Value = dest });
                     */
+
+                    var imParentLTW    = LTW[Parents[current].Value];
+                    var inversedParent = math.inverse(imParentLTW.Value);
+                    var newM           = float4x4.TRS(new float3(newPos, 0), default, new float3(1));
+                    var localSpace     = new LocalToParent { Value = math.mul(inversedParent, newM) };
+
+                    CmdBuffer.SetComponent(i, current, localSpace);
+                    CmdBuffer.SetComponent(i, current, new Translation { Value = localSpace.Position });
                 }
             }
 
@@ -67,14 +79,14 @@ namespace UGUIDots.Transforms.Systems {
                 if (!Parents.Exists(e)) {
                     return new AnchorInfo {
                         Distance = distance,
-                        LTW      = ltw,
+                        LTW = ltw,
                     };
-                } 
+                }
 
-                var parent       = Parents[e].Value;
-                var parentLTW    = LTW[parent];
-                var parentScale  = parentLTW.Scale();
-                distance        *= parentScale.xy;
+                var parent = Parents[e].Value;
+                var parentLTW = LTW[parent];
+                var parentScale = parentLTW.Scale();
+                distance *= parentScale.xy;
 
                 return AdjustAnchorsWithScale(parent, distance, parentLTW);
             }
@@ -90,10 +102,8 @@ namespace UGUIDots.Transforms.Systems {
             }
         }
 
+        private EntityCommandBufferSystem cmdBufferSystem;
         private EntityQuery anchorQuery;
-
-        // TODO: Remove the pointer...don't think I need this anymore...
-        private int2* res;
 
         protected override void OnCreate() {
             anchorQuery = GetEntityQuery(new EntityQueryDesc {
@@ -104,31 +114,26 @@ namespace UGUIDots.Transforms.Systems {
                 },
             });
 
-            res = (int2*)UnsafeUtility.Malloc(sizeof(int2), sizeof(int2), Allocator.Persistent);
-            *res = new int2(Screen.width, Screen.height);
+            cmdBufferSystem = World.GetOrCreateSystem<BeginPresentationEntityCommandBufferSystem>();
+            RequireSingletonForUpdate<ResolutionChangeEvt>();
         }
 
         protected override JobHandle OnUpdate(JobHandle inputDeps) {
             var current = new int2(Screen.width, Screen.height);
 
-            if (!res->Equals(current)) {
-                // TODO: Need to change this because this might not scale well...? 
-                inputDeps.Complete();
-                var anchorDeps = new RecomputeAnchorJob {
-                    Resolution = current,
-                    LTW        = GetComponentDataFromEntity<LocalToWorld>(true),
-                    AnchorType = GetArchetypeChunkComponentType<Anchor>(true),
-                    Parents    = GetComponentDataFromEntity<Parent>(true),
-                    EntityType = GetArchetypeChunkEntityType()
-                }.Schedule(anchorQuery, inputDeps);
+            var anchorDeps   = new RecomputeAnchorJob {
+                Resolution   = current,
+                LTW          = GetComponentDataFromEntity<LocalToWorld>(true),
+                AnchorType   = GetArchetypeChunkComponentType<Anchor>(true),
+                Parents      = GetComponentDataFromEntity<Parent>(true),
+                EntityType   = GetArchetypeChunkEntityType(),
+                CmdBuffer    = cmdBufferSystem.CreateCommandBuffer().ToConcurrent(),
+                Translations = GetComponentDataFromEntity<Translation>(true)
+            }.Schedule(anchorQuery, inputDeps);
 
-                return new UpdateResolution {
-                    Resolution        = res,
-                    CurrentResolution = current
-                }.Schedule(anchorDeps);
-            }
-            
-            return inputDeps;
+            cmdBufferSystem.AddJobHandleForProducer(anchorDeps);
+
+            return anchorDeps;
         }
     }
 }
