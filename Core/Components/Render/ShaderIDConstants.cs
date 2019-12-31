@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace UGUIDots {
+namespace UGUIDots.Render {
 
     public static class ShaderIDConstants {
         public static readonly int MainTex = Shader.PropertyToID("_MainTex");

@@ -1,7 +1,7 @@
 using Unity.Mathematics;
 using UnityEngine;
 
-namespace UGUIDots {
+namespace UGUIDots.Transforms {
 
     public static class RectTransformExtensions {
 

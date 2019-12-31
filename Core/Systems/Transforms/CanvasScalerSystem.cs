@@ -46,11 +46,11 @@ namespace UGUIDots.Transforms.Systems {
     [UpdateAfter(typeof(ConsumeChangeEvtSystem))]
     public class CanvasScalerSystem : JobComponentSystem {
 
-        private struct ResizeCanvasJob : IJobForEach<ReferenceResolution, WidthHeightWeight, LocalToWorld> {
+        private struct ResizeCanvasJob : IJobForEach<ReferenceResolution, WidthHeightRatio, LocalToWorld> {
 
             public int2 Resolution;
 
-            public void Execute([ReadOnly] ref ReferenceResolution c0, [ReadOnly] ref WidthHeightWeight c1, ref LocalToWorld c2) {
+            public void Execute([ReadOnly] ref ReferenceResolution c0, [ReadOnly] ref WidthHeightRatio c1, ref LocalToWorld c2) {
                 var logWidth  = math.log2(Resolution.x / c0.Value.x);
                 var logHeight = math.log2(Resolution.y / c0.Value.y);
                 var avg       = math.lerp(logWidth, logHeight, c1.Value);
@@ -76,9 +76,9 @@ namespace UGUIDots.Transforms.Systems {
 
         protected override void OnCreate() {
             scaleQuery = GetEntityQuery(new EntityQueryDesc {
-                All = new [] { 
+                All = new [] {
                     ComponentType.ReadOnly<ReferenceResolution>(),
-                    ComponentType.ReadOnly<WidthHeightWeight>(), 
+                    ComponentType.ReadOnly<WidthHeightRatio>(),
                     ComponentType.ReadWrite<LocalToWorld>()
                 }
             });

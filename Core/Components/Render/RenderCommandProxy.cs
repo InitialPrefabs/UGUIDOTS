@@ -2,7 +2,7 @@ using System;
 using Unity.Entities;
 using UnityEngine;
 
-namespace UGUIDots {
+namespace UGUIDots.Render {
 
     // TODO: Convert to using a pointer?
     public struct RenderCommand : ISharedComponentData, IEquatable<RenderCommand> {

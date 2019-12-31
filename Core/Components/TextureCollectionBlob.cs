@@ -33,6 +33,9 @@ using System;
             return blob.BlobAsset.Value.Ptr[index].Value;
         }
 
+        /// <summary>
+        /// Returns the number of textures stored in the blob.
+        /// </summary>
         public static int Length(this ref TextureCollectionBlob blob) {
             return blob.BlobAsset.Value.Ptr.Length;
         }

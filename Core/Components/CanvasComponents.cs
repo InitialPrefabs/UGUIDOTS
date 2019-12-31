@@ -13,7 +13,7 @@ namespace UGUIDots {
     /// <summary>
     /// The weight of whether the scaled canvas should try to match the width of the current window or its height.
     /// </summary>
-    public struct WidthHeightWeight : IComponentData {
+    public struct WidthHeightRatio : IComponentData {
         public float Value;
     }
 }

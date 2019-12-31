@@ -19,13 +19,13 @@ namespace UGUIDots.Conversions.Systems {
 
                 switch (canvasScaler.uiScaleMode) {
                     case CanvasScaler.ScaleMode.ScaleWithScreenSize:
-                        DstEntityManager.AddComponentData(entity, new ReferenceResolution { 
+                        DstEntityManager.AddComponentData(entity, new ReferenceResolution {
                             Value = canvasScaler.referenceResolution
                         });
 
                         // TODO: Should figure out if I want to support shrinking and expanding only...
                         if (canvasScaler.screenMatchMode == CanvasScaler.ScreenMatchMode.MatchWidthOrHeight) {
-                            DstEntityManager.AddComponentData(entity, new WidthHeightWeight {
+                            DstEntityManager.AddComponentData(entity, new WidthHeightRatio {
                                 Value =  canvasScaler.matchWidthOrHeight
                             });
                         } else {

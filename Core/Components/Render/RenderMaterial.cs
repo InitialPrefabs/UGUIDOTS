@@ -2,7 +2,7 @@ using System;
 using Unity.Entities;
 using UnityEngine;
 
-namespace UGUIDots {
+namespace UGUIDots.Render {
 
     public struct RenderMaterial : ISharedComponentData, IEquatable<RenderMaterial> {
         public Material Value;

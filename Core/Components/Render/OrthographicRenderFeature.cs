@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
-namespace UGUIDots {
+namespace UGUIDots.Render {
 
     public class OrthographicRenderPass : ScriptableRenderPass {
 

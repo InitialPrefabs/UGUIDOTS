@@ -51,6 +51,7 @@ namespace UGUIDots {
             return dim.Size / 2;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float2 Size(this RectTransform transform) {
             return new float2(transform.rect.width, transform.rect.height);
         }

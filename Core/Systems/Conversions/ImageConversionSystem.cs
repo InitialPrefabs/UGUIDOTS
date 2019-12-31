@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UGUIDots.Render;
 using Unity.Collections;
 using Unity.Entities;
 using UnityEngine;
@@ -32,17 +33,17 @@ namespace UGUIDots.Conversions.Systems {
                     Value = image.material != null ? image.material : Canvas.GetDefaultCanvasMaterial()
                 });
 
-                DstEntityManager.AddComponentData(entity, new ImageDimensions { 
+                DstEntityManager.AddComponentData(entity, new ImageDimensions {
                     Size     = image.rectTransform.Size(),
                     TextureKey = images.IndexOf(image)
                 });
 
-                DstEntityManager.AddComponentData(entity, new DefaultImageColor { 
+                DstEntityManager.AddComponentData(entity, new DefaultImageColor {
                     Value = image.color
                 });
             });
 
-            // TODO: Have a check because if the conversion system continuously runs, then we have multiple smaller 
+            // TODO: Have a check because if the conversion system continuously runs, then we have multiple smaller
             // mini blobs with more images.
             {   // Create a mega blob which references all of the sprites/images that we need.
                 var entity     = DstEntityManager.CreateEntity();
