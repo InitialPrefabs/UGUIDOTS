@@ -42,6 +42,11 @@ namespace UGUIDots {
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int2 Int2Size(this ImageDimensions dim) {
+            return new int2(dim.Width(), dim.Height());
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float2 Extents(this ImageDimensions dim) {
             return dim.Size / 2;
         }

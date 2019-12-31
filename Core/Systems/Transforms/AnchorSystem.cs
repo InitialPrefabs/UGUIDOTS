@@ -1,5 +1,4 @@
 using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
@@ -15,6 +14,7 @@ namespace UGUIDots.Transforms.Systems {
     [UpdateInGroup(typeof(PresentationSystemGroup))]
     public unsafe class AnchorSystem : JobComponentSystem {
 
+        /*
         private struct RecomputeAnchorJob : IJobChunk {
 
             private struct AnchorInfo {
@@ -37,8 +37,7 @@ namespace UGUIDots.Transforms.Systems {
             public ArchetypeChunkComponentType<Anchor> AnchorType;
 
             [ReadOnly]
-            public ComponentDataFromEntity<Translation> Translations; 
-
+            public ComponentDataFromEntity<Translation> Translations;
             public EntityCommandBuffer.Concurrent CmdBuffer;
 
             public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex) {
@@ -53,22 +52,11 @@ namespace UGUIDots.Transforms.Systems {
 
                     var anchoredRefPos = anchor.State.AnchoredTo(Resolution);
                     var newPos = anchoredRefPos + adjustedAnchors.Distance;
-                    /*
-                    var dir = newPos - ltw.Position.xy;
 
-                    Debug.Log($" Scale: {ltw.Scale()}, newPos: {newPos}, dir: {dir}");
-
-                    var m = ltw.Value;
-                    m.c3 = new float4(newPos, 0, 1);
-
-                    var dest = Translations[current].Value + new float3(dir, 0);
-                    CmdBuffer.SetComponent(i, current, new Translation { Value = dest });
-                    */
-
-                    var imParentLTW    = LTW[Parents[current].Value];
+                    var imParentLTW = LTW[Parents[current].Value];
                     var inversedParent = math.inverse(imParentLTW.Value);
-                    var newM           = float4x4.TRS(new float3(newPos, 0), default, new float3(1));
-                    var localSpace     = new LocalToParent { Value = math.mul(inversedParent, newM) };
+                    var newM = float4x4.TRS(new float3(newPos, 0), default, new float3(1));
+                    var localSpace = new LocalToParent { Value = math.mul(inversedParent, newM) };
 
                     CmdBuffer.SetComponent(i, current, localSpace);
                     CmdBuffer.SetComponent(i, current, new Translation { Value = localSpace.Position });
@@ -91,19 +79,83 @@ namespace UGUIDots.Transforms.Systems {
                 return AdjustAnchorsWithScale(parent, distance, parentLTW);
             }
         }
+        */
 
-        private unsafe struct UpdateResolution : IJob {
+        private struct RepositionToAnchorJob : IJobChunk {
 
-            public int2 CurrentResolution;
-            [NativeDisableUnsafePtrRestriction] public int2* Resolution;
+            public int2 Resolution;
 
-            public void Execute() {
-                *Resolution = CurrentResolution;
+            [ReadOnly]
+            public ArchetypeChunkEntityType EntityType;
+
+            [ReadOnly]
+            public BufferFromEntity<Child> ChildBuffers;
+
+            [ReadOnly]
+            public ComponentDataFromEntity<LocalToWorld> LTW;
+
+            [ReadOnly]
+            public ComponentDataFromEntity<Anchor> Anchors;
+
+            [ReadOnly]
+            public ComponentDataFromEntity<Parent> Parents;
+
+            [ReadOnly]
+            public ComponentDataFromEntity<ImageDimensions> Dimensions;
+
+            public EntityCommandBuffer.Concurrent CmdBuffer;
+
+            public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex) {
+                var entities = chunk.GetNativeArray(EntityType);
+
+                for (int i = 0; i < chunk.Count; i++) {
+                    var entity = entities[i];
+                    var ltw = LTW[entity];
+                    var initialScale = ltw.Scale().xy;
+
+                    var children = ChildBuffers[entity];
+                    RecurseChildren(in entity, in ltw, in initialScale, in children);
+                }
+            }
+
+            private void RecurseChildren(in Entity parent, in LocalToWorld parentLTW, in float2 initialScale, 
+                in DynamicBuffer<Child> children) {
+
+                var parentInversed = math.inverse(parentLTW.Value);
+
+                for (int i = 0; i < children.Length; i++) {
+                    var current = children[i].Value;
+                    var anchor  = Anchors[current];
+
+                    // TODO: If under local resolution - convert it to world space somehow.
+                    var distance        = anchor.Distance * initialScale;
+                    var localResolution = Parents.Exists(parent) ? Dimensions[parent].Int2Size() : Resolution;
+                    var anchoredRef     = anchor.State.AnchoredTo(localResolution);
+
+                    var worldPos = anchoredRef + distance;
+                    var ltw      = LTW[current];
+
+                    Debug.Log($"World pos: {worldPos}");
+
+                    var m          = float4x4.TRS(new float3(worldPos, 0), ltw.Rotation, ltw.Scale());
+                    var localSpace = new LocalToParent { Value = math.mul(parentInversed, m) };
+
+                    CmdBuffer.SetComponent(current.Index, current, localSpace);
+                    CmdBuffer.SetComponent(current.Index, current, new Translation { Value = localSpace.Position });
+
+                    var adjustedScale = initialScale * ltw.Scale().xy;
+
+                    if (ChildBuffers.Exists(current)) {
+                        Debug.Log("Entering child...");
+                        var grandChildren = ChildBuffers[current];
+                        RecurseChildren(in current, in ltw, in adjustedScale, in grandChildren);
+                    }
+                }
             }
         }
 
         private EntityCommandBufferSystem cmdBufferSystem;
-        private EntityQuery anchorQuery;
+        private EntityQuery anchorQuery, canvasQuery;
 
         protected override void OnCreate() {
             anchorQuery = GetEntityQuery(new EntityQueryDesc {
@@ -114,25 +166,33 @@ namespace UGUIDots.Transforms.Systems {
                 },
             });
 
+            canvasQuery = GetEntityQuery(new EntityQueryDesc {
+                All = new[] {
+                    ComponentType.ReadOnly<ReferenceResolution>(),
+                    ComponentType.ReadOnly<Child>()
+                },
+                None = new[] {
+                    ComponentType.ReadOnly<Parent>()
+                }
+            });
+
             cmdBufferSystem = World.GetOrCreateSystem<BeginPresentationEntityCommandBufferSystem>();
             RequireSingletonForUpdate<ResolutionChangeEvt>();
         }
 
         protected override JobHandle OnUpdate(JobHandle inputDeps) {
-            var current = new int2(Screen.width, Screen.height);
-
-            var anchorDeps   = new RecomputeAnchorJob {
-                Resolution   = current,
+            var anchorDeps = new RepositionToAnchorJob {
+                Resolution   = new int2(Screen.width, Screen.height),
                 LTW          = GetComponentDataFromEntity<LocalToWorld>(true),
-                AnchorType   = GetArchetypeChunkComponentType<Anchor>(true),
+                ChildBuffers = GetBufferFromEntity<Child>(true),
+                Anchors      = GetComponentDataFromEntity<Anchor>(true),
                 Parents      = GetComponentDataFromEntity<Parent>(true),
+                Dimensions   = GetComponentDataFromEntity<ImageDimensions>(true),
                 EntityType   = GetArchetypeChunkEntityType(),
-                CmdBuffer    = cmdBufferSystem.CreateCommandBuffer().ToConcurrent(),
-                Translations = GetComponentDataFromEntity<Translation>(true)
-            }.Schedule(anchorQuery, inputDeps);
+                CmdBuffer    = cmdBufferSystem.CreateCommandBuffer().ToConcurrent()
+            }.Schedule(canvasQuery, inputDeps);
 
             cmdBufferSystem.AddJobHandleForProducer(anchorDeps);
-
             return anchorDeps;
         }
     }

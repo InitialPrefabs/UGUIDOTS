@@ -10,6 +10,10 @@ namespace UGUIDots.Conversions.Systems {
         protected override void OnUpdate() {
             Entities.ForEach((Canvas canvas) => {
 
+                if (canvas.transform.parent != null) {
+                    Debug.LogError($"{canvas.name} has a parent - this hierarchy structure might not be supported!");
+                }
+
                 var entity       = GetPrimaryEntity(canvas);
                 var canvasScaler = canvas.GetComponent<CanvasScaler>();
 
