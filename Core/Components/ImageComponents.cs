@@ -54,5 +54,15 @@ namespace UGUIDots {
         public static float2 Size(this RectTransform transform) {
             return new float2(transform.rect.width, transform.rect.height);
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float2 Center(this ImageDimensions dim) {
+            return new float2(dim.Extents());
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int2 Int2Center(this ImageDimensions dim) {
+            return new int2(dim.Extents());
+        }
     }
 }

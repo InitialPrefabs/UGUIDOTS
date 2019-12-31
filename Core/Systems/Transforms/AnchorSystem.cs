@@ -14,73 +14,6 @@ namespace UGUIDots.Transforms.Systems {
     [UpdateInGroup(typeof(PresentationSystemGroup))]
     public unsafe class AnchorSystem : JobComponentSystem {
 
-        /*
-        private struct RecomputeAnchorJob : IJobChunk {
-
-            private struct AnchorInfo {
-                public float2 Distance;
-                public LocalToWorld LTW;
-            }
-
-            public int2 Resolution;
-
-            [ReadOnly]
-            public ArchetypeChunkEntityType EntityType;
-
-            [ReadOnly]
-            public ComponentDataFromEntity<LocalToWorld> LTW;
-
-            [ReadOnly]
-            public ComponentDataFromEntity<Parent> Parents;
-
-            [ReadOnly]
-            public ArchetypeChunkComponentType<Anchor> AnchorType;
-
-            [ReadOnly]
-            public ComponentDataFromEntity<Translation> Translations;
-            public EntityCommandBuffer.Concurrent CmdBuffer;
-
-            public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex) {
-                var entities = chunk.GetNativeArray(EntityType);
-                var anchors = chunk.GetNativeArray(AnchorType);
-
-                for (int i = 0; i < chunk.Count; i++) {
-                    var current = entities[i];
-                    var anchor = anchors[i];
-                    var ltw = LTW[current];
-                    var adjustedAnchors = AdjustAnchorsWithScale(current, anchor.Distance, in ltw);
-
-                    var anchoredRefPos = anchor.State.AnchoredTo(Resolution);
-                    var newPos = anchoredRefPos + adjustedAnchors.Distance;
-
-                    var imParentLTW = LTW[Parents[current].Value];
-                    var inversedParent = math.inverse(imParentLTW.Value);
-                    var newM = float4x4.TRS(new float3(newPos, 0), default, new float3(1));
-                    var localSpace = new LocalToParent { Value = math.mul(inversedParent, newM) };
-
-                    CmdBuffer.SetComponent(i, current, localSpace);
-                    CmdBuffer.SetComponent(i, current, new Translation { Value = localSpace.Position });
-                }
-            }
-
-            private AnchorInfo AdjustAnchorsWithScale(Entity e, float2 distance, in LocalToWorld ltw) {
-                if (!Parents.Exists(e)) {
-                    return new AnchorInfo {
-                        Distance = distance,
-                        LTW = ltw,
-                    };
-                }
-
-                var parent = Parents[e].Value;
-                var parentLTW = LTW[parent];
-                var parentScale = parentLTW.Scale();
-                distance *= parentScale.xy;
-
-                return AdjustAnchorsWithScale(parent, distance, parentLTW);
-            }
-        }
-        */
-
         private struct RepositionToAnchorJob : IJobChunk {
 
             public int2 Resolution;
@@ -93,6 +26,9 @@ namespace UGUIDots.Transforms.Systems {
 
             [ReadOnly]
             public ComponentDataFromEntity<LocalToWorld> LTW;
+
+            [ReadOnly]
+            public ComponentDataFromEntity<LocalToParent> LTP;
 
             [ReadOnly]
             public ComponentDataFromEntity<Anchor> Anchors;
@@ -127,16 +63,25 @@ namespace UGUIDots.Transforms.Systems {
                     var current = children[i].Value;
                     var anchor  = Anchors[current];
 
-                    // TODO: If under local resolution - convert it to world space somehow.
-                    var distance        = anchor.Distance * initialScale;
-                    var localResolution = Parents.Exists(parent) ? Dimensions[parent].Int2Size() : Resolution;
-                    var anchoredRef     = anchor.State.AnchoredTo(localResolution);
+                    int2 worldAnchor;
+                    if (Parents.Exists(parent)) {
+                        // Since the parent exists, we want to adjust "texture" space to "local space" in accordance to
+                        // the pivot.
+                        var dimension       = Dimensions[parent];
+                        var localResolution = dimension.Int2Size();
+                        var localAnchor     = anchor.State.AnchoredTo(localResolution) - dimension.Int2Center();
+                        var currentLTP      = LTP[current];
+                        var localLTP        = float4x4.TRS(new float3(localAnchor, 0), currentLTP.LocalRotation(), currentLTP.Scale());
+                        var anchorLTW       = math.mul(parentLTW.Value, localLTP);
+                        worldAnchor         = new int2((int)anchorLTW.c3.x, (int)anchorLTW.c3.y) / (int)anchorLTW.c3.w;
+                    } else {
+                        var localResolution = Resolution;
+                        worldAnchor = anchor.State.AnchoredTo(localResolution);
+                    }
 
-                    var worldPos = anchoredRef + distance;
-                    var ltw      = LTW[current];
-
-                    Debug.Log($"World pos: {worldPos}");
-
+                    var distance   = anchor.Distance * initialScale;
+                    var worldPos   = worldAnchor + distance;
+                    var ltw        = LTW[current];
                     var m          = float4x4.TRS(new float3(worldPos, 0), ltw.Rotation, ltw.Scale());
                     var localSpace = new LocalToParent { Value = math.mul(parentInversed, m) };
 
@@ -146,7 +91,6 @@ namespace UGUIDots.Transforms.Systems {
                     var adjustedScale = initialScale * ltw.Scale().xy;
 
                     if (ChildBuffers.Exists(current)) {
-                        Debug.Log("Entering child...");
                         var grandChildren = ChildBuffers[current];
                         RecurseChildren(in current, in ltw, in adjustedScale, in grandChildren);
                     }
@@ -181,9 +125,10 @@ namespace UGUIDots.Transforms.Systems {
         }
 
         protected override JobHandle OnUpdate(JobHandle inputDeps) {
-            var anchorDeps = new RepositionToAnchorJob {
+            var anchorDeps   = new RepositionToAnchorJob {
                 Resolution   = new int2(Screen.width, Screen.height),
                 LTW          = GetComponentDataFromEntity<LocalToWorld>(true),
+                LTP          = GetComponentDataFromEntity<LocalToParent>(true),
                 ChildBuffers = GetBufferFromEntity<Child>(true),
                 Anchors      = GetComponentDataFromEntity<Anchor>(true),
                 Parents      = GetComponentDataFromEntity<Parent>(true),
