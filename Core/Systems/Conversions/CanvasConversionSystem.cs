@@ -1,5 +1,5 @@
 using System;
-using UGUIDots.Render;
+using System.Collections.Generic;
 using Unity.Entities;
 using UnityEngine;
 using UnityEngine.UI;
@@ -8,6 +8,8 @@ namespace UGUIDots.Conversions.Systems {
 
     [UpdateAfter(typeof(RectTransformConversionSystem))]
     public class CanvasConversionSystem : GameObjectConversionSystem {
+
+        private List<int> sortOrders = new List<int>();
 
         protected override void OnUpdate() {
             Entities.ForEach((Canvas canvas) => {
@@ -23,9 +25,12 @@ namespace UGUIDots.Conversions.Systems {
                 var entity       = GetPrimaryEntity(canvas);
                 var canvasScaler = canvas.GetComponent<CanvasScaler>();
 
-                DstEntityManager.AddSharedComponentData(entity, new SortOrder {
-                    Value = canvas.sortingOrder
-                });
+                DstEntityManager.AddSharedComponentData(entity, new CanvasSortOrder { Value = canvas.sortingOrder });
+                DstEntityManager.AddComponentData(entity, new DirtyTag { });
+
+                if (!sortOrders.Contains(canvas.sortingOrder)) {
+                    sortOrders.Add(canvas.sortingOrder);
+                }
 
                 switch (canvasScaler.uiScaleMode) {
                     case CanvasScaler.ScaleMode.ScaleWithScreenSize:
@@ -46,6 +51,32 @@ namespace UGUIDots.Conversions.Systems {
                         throw new NotSupportedException($"{canvasScaler.uiScaleMode} is not supported!");
                 }
             });
+
+
+            // TODO: If the conversion system runs multiple times we have multiple sort orders, a system should exist to
+            // merge sort order entities.
+            CreateSortOrderEntity();
+        }
+
+        private void CreateSortOrderEntity() {
+            sortOrders.Sort((int x, int y) => {
+                if (x == 0 || y == 0) {
+                    return 0;
+                }
+                return y.CompareTo(x);
+            });
+
+            var entity = DstEntityManager.CreateEntity();
+            var buffer = DstEntityManager.AddBuffer<SortOrderElement>(entity);
+
+            buffer.ResizeUninitialized(sortOrders.Count);
+            for (int i = 0; i < sortOrders.Count; i++) {
+                buffer[i] = new SortOrderElement { Value = sortOrders[i] };
+            }
+
+#if UNITY_EDITOR
+            DstEntityManager.SetName(entity, "Sort Order Buffer");
+#endif
         }
     }
 }

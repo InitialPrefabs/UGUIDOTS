@@ -1,3 +1,4 @@
+using System;
 using Unity.Entities;
 using Unity.Mathematics;
 
@@ -16,4 +17,34 @@ namespace UGUIDots {
     public struct WidthHeightRatio : IComponentData {
         public float Value;
     }
+
+    /// <summary>
+    /// Determines the priority of which chunk should be rendered first and so forth.
+    /// </summary>
+    public struct CanvasSortOrder : ISharedComponentData, IEquatable<CanvasSortOrder> {
+
+        public int Value;
+
+        public override int GetHashCode() {
+            return Value.GetHashCode();
+        }
+
+        public bool Equals(CanvasSortOrder other) {
+            return other.Value == Value;
+        }
+    }
+
+    /// <summary>
+    /// Stores all the sort orders cached from conversion.
+    /// </summary>
+    public struct SortOrderElement : IBufferElementData {
+        public int Value;
+    }
+
+    /// <summary>
+    /// Specifies that an the hierarchy is marked dirty and the cache holding the order of the entities that need to be
+    /// rendered needs to be rebuilt.
+    /// </summary>
+    public struct DirtyTag : IComponentData { }
+
 }
