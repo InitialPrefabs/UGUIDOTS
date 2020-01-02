@@ -1,3 +1,5 @@
+using System;
+using UGUIDots.Render;
 using Unity.Entities;
 using UnityEngine;
 using UnityEngine.UI;
@@ -10,12 +12,20 @@ namespace UGUIDots.Conversions.Systems {
         protected override void OnUpdate() {
             Entities.ForEach((Canvas canvas) => {
 
-                if (canvas.transform.parent != null) {
-                    Debug.LogError($"{canvas.name} has a parent - this hierarchy structure might not be supported!");
+                var parent = canvas.transform.parent;
+                if (parent != null) {
+#if UNITY_EDITOR
+                UnityEditor.EditorGUIUtility.PingObject(canvas);
+#endif
+                    throw new NotSupportedException($"{canvas.name} is child of {parent.name}, this is not supported!");
                 }
 
                 var entity       = GetPrimaryEntity(canvas);
                 var canvasScaler = canvas.GetComponent<CanvasScaler>();
+
+                DstEntityManager.AddSharedComponentData(entity, new SortOrder {
+                    Value = canvas.sortingOrder
+                });
 
                 switch (canvasScaler.uiScaleMode) {
                     case CanvasScaler.ScaleMode.ScaleWithScreenSize:
@@ -29,12 +39,11 @@ namespace UGUIDots.Conversions.Systems {
                                 Value =  canvasScaler.matchWidthOrHeight
                             });
                         } else {
-                            Debug.LogError($"{canvasScaler.screenMatchMode} is not supported yet...");
+                            throw new NotSupportedException($"{canvasScaler.screenMatchMode} is not supported!");
                         }
                         break;
                     default:
-                        Debug.LogError($"{canvasScaler.uiScaleMode} is not supported, skipping for now...");
-                        break;
+                        throw new NotSupportedException($"{canvasScaler.uiScaleMode} is not supported!");
                 }
             });
         }

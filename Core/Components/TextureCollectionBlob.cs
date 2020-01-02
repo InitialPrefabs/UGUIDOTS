@@ -2,6 +2,8 @@ using UnityEngine;
 using Unity.Entities;
 using System;
 
+namespace UGUIDots {
+
     public struct TextureWrapper {
         public Texture Value;
 
@@ -40,3 +42,4 @@ using System;
             return blob.BlobAsset.Value.Ptr.Length;
         }
     }
+}
