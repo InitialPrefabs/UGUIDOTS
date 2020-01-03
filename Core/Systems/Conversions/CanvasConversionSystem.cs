@@ -51,32 +51,6 @@ namespace UGUIDots.Conversions.Systems {
                         throw new NotSupportedException($"{canvasScaler.uiScaleMode} is not supported!");
                 }
             });
-
-
-            // TODO: If the conversion system runs multiple times we have multiple sort orders, a system should exist to
-            // merge sort order entities.
-            CreateSortOrderEntity();
-        }
-
-        private void CreateSortOrderEntity() {
-            sortOrders.Sort((int x, int y) => {
-                if (x == 0 || y == 0) {
-                    return 0;
-                }
-                return y.CompareTo(x);
-            });
-
-            var entity = DstEntityManager.CreateEntity();
-            var buffer = DstEntityManager.AddBuffer<SortOrderElement>(entity);
-
-            buffer.ResizeUninitialized(sortOrders.Count);
-            for (int i = 0; i < sortOrders.Count; i++) {
-                buffer[i] = new SortOrderElement { Value = sortOrders[i] };
-            }
-
-#if UNITY_EDITOR
-            DstEntityManager.SetName(entity, "Sort Order Buffer");
-#endif
         }
     }
 }

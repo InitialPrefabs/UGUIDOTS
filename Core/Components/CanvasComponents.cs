@@ -35,13 +35,6 @@ namespace UGUIDots {
     }
 
     /// <summary>
-    /// Stores all the sort orders cached from conversion.
-    /// </summary>
-    public struct SortOrderElement : IBufferElementData {
-        public int Value;
-    }
-
-    /// <summary>
     /// Specifies that an the hierarchy is marked dirty and the cache holding the order of the entities that need to be
     /// rendered needs to be rebuilt.
     /// </summary>

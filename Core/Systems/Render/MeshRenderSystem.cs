@@ -1,9 +1,15 @@
+using System;
+using System.Collections.Generic;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Transforms;
-using UnityEngine;
 
 namespace UGUIDots.Render.Systems {
+
+    class RenderGroupComparer : IComparer<RenderGroupID> {
+        public int Compare(RenderGroupID x, RenderGroupID y) => x.CompareTo(y);
+    }
 
     /// <summary>
     /// Barebones MeshRenderSystem allows access to the BuildMeshSystem's internal cache of meshes required for
@@ -22,25 +28,19 @@ namespace UGUIDots.Render.Systems {
     public class MeshRenderSystem : RenderSystem {
 
         private OrthographicRenderFeature renderFeature;
-        private EntityQuery drawableQuery, renderQuery;
-        private MaterialPropertyBlock block;
+        private EntityQuery drawableQuery, renderQuery, batchedRenderQuery;
+        private RenderGroupComparer renderGroupComparer;
 
         protected override void OnCreate() {
             base.OnCreate();
-            drawableQuery = GetEntityQuery(new EntityQueryDesc {
-                All = new [] { 
-                    ComponentType.ReadOnly<LocalToWorld>(), 
-                    ComponentType.ReadOnly<ImageDimensions>(),
-                    ComponentType.ReadOnly<RenderMaterial>()
-                },
-                Options = EntityQueryOptions.FilterWriteGroup
-            });
-
-            renderQuery = GetEntityQuery(new EntityQueryDesc {
-                All = new [] { 
-                    ComponentType.ReadOnly<RenderCommand>() 
+            batchedRenderQuery = GetEntityQuery(new EntityQueryDesc {
+                All = new[] {
+                    ComponentType.ReadOnly<RenderGroupID>(),
+                    ComponentType.ReadOnly<RenderElement>()
                 }
             });
+
+            renderGroupComparer = new RenderGroupComparer { };
 
             RequireSingletonForUpdate<RenderCommand>();
         }
@@ -55,15 +55,37 @@ namespace UGUIDots.Render.Systems {
             // TODO: See if there's a better way of doing this...
             inputDeps.Complete();
 
-            Entities.WithoutBurst().WithStoreEntityQueryInField(ref drawableQuery)
-                .ForEach((Entity e, RenderMaterial s0, ref LocalToWorld c0, ref ImageDimensions c1) => {
+            var entities = batchedRenderQuery.ToEntityArray(Allocator.TempJob);
+            var ids      = batchedRenderQuery.ToComponentDataArray<RenderGroupID>(Allocator.TempJob);
 
-                    var mesh          = buildMeshSystem.MeshWith(c1);
-                    var propertyBlock = buildMeshSystem.PropertyBlockOf(e);
+            var idsArray      = ids.ToArray();
+            var entitiesArray = entities.ToArray();
 
-                    renderFeature.Pass.InstructionQueue.Enqueue((mesh, s0.Value, c0.Value, propertyBlock));
-                }).Run();
-            return inputDeps; 
+            entities.Dispose();
+            ids.Dispose();
+
+            Array.Sort(idsArray, entitiesArray);
+
+            var dimensions    = GetComponentDataFromEntity<ImageDimensions>(true);
+            var renderBuffers = GetBufferFromEntity<RenderElement>(true);
+            var localToWorlds = GetComponentDataFromEntity<LocalToWorld>(true);
+
+            for (int i = 0; i < entitiesArray.Length; i++) {
+                var buffer = renderBuffers[entitiesArray[i]];
+
+                for (int k = 0; k < buffer.Length; k++) {
+                    var current = buffer[k].Value;
+                    var dim     = dimensions[current];
+
+                    var propertyBlock = buildMeshSystem.PropertyBlockOf(current);
+                    var mesh          = buildMeshSystem.MeshWith(dim);
+                    var renderMat     = EntityManager.GetSharedComponentData<RenderMaterial>(current);
+                    var ltw           = localToWorlds[current].Value;
+
+                    renderFeature.Pass.InstructionQueue.Enqueue((mesh, renderMat.Value, ltw, propertyBlock));
+                }
+            }
+            return inputDeps;
         }
     }
 }

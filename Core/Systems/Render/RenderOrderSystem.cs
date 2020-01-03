@@ -1,4 +1,4 @@
-using Unity.Collections;
+using System.Collections.Generic;
 using Unity.Entities;
 using Unity.Transforms;
 
@@ -6,55 +6,65 @@ namespace UGUIDots.Render.Systems {
 
     [UpdateInGroup(typeof(PresentationSystemGroup))]
     [UpdateAfter(typeof(BuildMeshSystem))]
-    public unsafe class RenderOrderSystem : ComponentSystem {
+    public class RenderBatchSystem : ComponentSystem {
 
-        // TODO: Initialize the native multi hash map with some capacity
-        public NativeMultiHashMap<int, Entity> BatchedRenderOrder { get; private set; }
-
-        private EntityQuery canvasQuery, sortOrderBufferQuery;
+        private EntityArchetype renderBatchArchetype;
+        private EntityQuery canvasQuery;
+        private List<Entity> batchedEntityList;
 
         protected override void OnCreate() {
             canvasQuery = GetEntityQuery(new EntityQueryDesc {
-                All = new [] { 
+                All = new[] {
                     ComponentType.ReadOnly<CanvasSortOrder>(),
                     ComponentType.ReadOnly<DirtyTag>(),
                     ComponentType.ReadOnly<Child>()
                 }
             });
 
-            sortOrderBufferQuery = GetEntityQuery(new EntityQueryDesc { 
-                All = new [] {
-                    ComponentType.ReadOnly<SortOrderElement>() 
-                }
+            renderBatchArchetype = EntityManager.CreateArchetype(new[] {
+                ComponentType.ReadWrite<RenderGroupID>(),
+                ComponentType.ReadWrite<RenderElement>()
             });
+
+            batchedEntityList = new List<Entity>();
 
             RequireForUpdate(canvasQuery);
         }
 
         protected override void OnUpdate() {
-            if (sortOrderBufferQuery.CalculateEntityCount() > 1) {
-                return;
-            }
+            var childrenBuffer = GetBufferFromEntity<Child>(true);
 
-            var sortOrderBuffer = EntityManager.GetBuffer<SortOrderElement>(sortOrderBufferQuery.GetSingletonEntity());
+            Entities.With(canvasQuery).ForEach((Entity entity, CanvasSortOrder s0, DynamicBuffer<Child> b0) => {
+                // Clear the list so that we can build a render hierarchy.
+                batchedEntityList.Clear();
+                var renderBatchEntity = PostUpdateCommands.CreateEntity(renderBatchArchetype);
 
-            for (int i = 0; i < sortOrderBuffer.Length; i++)
-            {
-                var filter = sortOrderBuffer[i].Value;
-                canvasQuery.SetSharedComponentFilter(new CanvasSortOrder { Value = filter });
-                var buffer = GetBufferFromEntity<Child>();
+                PostUpdateCommands.SetComponent(renderBatchEntity, new RenderGroupID { Value = s0.Value });
+                var buffer = PostUpdateCommands.AddBuffer<RenderElement>(renderBatchEntity);
 
-                Entities.With(canvasQuery).ForEach((Entity e, CanvasSortOrder order) => {
-                    var children = buffer[e];
-                    // RecurseChildren(in children);
+                RecurseChildren(in b0, in childrenBuffer);
 
-                    PostUpdateCommands.RemoveComponent<DirtyTag>(e);
-                });
-            }
+                buffer.ResizeUninitialized(batchedEntityList.Count);
+
+                for (int i = 0; i < buffer.Length; i++) {
+                    buffer[i] = new RenderElement { Value = batchedEntityList[i] };
+                }
+
+                PostUpdateCommands.RemoveComponent<DirtyTag>(entity);
+            });
         }
 
-        private void RecurseChildren(in DynamicBuffer<Child> children) {
-            throw new System.NotImplementedException();
+        private void RecurseChildren(in DynamicBuffer<Child> children, in BufferFromEntity<Child> childBuffer) {
+            for (int i = 0; i < children.Length; i++) {
+                var child = children[i].Value;
+
+                if (childBuffer.Exists(child)) {
+                    var grandChildren = childBuffer[child];
+                    RecurseChildren(in grandChildren, in childBuffer);
+                }
+
+                batchedEntityList.Add(child);
+            }
         }
     }
 }

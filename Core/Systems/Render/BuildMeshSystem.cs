@@ -55,7 +55,7 @@ namespace UGUIDots.Render.Systems {
                     var propertyBlock = new MaterialPropertyBlock {};
 
                     propertyBlock.SetTexture(ShaderIDConstants.MainTex, atlas.At(c0.TextureKey));
-                    propertyBlock.SetColor(ShaderIDConstants.ColorMask, c1.Value);
+                    propertyBlock.SetColor(ShaderIDConstants.Color, c1.Value);
 
                     // Build the property block that we can use
                     propertyBlocks.Add(e, propertyBlock);
