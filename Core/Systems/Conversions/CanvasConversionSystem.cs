@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UGUIDots.Transforms;
 using Unity.Entities;
 using UnityEngine;
 using UnityEngine.UI;
@@ -25,6 +26,7 @@ namespace UGUIDots.Conversions.Systems {
                 var entity       = GetPrimaryEntity(canvas);
                 var canvasScaler = canvas.GetComponent<CanvasScaler>();
 
+                DstEntityManager.RemoveComponent<Anchor>(entity);
                 DstEntityManager.AddSharedComponentData(entity, new CanvasSortOrder { Value = canvas.sortingOrder });
                 DstEntityManager.AddComponentData(entity, new DirtyTag { });
 

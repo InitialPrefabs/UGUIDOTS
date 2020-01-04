@@ -61,6 +61,11 @@ namespace UGUIDots.Transforms.Systems {
 
                 for (int i = 0; i < children.Length; i++) {
                     var current = children[i].Value;
+
+                    if (!Anchors.Exists(current)) { 
+                        continue;
+                    }
+
                     var anchor  = Anchors[current];
 
                     int2 worldAnchor;

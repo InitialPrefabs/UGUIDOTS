@@ -17,7 +17,8 @@ namespace UGUIDots.Transforms {
         // Along the x axis
         LeftColumn   = 1 << 4,
         MiddleColumn = 1 << 5,
-        RightColumn  = 1 << 6
+        RightColumn  = 1 << 6,
+
     }
 
     public struct Anchor : IComponentData {
@@ -74,10 +75,10 @@ namespace UGUIDots.Transforms {
         }
 
         public static AnchoredState ToAnchor(this RectTransform transform) {
-            var current = transform.anchorMin;
-            AnchoredState anchor = 0;
+            var min = transform.anchorMin;
 
-            switch (current.x) {
+            AnchoredState anchor = 0;
+            switch (min.x) {
                 case 0f:
                     anchor = AnchoredState.LeftColumn;
                     break;
@@ -88,10 +89,10 @@ namespace UGUIDots.Transforms {
                     anchor = AnchoredState.RightColumn;
                     break;
                 default:
-                    throw new System.ArgumentException($"Cannot map: {current.x} as a valid AnchoredState!");
+                    throw new System.ArgumentException($"Cannot map: {min.x} as a valid AnchoredState!");
             }
 
-            switch (current.y) {
+            switch (min.y) {
                 case 0f:
                     anchor |= AnchoredState.BottomRow;
                     break;
@@ -102,7 +103,7 @@ namespace UGUIDots.Transforms {
                     anchor |= AnchoredState.RightColumn;
                     break;
                 default:
-                    throw new System.ArgumentException($"Cannot map: {current.y} as a valid AnchoredState!");
+                    throw new System.ArgumentException($"Cannot map: {min.y} as a valid AnchoredState!");
             }
 
             return anchor;

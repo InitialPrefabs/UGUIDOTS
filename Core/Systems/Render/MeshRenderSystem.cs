@@ -1,15 +1,8 @@
-using System;
-using System.Collections.Generic;
-using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Transforms;
 
 namespace UGUIDots.Render.Systems {
-
-    class RenderGroupComparer : IComparer<RenderGroupID> {
-        public int Compare(RenderGroupID x, RenderGroupID y) => x.CompareTo(y);
-    }
 
     /// <summary>
     /// Barebones MeshRenderSystem allows access to the BuildMeshSystem's internal cache of meshes required for
@@ -29,18 +22,17 @@ namespace UGUIDots.Render.Systems {
 
         private OrthographicRenderFeature renderFeature;
         private EntityQuery drawableQuery, renderQuery, batchedRenderQuery;
-        private RenderGroupComparer renderGroupComparer;
+        private RenderSortSystem renderSortSystem;
 
         protected override void OnCreate() {
             base.OnCreate();
+            renderSortSystem  = World.GetOrCreateSystem<RenderSortSystem>();
             batchedRenderQuery = GetEntityQuery(new EntityQueryDesc {
                 All = new[] {
                     ComponentType.ReadOnly<RenderGroupID>(),
                     ComponentType.ReadOnly<RenderElement>()
                 }
             });
-
-            renderGroupComparer = new RenderGroupComparer { };
 
             RequireSingletonForUpdate<RenderCommand>();
         }
@@ -55,23 +47,14 @@ namespace UGUIDots.Render.Systems {
             // TODO: See if there's a better way of doing this...
             inputDeps.Complete();
 
-            var entities = batchedRenderQuery.ToEntityArray(Allocator.TempJob);
-            var ids      = batchedRenderQuery.ToComponentDataArray<RenderGroupID>(Allocator.TempJob);
-
-            var idsArray      = ids.ToArray();
-            var entitiesArray = entities.ToArray();
-
-            entities.Dispose();
-            ids.Dispose();
-
-            Array.Sort(idsArray, entitiesArray);
-
             var dimensions    = GetComponentDataFromEntity<ImageDimensions>(true);
             var renderBuffers = GetBufferFromEntity<RenderElement>(true);
             var localToWorlds = GetComponentDataFromEntity<LocalToWorld>(true);
+            var pairs = renderSortSystem.SortedOrderPairs;
 
-            for (int i = 0; i < entitiesArray.Length; i++) {
-                var buffer = renderBuffers[entitiesArray[i]];
+            for (int i = 0; i < pairs.Count; i++) {
+                var pair   = pairs[i];
+                var buffer = renderBuffers[pair.Root];
 
                 for (int k = 0; k < buffer.Length; k++) {
                     var current = buffer[k].Value;
