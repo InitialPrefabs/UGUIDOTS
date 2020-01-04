@@ -1,4 +1,5 @@
 using UGUIDots.Transforms;
+using Unity.Transforms;
 using UnityEngine;
 
 namespace UGUIDots.Conversions.Systems {
@@ -12,6 +13,8 @@ namespace UGUIDots.Conversions.Systems {
         protected override void OnUpdate() {
             Entities.ForEach((RectTransform transform) => {
                 var entity = GetPrimaryEntity(transform);
+
+                DstEntityManager.RemoveComponent<NonUniformScale>(entity);
 
                 // Add anchoring if the min max anchors are equal (e.g. one of the presets)
                 if (transform.anchorMin == transform.anchorMax) {

@@ -34,7 +34,7 @@ namespace UGUIDots.Conversions.Systems {
                 });
 
                 DstEntityManager.AddComponentData(entity, new ImageDimensions {
-                    Size     = image.rectTransform.Size(),
+                    Size     = image.rectTransform.Int2Size(),
                     TextureKey = images.IndexOf(image)
                 });
 

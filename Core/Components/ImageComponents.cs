@@ -17,7 +17,7 @@ namespace UGUIDots {
     /// Stores the width and the height of the drawable image along with the key to image we want to use.
     /// </summary>
     public struct ImageDimensions : IComponentData, IEquatable<ImageDimensions> {
-        public float2 Size;
+        public int2 Size;
         public int TextureKey;
 
         public override int GetHashCode() {
@@ -54,6 +54,11 @@ namespace UGUIDots {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float2 Size(this RectTransform transform) {
             return new float2(transform.rect.width, transform.rect.height);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int2 Int2Size(this RectTransform transform) {
+            return new int2((int)transform.rect.width, (int)transform.rect.height);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

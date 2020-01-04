@@ -1,3 +1,4 @@
+using Unity.Burst;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
@@ -11,6 +12,7 @@ namespace UGUIDots.Transforms.Systems {
     [UpdateAfter(typeof(AnchorSystem))]
     public class StretchImageSystem : JobComponentSystem {
 
+        [BurstCompile]
         private struct StretchDimensionsJob : IJobForEachWithEntity<LocalToWorld, ImageDimensions, Stretch> {
 
             public int2 Resolution;
@@ -19,7 +21,7 @@ namespace UGUIDots.Transforms.Systems {
             public void Execute(Entity entity, int index, ref LocalToWorld c0, ref ImageDimensions c1, ref Stretch c2) {
                 var scale = c0.Scale().xy;
                 c1 = new ImageDimensions {
-                    Size       = Resolution / scale,
+                    Size       = (int2)(Resolution / scale),
                     TextureKey = c1.TextureKey
                 };
 

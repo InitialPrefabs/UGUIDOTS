@@ -63,6 +63,7 @@ namespace UGUIDots.Transforms.Systems {
 
         protected override JobHandle OnUpdate(JobHandle inputDeps) {
             var disabledDeps = new DisableChildrenJob {
+                EntityType = GetArchetypeChunkEntityType(),
                 Disableds = GetComponentDataFromEntity<Disabled>(true),
                 CmdBuffer = cmdBufferSystem.CreateCommandBuffer().ToConcurrent()
             }.Schedule(disabledParentsQuery, inputDeps);
