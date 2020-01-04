@@ -23,6 +23,7 @@ Support for the following will come over time - depends on the needs for my own 
 
 * [x] Canvas Scaling
 * [x] Anchoring
+* [x] Image stretching
 * [ ] Button actions
 * [ ] Button states (with color support)
 * [ ] Hierarchy based disabling
@@ -39,6 +40,22 @@ When entering play mode, the root Canvases are destroyed and render instructions
 
 You will need a gameObject with the `RenderComandProxy` proxy attached. This is where the RenderPipelineFeature is stored
 and needed by the `MeshRenderSystem` to enqueue GPU instructions to render the UI.
+
+## Sample Scene
+
+Open RectTransformConversionTest.unity to see how scenes are set up.
+
+## Dependencies
+
+* Unity 2019.3fx
+
+Grab these from Unity's package manager.
+
+* Burst 1.1.2
+* Entities 0.4.0-preview-10
+* Jobs 0.2.2-preview-6
+* Collections 0.4.0-preview-6
+* UGUI 1.0.0
 
 ## Limitations
 Development is still underway - so not all of the features Unity has by default is supported. Similarly - there are certain
