@@ -1,4 +1,5 @@
 using UGUIDots.Transforms;
+using Unity.Transforms;
 using UnityEngine;
 
 namespace UGUIDots.Conversions.Systems {
@@ -13,11 +14,20 @@ namespace UGUIDots.Conversions.Systems {
             Entities.ForEach((RectTransform transform) => {
                 var entity = GetPrimaryEntity(transform);
 
-                // Adding the anchors - which is taking the anchored position
-                DstEntityManager.AddComponentData(entity, new Anchor {
-                    Distance = transform.anchoredPosition,
-                    State    = transform.ToAnchor()
-                });
+                DstEntityManager.RemoveComponent<NonUniformScale>(entity);
+
+                // Add anchoring if the min max anchors are equal (e.g. one of the presets)
+                if (transform.anchorMin == transform.anchorMax) {
+                    // Adding the anchors - which is taking the anchored position
+                    DstEntityManager.AddComponentData(entity, new Anchor {
+                        Distance = transform.anchoredPosition,
+                        State    = transform.ToAnchor()
+                    });
+                } else {
+                    DstEntityManager.AddComponentData(entity, new Stretch {
+                        Value = StretchedState.StretchXY
+                    });
+                }
             });
         }
     }

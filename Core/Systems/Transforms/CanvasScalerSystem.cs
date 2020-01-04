@@ -7,6 +7,7 @@ using UnityEngine;
 
 namespace UGUIDots.Transforms.Systems {
 
+    // TODO: Figure out how to spawn an entity with just a tag component.
     public struct ResolutionChangeEvt : IComponentData {
         public byte Value;
     }
@@ -62,17 +63,18 @@ namespace UGUIDots.Transforms.Systems {
 
         private struct ProduceJob : IJob {
 
+            public EntityArchetype EvtArchetype;
             public EntityCommandBuffer CmdBuffer;
 
             public void Execute() {
-                var entity = CmdBuffer.CreateEntity();
-                CmdBuffer.AddComponent<ResolutionChangeEvt>(entity);
+                var entity = CmdBuffer.CreateEntity(EvtArchetype);
             }
         }
 
         private EntityCommandBufferSystem cmdBufferSystem;
         private EntityQuery scaleQuery;
         private int2 res;
+        private EntityArchetype evtArchetype;
 
         protected override void OnCreate() {
             scaleQuery = GetEntityQuery(new EntityQueryDesc {
@@ -82,6 +84,8 @@ namespace UGUIDots.Transforms.Systems {
                     ComponentType.ReadWrite<LocalToWorld>()
                 }
             });
+
+            evtArchetype = EntityManager.CreateArchetype(typeof(ResolutionChangeEvt));
 
             cmdBufferSystem = World.GetOrCreateSystem<BeginPresentationEntityCommandBufferSystem>();
             res = new int2(Screen.width, Screen.height);
@@ -97,7 +101,8 @@ namespace UGUIDots.Transforms.Systems {
                 }.Schedule(this, inputDeps);
 
                 var productionJob = new ProduceJob {
-                    CmdBuffer = cmdBufferSystem.CreateCommandBuffer()
+                    EvtArchetype = evtArchetype,
+                    CmdBuffer    = cmdBufferSystem.CreateCommandBuffer()
                 }.Schedule(resizeDeps);
 
                 cmdBufferSystem.AddJobHandleForProducer(productionJob);

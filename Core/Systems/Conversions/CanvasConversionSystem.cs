@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using UGUIDots.Transforms;
 using Unity.Entities;
 using UnityEngine;
 using UnityEngine.UI;
@@ -7,15 +10,29 @@ namespace UGUIDots.Conversions.Systems {
     [UpdateAfter(typeof(RectTransformConversionSystem))]
     public class CanvasConversionSystem : GameObjectConversionSystem {
 
+        private List<int> sortOrders = new List<int>();
+
         protected override void OnUpdate() {
             Entities.ForEach((Canvas canvas) => {
 
-                if (canvas.transform.parent != null) {
-                    Debug.LogError($"{canvas.name} has a parent - this hierarchy structure might not be supported!");
+                var parent = canvas.transform.parent;
+                if (parent != null) {
+#if UNITY_EDITOR
+                UnityEditor.EditorGUIUtility.PingObject(canvas);
+#endif
+                    throw new NotSupportedException($"{canvas.name} is child of {parent.name}, this is not supported!");
                 }
 
                 var entity       = GetPrimaryEntity(canvas);
                 var canvasScaler = canvas.GetComponent<CanvasScaler>();
+
+                DstEntityManager.RemoveComponent<Anchor>(entity);
+                DstEntityManager.AddSharedComponentData(entity, new CanvasSortOrder { Value = canvas.sortingOrder });
+                DstEntityManager.AddComponentData(entity, new DirtyTag { });
+
+                if (!sortOrders.Contains(canvas.sortingOrder)) {
+                    sortOrders.Add(canvas.sortingOrder);
+                }
 
                 switch (canvasScaler.uiScaleMode) {
                     case CanvasScaler.ScaleMode.ScaleWithScreenSize:
@@ -29,12 +46,11 @@ namespace UGUIDots.Conversions.Systems {
                                 Value =  canvasScaler.matchWidthOrHeight
                             });
                         } else {
-                            Debug.LogError($"{canvasScaler.screenMatchMode} is not supported yet...");
+                            throw new NotSupportedException($"{canvasScaler.screenMatchMode} is not supported!");
                         }
                         break;
                     default:
-                        Debug.LogError($"{canvasScaler.uiScaleMode} is not supported, skipping for now...");
-                        break;
+                        throw new NotSupportedException($"{canvasScaler.uiScaleMode} is not supported!");
                 }
             });
         }
