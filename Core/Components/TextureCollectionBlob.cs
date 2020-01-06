@@ -32,6 +32,10 @@ namespace UGUIDots {
         /// Returns the reference of a texture given its index.
         /// </summary>
         public static Texture At(this ref TextureCollectionBlob blob, int index) {
+            if (index < 0) {
+                return null;
+            }
+
             return blob.BlobAsset.Value.Ptr[index].Value;
         }
 

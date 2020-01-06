@@ -47,10 +47,11 @@ namespace UGUIDots.Render.Systems {
             // TODO: See if there's a better way of doing this...
             inputDeps.Complete();
 
-            var dimensions    = GetComponentDataFromEntity<ImageDimensions>(true);
+            var keys          = GetComponentDataFromEntity<ImageKey>(true);
+            var dimensions    = GetComponentDataFromEntity<Dimensions>(true);
             var renderBuffers = GetBufferFromEntity<RenderElement>(true);
             var localToWorlds = GetComponentDataFromEntity<LocalToWorld>(true);
-            var pairs = renderSortSystem.SortedOrderPairs;
+            var pairs         = renderSortSystem.SortedOrderPairs;
 
             for (int i = 0; i < pairs.Count; i++) {
                 var pair   = pairs[i];

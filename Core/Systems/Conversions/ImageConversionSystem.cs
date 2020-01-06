@@ -33,14 +33,9 @@ namespace UGUIDots.Conversions.Systems {
                     Value = image.material != null ? image.material : Canvas.GetDefaultCanvasMaterial()
                 });
 
-                DstEntityManager.AddComponentData(entity, new ImageDimensions {
-                    Size     = image.rectTransform.Int2Size(),
-                    TextureKey = images.IndexOf(image)
-                });
-
-                DstEntityManager.AddComponentData(entity, new DefaultImageColor {
-                    Value = image.color
-                });
+                DstEntityManager.AddComponentData(entity, new ImageKey          { Value = images.IndexOf(image) });
+                DstEntityManager.AddComponentData(entity, new AppliedColor { Value = image.color });
+                DstEntityManager.AddComponentData(entity, new Dimensions        { Value = image.rectTransform.Int2Size() });
             });
 
             // TODO: Have a check because if the conversion system continuously runs, then we have multiple smaller
