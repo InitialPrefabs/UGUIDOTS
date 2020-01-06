@@ -505,7 +505,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 457b43c12531c6945b6073084b9af179, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  RenderFeature: {fileID: 8180628974033587597, guid: 1cfab3c9c4b7b8941b24b11c03deffe6,
+  RenderFeature: {fileID: -1372306941258236212, guid: 95c9b70d328f84047a847a2d7d71a924,
     type: 2}
 --- !u!1 &1222487947
 GameObject:
