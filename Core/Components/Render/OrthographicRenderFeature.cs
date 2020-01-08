@@ -31,7 +31,6 @@ namespace UGUIDots.Render {
                     var tuple = InstructionQueue.Dequeue();
                     cmd.DrawMesh(tuple.Item1, tuple.Item3, tuple.Item2, 0, 0, tuple.Item4);
                 }
-
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);

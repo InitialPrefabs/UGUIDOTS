@@ -5,10 +5,10 @@ namespace UGUIDots.Render {
     public static class MeshUtils {
 
         public static Mesh CreateQuad(int width, int height) {
-            var mesh = new Mesh();
-            var verts = new Vector3[4];
-            var norms = new Vector3[4];
-            var uvs = new Vector2[4];
+            var mesh    = new Mesh();
+            var verts   = new Vector3[4];
+            var norms   = new Vector3[4];
+            var uvs     = new Vector2[4];
             var indices = new int[6];
 
             verts[0] = new Vector3(-width / 2, -height / 2);
@@ -32,10 +32,10 @@ namespace UGUIDots.Render {
             indices[4] = 2;
             indices[5] = 3;
 
-            mesh.vertices = verts;
-            mesh.normals = norms;
+            mesh.vertices  = verts;
+            mesh.normals   = norms;
             mesh.triangles = indices;
-            mesh.uv = uvs;
+            mesh.uv        = uvs;
 
             mesh.RecalculateBounds();
 

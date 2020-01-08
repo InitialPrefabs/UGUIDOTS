@@ -3,6 +3,7 @@ using TMPro;
 using UGUIDots.Render;
 using Unity.Entities;
 using UnityEngine.TextCore;
+
 namespace UGUIDots.Conversions.Systems {
 
     [UpdateInGroup(typeof(GameObjectDeclareReferencedObjectsGroup))]
@@ -16,6 +17,7 @@ namespace UGUIDots.Conversions.Systems {
 
     [UpdateInGroup(typeof(GameObjectConversionGroup))]
     public class TMPFontAssetConversionSystem : GameObjectConversionSystem {
+
         protected override void OnUpdate() {
             Entities.ForEach<TMP_FontAsset>((TMP_FontAsset c0) => {
                 var entity = GetPrimaryEntity(c0);
@@ -24,7 +26,7 @@ namespace UGUIDots.Conversions.Systems {
         }
 
         private void SetUpGlyph(Entity entity, in Dictionary<uint, Glyph> map) {
-            var buffer = DstEntityManager.AddBuffer<GlyphElement>(entity);
+            var buffer      = DstEntityManager.AddBuffer<GlyphElement>(entity);
             buffer.Capacity = map.Count;
 
             foreach (var kv in map) {
@@ -43,8 +45,8 @@ namespace UGUIDots.Conversions.Systems {
             Entities.ForEach((TextMeshProUGUI c0) => {
                 var entity = GetPrimaryEntity(c0);
 
-                DstEntityManager.AddComponentData(entity, new Dimensions { Value = c0.rectTransform.Int2Size() });
-                DstEntityManager.AddComponentData(entity, new AppliedColor { Value = c0.color });
+                DstEntityManager.AddComponentData(entity, new Dimensions           { Value = c0.rectTransform.Int2Size() });
+                DstEntityManager.AddComponentData(entity, new AppliedColor         { Value = c0.color });
                 DstEntityManager.AddSharedComponentData(entity, new RenderMaterial { Value = c0.fontSharedMaterial });
                 AddTextComponent(entity, c0.text);
             });
