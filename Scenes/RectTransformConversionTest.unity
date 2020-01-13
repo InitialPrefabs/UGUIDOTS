@@ -1100,7 +1100,7 @@ MonoBehaviour:
   FontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   Text: abdefghijklmnopqrstuvwxyz
   size: {x: 400, y: 400}
-  FontToUse: {fileID: 12800000, guid: 7478c6a50613e4a6599922941cf5a242, type: 3}
+  FontToUse: {fileID: 12800000, guid: 18aadb90f8e61be4b810667aecc23808, type: 3}
   Spacing: 1
   Material: {fileID: 10306, guid: 0000000000000000f000000000000000, type: 0}
 --- !u!4 &1270702687
