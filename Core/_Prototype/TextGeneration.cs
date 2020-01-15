@@ -1,12 +1,21 @@
 ﻿using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using TMPro;
 using UGUIDots;
 using UGUIDots.Render;
 using UnityEngine;
 using UnityEngine.TextCore;
+using Unity.Mathematics;
+using UnityEngine.Rendering;
 
-[ExecuteAlways]
 public class TextGeneration : MonoBehaviour {
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct VertexData {
+        public float3 Position;
+        public float3 Normal;
+        public float2 UV;
+    }
 
     public OrthographicRenderFeature Feature;
     public TMP_FontAsset FontAsset;
@@ -16,36 +25,40 @@ public class TextGeneration : MonoBehaviour {
     public float Spacing = 1.0f;
     public Material Material;
 
+    List<VertexData> vertexInfo;
+    List<uint> indices;
     Dictionary<uint, Glyph> glyphLookUp;
     MaterialPropertyBlock block;
     Mesh mesh;
-
-    UIVertex[] temp = new UIVertex[4];
+    string _internal;
 
     void Start() {
         block = new MaterialPropertyBlock();
 
         glyphLookUp = FontAsset.glyphLookupTable;
-        block.SetColor(ShaderIDConstants.Color, Color.green);
+        // block.SetColor(ShaderIDConstants.Color, Color.green);
 
-        Material = Canvas.GetDefaultCanvasMaterial();
+        // Material = Canvas.GetDefaultCanvasMaterial();
+        mesh = new Mesh();
 
-        mesh = MeshUtils.Experimental.CreateQuad(300, 300);
-        mesh.RecalculateNormals();
-        mesh.RecalculateBounds();
-
-        mesh.UploadMeshData(false);
-    }
-
-    void OnDrawGizmos() {
-        if (Text.Length == 0) {
-            return;
-        }
-        RenderTextQuads(Screen.width / 4, Screen.height / 2, 1);
+        vertexInfo = new List<VertexData>();
+        indices = new List<uint>();
     }
 
     void Update() {
-        var m = Matrix4x4.TRS(new Vector3(Screen.width / 2, Screen.height / 2, 0), Quaternion.identity, Vector3.one);
+        if (Text.Length == 0) {
+            Debug.Log("Short circuited");
+            return;
+        }
+
+        if (Text != _internal) {
+            Debug.Log("Gen");
+            mesh.Clear();
+            RenderTextQuads(Screen.width / 2, Screen.height / 2, 1);
+            _internal = Text;
+        }
+
+        var m = Matrix4x4.TRS(new Vector3(0, 0, 0), Quaternion.identity, Vector3.one);
         Feature.Pass.InstructionQueue.Enqueue((mesh, Material, m, block));
     }
 
@@ -67,50 +80,58 @@ public class TextGeneration : MonoBehaviour {
             var TR = new Vector3(xPos + width, yPos + height);
             var BR = new Vector3(xPos + width, yPos);
 
-            // Debug.Log($"RenderTextQuads: {c}, Bearing Y: {glyph.BearingY(0)}, Bearing X: {glyph.BearingX()}, w: {glyph.Width()}, h: {glyph.Height()}");
+            vertexInfo.Add(new VertexData {
+                Position = BL,
+                Normal   = Vector3.right,
+                UV       = glyph.uvBottomLeft
+            });
+            vertexInfo.Add(new VertexData {
+                Position = TL,
+                Normal   = Vector3.right,
+                UV       = glyph.uvTopLeft
+            });
+            vertexInfo.Add(new VertexData {
+                Position = TR,
+                Normal   = Vector3.right,
+                UV       = glyph.uvTopRight,
+            });
+            vertexInfo.Add(new VertexData {
+                Position = BR,
+                Normal   = Vector3.right,
+                UV       = glyph.uvBottomRight
+            });
 
-            /*
-            var mesh = new Mesh();
+            var baseIndex = (uint)vertexInfo.Count - 4;
 
-            mesh.vertices = new Vector3[] 
-            {
-                BL,
-                TL,
-                TR,
-                BR
-            };
-
-            mesh.normals = new Vector3[] 
-            {
-                Vector3.up,
-                Vector3.up,
-                Vector3.up,
-                Vector3.up
-            };
-
-            mesh.triangles = new int[] {
-                0, 1, 2,
-                0, 2, 3
-            };
-
-            mesh.uv = new Vector2[] {
-                glyph.uvBottomLeft,
-                glyph.uvTopLeft,
-                glyph.uvTopRight,
-                glyph.uvBottomRight
-            };
-
-            mesh.RecalculateBounds();
-
-            Feature.Pass.InstructionQueue.Enqueue((mesh, Material, transform.localToWorldMatrix, block));
-            */
+            indices.AddRange(new uint[] { 
+                baseIndex, baseIndex + 1, baseIndex + 2,
+                baseIndex, baseIndex + 2, baseIndex + 3
+            });
 
             x += (glyph.Advance() * Spacing) * scale;
 
+            /*
             Gizmos.DrawLine(BL, TL);
             Gizmos.DrawLine(TL, TR);
             Gizmos.DrawLine(TR, BR);
             Gizmos.DrawLine(BL, BR);
+            */
         }
+
+        Debug.Log("Generated");
+
+        mesh.SetVertexBufferParams(vertexInfo.Count, 
+            new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float32, 3),
+            new VertexAttributeDescriptor(VertexAttribute.Normal, VertexAttributeFormat.Float32, 3),
+            new VertexAttributeDescriptor(VertexAttribute.TexCoord0, VertexAttributeFormat.Float32, 2));
+
+        mesh.SetVertexBufferData(vertexInfo, 0, 0, vertexInfo.Count, 0);
+
+        mesh.SetIndexBufferParams(indices.Count, IndexFormat.UInt32);
+        mesh.SetIndexBufferData(indices, 0, 0, indices.Count);
+
+        mesh.subMeshCount = 1;
+        mesh.SetSubMesh(0, new SubMeshDescriptor(0, indices.Count, MeshTopology.Triangles));
+        mesh.UploadMeshData(false);
     }
 }
