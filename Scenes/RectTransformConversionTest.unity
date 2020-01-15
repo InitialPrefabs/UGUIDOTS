@@ -199,8 +199,9 @@ GameObject:
   - component: {fileID: 24783022}
   - component: {fileID: 24783021}
   - component: {fileID: 24783020}
+  - component: {fileID: 24783024}
   m_Layer: 5
-  m_Name: Canvas
+  m_Name: Text Canvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -235,12 +236,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_UiScaleMode: 0
+  m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
   m_ReferenceResolution: {x: 800, y: 600}
   m_ScreenMatchMode: 0
-  m_MatchWidthOrHeight: 0
+  m_MatchWidthOrHeight: 0.5
   m_PhysicalUnit: 3
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
@@ -287,6 +288,19 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!114 &24783024
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 24783019}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea7d7495833204790ba1d3a8755397f8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ConversionMode: 0
 --- !u!1 &164615288
 GameObject:
   m_ObjectHideFlags: 0
@@ -737,7 +751,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &542302265
 RectTransform:
   m_ObjectHideFlags: 0
@@ -887,7 +901,7 @@ GameObject:
   - component: {fileID: 868179638}
   - component: {fileID: 868179637}
   m_Layer: 5
-  m_Name: Text
+  m_Name: Actual Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -902,15 +916,15 @@ RectTransform:
   m_GameObject: {fileID: 868179635}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
   m_Children: []
   m_Father: {fileID: 24783023}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 100}
-  m_SizeDelta: {x: 600, y: 50}
+  m_AnchoredPosition: {x: 28.69, y: 99.1}
+  m_SizeDelta: {x: 714.74, y: 51.79}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &868179637
 MonoBehaviour:
@@ -943,7 +957,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: abcdefghijklmnopqrstuvwxyz Text
+  m_Text: abcdefghijklmnopqrstuvwxyz Text (UGUI)
 --- !u!222 &868179638
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1145,9 +1159,9 @@ MonoBehaviour:
   FontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   Text: abdefghijklmnopqrstuvwxyz
   size: {x: 400, y: 400}
-  FontToUse: {fileID: 12800000, guid: 18aadb90f8e61be4b810667aecc23808, type: 3}
+  FontToUse: {fileID: 12800000, guid: 4a2042182287bc74caf09bf3eac6da22, type: 3}
   Spacing: 1
-  Material: {fileID: 2100000, guid: 18aadb90f8e61be4b810667aecc23808, type: 3}
+  Material: {fileID: 2100000, guid: 4a2042182287bc74caf09bf3eac6da22, type: 3}
 --- !u!4 &1270702687
 Transform:
   m_ObjectHideFlags: 0

@@ -47,13 +47,14 @@ public class TextGeneration : MonoBehaviour {
 
     void Update() {
         if (Text.Length == 0) {
-            Debug.Log("Short circuited");
+            mesh.Clear();
             return;
         }
 
         if (Text != _internal) {
-            Debug.Log("Gen");
             mesh.Clear();
+            vertexInfo.Clear();
+            indices.Clear();
             RenderTextQuads(Screen.width / 2, Screen.height / 2, 1);
             _internal = Text;
         }
@@ -117,8 +118,6 @@ public class TextGeneration : MonoBehaviour {
             Gizmos.DrawLine(BL, BR);
             */
         }
-
-        Debug.Log("Generated");
 
         mesh.SetVertexBufferParams(vertexInfo.Count, 
             new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float32, 3),

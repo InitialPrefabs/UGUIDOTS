@@ -17,6 +17,10 @@ namespace UGUIDots.Render {
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData) {
+            if (InstructionQueue.Count <= 0) {
+                return;
+            }
+
             var cmd = CommandBufferPool.Get(profilerTag);
             using (new ProfilingSample(cmd, profilerTag)) {
                 context.ExecuteCommandBuffer(cmd);
