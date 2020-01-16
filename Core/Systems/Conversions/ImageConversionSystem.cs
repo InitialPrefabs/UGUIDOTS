@@ -33,14 +33,16 @@ namespace UGUIDots.Conversions.Systems {
                     Value = image.material != null ? image.material : Canvas.GetDefaultCanvasMaterial()
                 });
 
-                DstEntityManager.AddComponentData(entity, new ImageKey          { Value = images.IndexOf(image) });
+                DstEntityManager.AddComponentData(entity, new ImageKey     { Value = images.IndexOf(image) });
                 DstEntityManager.AddComponentData(entity, new AppliedColor { Value = image.color });
-                DstEntityManager.AddComponentData(entity, new Dimensions        { Value = image.rectTransform.Int2Size() });
+                DstEntityManager.AddComponentData(entity, new Dimensions   { Value = image.rectTransform.Int2Size() });
             });
 
-            // TODO: Have a check because if the conversion system continuously runs, then we have multiple smaller
-            // mini blobs with more images.
-            {   // Create a mega blob which references all of the sprites/images that we need.
+
+            if (images.Count > 0) {
+                // TODO: Have a check because if the conversion system continuously runs, then we have multiple smaller
+                // mini blobs with more images.
+                // Create a mega blob which references all of the sprites/images that we need.
                 var entity     = DstEntityManager.CreateEntity();
                 var collection = new TextureCollectionBlob { BlobAsset = ConstructBlob() };
 
