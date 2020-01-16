@@ -11,8 +11,9 @@ namespace UGUIDots.Conversions.Systems {
     [UpdateInGroup(typeof(GameObjectDeclareReferencedObjectsGroup))]
     public class FontAssetDeclarationSystem : GameObjectConversionSystem {
 
+        // TODO: Move to unicode instead - this is only temporary
         private const string ASCIICharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" +
-            "0123456789`~!@#$%^&*()_+-=[]{}\\|;:'\",<.>/?";
+            "0123456789`~!@#$%^&*()_+-=[]{}\\|;:'\",<.>/? \n";
 
         protected override void OnUpdate() {
             Entities.ForEach((Text text) => {
@@ -20,6 +21,7 @@ namespace UGUIDots.Conversions.Systems {
                 if (font != null) {
                     DeclareReferencedAsset(text.font);
 
+                    // TODO: Support other languages
                     // Build the ASCII based texts for the time being
                     font.RequestCharactersInTexture(ASCIICharacters);
                 }
