@@ -9,38 +9,55 @@ namespace UGUIDots.Render.Systems {
 
         private struct BuildTextMeshJob : IJobChunk {
 
-            public NativeArray<GlyphElement> GlyphData;
-            public ArchetypeChunkBufferType<TextElement> TextBufferType;
+            [ReadOnly] public NativeArray<GlyphElement> GlyphData;
+            [ReadOnly] public ArchetypeChunkBufferType<CharElement> TextBufferType;
+            [ReadOnly] public ArchetypeChunkComponentType<TextOptions> FontSizeType;
+
             public ArchetypeChunkBufferType<MeshVertexData> MeshVertexDataType;
+            public ArchetypeChunkBufferType<TriangleIndexElement> TriangleIndexType;
+            public float DefaultFontSize;
 
             public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex) {
-                var textBufferAccessor = chunk.GetBufferAccessor(TextBufferType);
-                var vertexBufferAccesor = chunk.GetBufferAccessor(MeshVertexDataType);
+                var textBufferAccessor    = chunk.GetBufferAccessor(TextBufferType);
+                var vertexBufferAccessor  = chunk.GetBufferAccessor(MeshVertexDataType);
+                var triangleIndexAccessor = chunk.GetBufferAccessor(TriangleIndexType);
+                var fontSizes             = chunk.GetNativeArray(FontSizeType);
 
                 for (int i = 0; i < chunk.Count; i++) {
-                    var textBuffer = textBufferAccessor[i];
-                    var vertexBuffer = vertexBufferAccesor[i];
+                    var text     = textBufferAccessor[i].AsNativeArray();
+                    var vertices = vertexBufferAccessor[i];
+                    var indices  = triangleIndexAccessor[i];
+                    var fontSize = fontSizes[i].Size;
 
-                    vertexBuffer.Clear();
+                    vertices.Clear();
+                    indices.Clear();
+
+                    var scale = fontSize / DefaultFontSize;
+
+                    TextMeshGenerationUtil.BuildTextMesh(ref vertices, ref indices, in text, 
+                        in GlyphData, default, default, scale);
                 }
             }
+        }
 
-            private void BuildTextMeshData(in DynamicBuffer<TextElement> txt, 
-                ref DynamicBuffer<MeshVertexData> vertices) {
+        private EntityQuery glyphQuery, textQuery;
 
-                vertices.Clear();
-
-                for (int i = 0; i < txt.Length; i++) {
-                    var c = txt[i];
-
-                    // TODO: Support Dynamic Fonts
-                    GlyphData.GetGlyphOf(c, out GlyphElement glyph);
-
-                    // TODO: Get the glyph
-                    // TODO: Get the start position of the text in local position of the dimensions
-                    // TODO: Add word wrapping if word wrapping is enabled
+        protected override void OnCreate() {
+            glyphQuery = GetEntityQuery(new EntityQueryDesc {
+                All = new [] {
+                    ComponentType.ReadOnly<GlyphElement>()
                 }
-            }
+            });
+
+            textQuery = GetEntityQuery(new EntityQueryDesc {
+                All = new [] {
+                    ComponentType.ReadWrite<MeshVertexData>(),
+                    ComponentType.ReadWrite<TriangleIndexElement>(),
+                    ComponentType.ReadOnly<CharElement>(),
+                    ComponentType.ReadOnly<TextOptions>(),
+                    ComponentType.ReadOnly<TextRebuildTag>()
+                }
+            });
         }
 
         protected override JobHandle OnUpdate(JobHandle inputDeps) {

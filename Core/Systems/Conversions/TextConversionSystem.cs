@@ -23,7 +23,8 @@ namespace UGUIDots.Conversions.Systems {
 
                     // TODO: Support other languages
                     // Build the ASCII based texts for the time being
-                    font.RequestCharactersInTexture(ASCIICharacters);
+                    font.RequestCharactersInTexture(ASCIICharacters, 0, 
+                        FontStyle.Normal | FontStyle.Bold | FontStyle.BoldAndItalic | FontStyle.Italic);
                 }
             });
         }
@@ -43,14 +44,16 @@ namespace UGUIDots.Conversions.Systems {
                 var engineError = FontEngine.LoadFontFace(font);
 
                 if (engineError != 0) {
-                    throw new InvalidOperationException($"Cannot load {font} due to error code: " +
-                        $"{((FontEngineError)engineError)}! Please make sure the font is Dynamic!");
+                    throw new InvalidOperationException($"Cannot load {font}, because the font is not dynamic!");
                 }
 
                 var fontFaceInfo = FontEngine.GetFaceInfo().ToFontFaceInfo(font.fontSize);
                 DstEntityManager.AddComponentData(entity, fontFaceInfo);
+
                 var buffer = DstEntityManager.AddBuffer<GlyphElement>(entity);
                 SetUpGlyphLib(font.characterInfo, ref buffer);
+
+                DstEntityManager.AddComponentData(entity, new FontID { Value = font.GetHashCode() });
             });
 
             FontEngine.DestroyFontEngine();
@@ -73,8 +76,8 @@ namespace UGUIDots.Conversions.Systems {
     }
 
     /// <summary>
-    /// Converts UGUI Text components by adding a buffer to chars to the entity, the dimensions, and applied color 
-    /// for shader updates.
+    /// Converts UGUI Text components by adding a buffer to chars to the entity, the dimensions, and 
+    /// applied color for shader updates.
     ///
     /// Initially components are marked dirty until the vertices are built.
     /// </summary>
@@ -83,11 +86,17 @@ namespace UGUIDots.Conversions.Systems {
             Entities.ForEach((Text c0) => {
                 var entity = GetPrimaryEntity(c0);
 
-                // TODO: Remove the disabled tag
-                DstEntityManager.AddComponentData(entity, new Dimensions { Value = c0.rectTransform.Int2Size() });
+                DstEntityManager.AddComponentData(entity, new Dimensions   { Value = c0.rectTransform.Int2Size() });
                 DstEntityManager.AddComponentData(entity, new AppliedColor { Value = c0.color });
-                DstEntityManager.AddComponentData(entity, new DirtyTag { });
+                DstEntityManager.AddComponentData(entity, new TextOptions  {
+                    ID    = c0.GetHashCode(),
+                    Size  = (ushort)c0.fontSize ,
+                    Style = c0.fontStyle
+                });
+
+                DstEntityManager.AddComponentData(entity, new DirtyTag       { });
                 DstEntityManager.AddComponentData(entity, new TextRebuildTag { });
+
 
                 DstEntityManager.AddComponentObject(entity, c0.material);
                 AddTextData(entity, c0.text);
@@ -97,7 +106,7 @@ namespace UGUIDots.Conversions.Systems {
         private void AddTextData(Entity e, string text) {
             var length = text.Length;
 
-            var txtBuffer = DstEntityManager.AddBuffer<TextElement>(e);
+            var txtBuffer = DstEntityManager.AddBuffer<CharElement>(e);
             txtBuffer.ResizeUninitialized(length);
 
             for (int i = 0; i < length; i++) {
