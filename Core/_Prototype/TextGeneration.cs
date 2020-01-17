@@ -43,6 +43,9 @@ public class TextGeneration : MonoBehaviour {
 
         vertexInfo = new List<VertexData>();
         indices = new List<uint>();
+
+        // FontToUse.RequestCharactersInTexture(Text, 0, FontStyle.Italic | FontStyle.Normal | FontStyle.Bold | FontStyle.BoldAndItalic);
+        FontToUse.RequestCharactersInTexture(Text);
     }
 
     void Update() {
@@ -55,7 +58,7 @@ public class TextGeneration : MonoBehaviour {
             mesh.Clear();
             vertexInfo.Clear();
             indices.Clear();
-            RenderTextQuads(Screen.width / 2, Screen.height / 2, 1);
+            RenderTextQuads(Screen.width / 2, Screen.height / 2, 2);
             _internal = Text;
         }
 
@@ -68,7 +71,11 @@ public class TextGeneration : MonoBehaviour {
         for (int i = 0; i < Text.Length; i++)
         {
             var c = Text[i];
-            FontToUse.GetCharacterInfo(c, out CharacterInfo glyph);
+            FontToUse.GetCharacterInfo(c, out CharacterInfo glyph, 0, FontStyle.Normal);
+
+            Debug.Log($"{(int)FontStyle.Normal}, {(int)FontStyle.Bold} {(int)FontStyle.Italic} {(int)FontStyle.BoldAndItalic}");
+            Debug.Log(FontStyle.Normal | FontStyle.Bold);
+            Debug.Log(glyph.style);
 
             var xPos = x + glyph.BearingX() * scale;
             var yPos = y - (glyph.Height() - glyph.BearingY(0)) * scale;
@@ -110,13 +117,6 @@ public class TextGeneration : MonoBehaviour {
             });
 
             x += (glyph.Advance() * Spacing) * scale;
-
-            /*
-            Gizmos.DrawLine(BL, TL);
-            Gizmos.DrawLine(TL, TR);
-            Gizmos.DrawLine(TR, BR);
-            Gizmos.DrawLine(BL, BR);
-            */
         }
 
         mesh.SetVertexBufferParams(vertexInfo.Count, 

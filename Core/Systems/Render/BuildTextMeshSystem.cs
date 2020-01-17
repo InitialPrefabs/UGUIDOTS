@@ -1,51 +1,82 @@
-﻿using Unity.Collections;
+﻿using Unity.Burst;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
+using UnityEngine;
 
 namespace UGUIDots.Render.Systems {
 
     [UpdateInGroup(typeof(PresentationSystemGroup))]
     public class BuildTextMeshVertexSystem : JobComponentSystem {
 
+        [BurstCompile]
+        private struct BuildGlyphMapJob : IJobForEachWithEntity<FontID> {
+
+            [WriteOnly]
+            public NativeHashMap<int, Entity>.ParallelWriter GlyphMap;
+
+            public void Execute(Entity entity, int index, ref FontID c0) {
+                GlyphMap.TryAdd(c0.Value, entity);
+            }
+        }
+
+        [BurstCompile]
         private struct BuildTextMeshJob : IJobChunk {
 
-            [ReadOnly] public NativeArray<GlyphElement> GlyphData;
-            [ReadOnly] public ArchetypeChunkBufferType<CharElement> TextBufferType;
-            [ReadOnly] public ArchetypeChunkComponentType<TextOptions> FontSizeType;
+            [ReadOnly] public NativeHashMap<int, Entity> GlyphMap;
+            [ReadOnly] public BufferFromEntity<GlyphElement> GlyphData;
+            [ReadOnly] public ComponentDataFromEntity<FontFaceInfo> FontFaces;
+
+            [ReadOnly] public ArchetypeChunkEntityType EntityType;
+            [ReadOnly] public ArchetypeChunkBufferType<CharElement> CharBufferType;
+            [ReadOnly] public ArchetypeChunkComponentType<TextOptions> TextOptionType;
 
             public ArchetypeChunkBufferType<MeshVertexData> MeshVertexDataType;
             public ArchetypeChunkBufferType<TriangleIndexElement> TriangleIndexType;
-            public float DefaultFontSize;
+
+            public EntityCommandBuffer.Concurrent CmdBuffer;
 
             public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex) {
-                var textBufferAccessor    = chunk.GetBufferAccessor(TextBufferType);
+                var textBufferAccessor    = chunk.GetBufferAccessor(CharBufferType);
                 var vertexBufferAccessor  = chunk.GetBufferAccessor(MeshVertexDataType);
                 var triangleIndexAccessor = chunk.GetBufferAccessor(TriangleIndexType);
-                var fontSizes             = chunk.GetNativeArray(FontSizeType);
+                var fontInfo              = chunk.GetNativeArray(TextOptionType);
+                var entities              = chunk.GetNativeArray(EntityType);
 
                 for (int i = 0; i < chunk.Count; i++) {
                     var text     = textBufferAccessor[i].AsNativeArray();
                     var vertices = vertexBufferAccessor[i];
                     var indices  = triangleIndexAccessor[i];
-                    var fontSize = fontSizes[i].Size;
+                    var fontID   = fontInfo[i].ID;
 
                     vertices.Clear();
                     indices.Clear();
 
-                    var scale = fontSize / DefaultFontSize;
+                    var glyphTableExists = GlyphMap.TryGetValue(fontID, out var glyphEntity);
+                    var glyphBufferExists = GlyphData.Exists(glyphEntity);
 
-                    TextMeshGenerationUtil.BuildTextMesh(ref vertices, ref indices, in text, 
-                        in GlyphData, default, default, scale);
+                    if (glyphTableExists && glyphBufferExists) {
+                        var scale = (float)fontID / FontFaces[glyphEntity].DefaultFontSize;
+
+                        var glyphData = GlyphData[glyphEntity].AsNativeArray();
+                        TextMeshGenerationUtil.BuildTextMesh(ref vertices, ref indices, in text,
+                            in glyphData, default, default, scale);
+                    }
+
+                    var textEntity = entities[i];
+                    CmdBuffer.RemoveComponent<TextRebuildTag>(textEntity.Index, textEntity);
                 }
             }
         }
 
         private EntityQuery glyphQuery, textQuery;
+        private EntityCommandBufferSystem cmdBufferSystem;
 
         protected override void OnCreate() {
             glyphQuery = GetEntityQuery(new EntityQueryDesc {
                 All = new [] {
-                    ComponentType.ReadOnly<GlyphElement>()
+                    ComponentType.ReadOnly<GlyphElement>(),
+                    ComponentType.ReadOnly<FontID>()
                 }
             });
 
@@ -55,13 +86,37 @@ namespace UGUIDots.Render.Systems {
                     ComponentType.ReadWrite<TriangleIndexElement>(),
                     ComponentType.ReadOnly<CharElement>(),
                     ComponentType.ReadOnly<TextOptions>(),
-                    ComponentType.ReadOnly<TextRebuildTag>()
+                    ComponentType.ReadOnly<TextRebuildTag>(),
                 }
             });
+
+            cmdBufferSystem = World.GetOrCreateSystem<BeginPresentationEntityCommandBufferSystem>();
         }
 
         protected override JobHandle OnUpdate(JobHandle inputDeps) {
-            return inputDeps;
+            var glyphMap = new NativeHashMap<int, Entity>(glyphQuery.CalculateEntityCount(), Allocator.TempJob);
+
+            var glyphMapDeps = new BuildGlyphMapJob {
+                GlyphMap = glyphMap.AsParallelWriter()
+            }.Schedule(glyphQuery, inputDeps);
+
+            var textMeshDeps       = new BuildTextMeshJob {
+                GlyphMap           = glyphMap,
+                GlyphData          = GetBufferFromEntity<GlyphElement>(true),
+                FontFaces          = GetComponentDataFromEntity<FontFaceInfo>(true),
+                EntityType         = GetArchetypeChunkEntityType(),
+                CharBufferType     = GetArchetypeChunkBufferType<CharElement>(),
+                TextOptionType     = GetArchetypeChunkComponentType<TextOptions>(),
+                MeshVertexDataType = GetArchetypeChunkBufferType<MeshVertexData>(),
+                TriangleIndexType  = GetArchetypeChunkBufferType<TriangleIndexElement>(),
+                CmdBuffer          = cmdBufferSystem.CreateCommandBuffer().ToConcurrent()
+            }.Schedule(textQuery, glyphMapDeps);
+
+            var finalDeps = glyphMap.Dispose(textMeshDeps);
+
+            cmdBufferSystem.AddJobHandleForProducer(finalDeps);
+
+            return finalDeps;
         }
     }
 }

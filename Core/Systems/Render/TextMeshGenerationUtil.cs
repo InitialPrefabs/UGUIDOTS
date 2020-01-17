@@ -1,6 +1,7 @@
 using Unity.Mathematics;
 using Unity.Entities;
 using Unity.Collections;
+using UnityEngine;
 
 namespace UGUIDots.Render {
 
@@ -8,41 +9,41 @@ namespace UGUIDots.Render {
 
         public static void BuildTextMesh(ref DynamicBuffer<MeshVertexData> vertices,
             ref DynamicBuffer<TriangleIndexElement> indices, in NativeArray<CharElement> text,
-            in NativeArray<GlyphElement> glyphs, float2 startPos, float2 maxDimensions, float scale) {
-
-            var baseIndex = (ushort)vertices.Length;
+            in NativeArray<GlyphElement> glyphs, float2 startPos, float2 maxDimensions, float scale, 
+            float spacing = 1f) {
 
             for (int i = 0; i < text.Length; i++) {
                 var c = text[i].Value;
 
                 if (glyphs.GetGlyphOf(in c, out var glyph)) {
-                    
+                    var baseIndex = (ushort)vertices.Length;
+                   
                     var xPos = startPos.x + glyph.Bearings.x * scale;
                     var yPos = startPos.y - (glyph.Size.y - glyph.Bearings.y) * scale;
 
-                    var width  = new half(glyph.Size.x * scale);
-                    var height = new half(glyph.Size.y * scale);
-                    var right  = new half3(new float3(1, 0, 0));
+                    var width  = glyph.Size.x * scale;
+                    var height = glyph.Size.y * scale;
+                    var right  = new float3(1, 0, 0);
 
                     vertices.Add(new MeshVertexData {
-                        Position = new half3((half)xPos, (half)yPos, default),
+                        Position = new float2(xPos, yPos),
                         Normal   = right,
-                        UVs      = glyph.UVBottomLeftAsHalf2()
+                        UVs      = glyph.UVBottomLeft()
                     });
                     vertices.Add(new MeshVertexData {
-                        Position = new half3((half)xPos, (half)(yPos + height), default),
+                        Position = new float2(xPos, yPos + height),
                         Normal   = right,
-                        UVs      = glyph.UVTopLeftAsHalf2()
+                        UVs      = glyph.UVTopLeft()
                     });
                     vertices.Add(new MeshVertexData {
-                        Position = new half3(new half(xPos + width), new half(yPos + height), default),
+                        Position = new float2(xPos + width, yPos + height),
                         Normal   = right,
-                        UVs      = glyph.UVTopRightAsHalf2()
+                        UVs      = glyph.UVTopRight()
                     });
                     vertices.Add(new MeshVertexData {
-                        Position = new half3(new half(xPos + width), new half(yPos), default),
+                        Position = new float2(xPos + width, yPos),
                         Normal   = right,
-                        UVs      = glyph.UVBottomRightAsHalf2()
+                        UVs      = glyph.UVBottomRight()
                     });
 
                     var bl = baseIndex;
@@ -57,6 +58,8 @@ namespace UGUIDots.Render {
                     indices.Add(new TriangleIndexElement { Value = bl });
                     indices.Add(new TriangleIndexElement { Value = tr });
                     indices.Add(new TriangleIndexElement { Value = br });
+
+                    startPos += new float2((glyph.Advance * spacing) * scale, 0);
                 }
             }
         }

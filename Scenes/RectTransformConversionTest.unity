@@ -946,9 +946,9 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_FontData:
-    m_Font: {fileID: 12800000, guid: daec480066f5ba04c95e0122f64fb7b0, type: 3}
+    m_Font: {fileID: 12800000, guid: dd6f2baaf20c63640b92adb9172779ea, type: 3}
     m_FontSize: 80
-    m_FontStyle: 2
+    m_FontStyle: 1
     m_BestFit: 0
     m_MinSize: 5
     m_MaxSize: 113
@@ -1214,7 +1214,7 @@ GameObject:
   - component: {fileID: 1270702687}
   - component: {fileID: 1270702684}
   m_Layer: 0
-  m_Name: Test
+  m_Name: Test Text Gen
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1237,9 +1237,9 @@ MonoBehaviour:
   FontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   Text: abdefghijklmnopqrstuvwxyz
   size: {x: 400, y: 400}
-  FontToUse: {fileID: 12800000, guid: 4a2042182287bc74caf09bf3eac6da22, type: 3}
+  FontToUse: {fileID: 12800000, guid: e3265ab4bf004d28a9537516768c1c75, type: 3}
   Spacing: 1
-  Material: {fileID: 2100000, guid: 4a2042182287bc74caf09bf3eac6da22, type: 3}
+  Material: {fileID: 2100000, guid: e3265ab4bf004d28a9537516768c1c75, type: 3}
 --- !u!4 &1270702687
 Transform:
   m_ObjectHideFlags: 0

@@ -7,9 +7,9 @@ namespace UGUIDots.Render {
 
     [StructLayout(LayoutKind.Sequential)]
     public struct MeshVertexData : IBufferElementData {
-        public half3 Position;
-        public half3 Normal;
-        public half2 UVs;
+        public float2 Position;
+        public float3 Normal;
+        public float2 UVs;
     }
 
     public struct TriangleIndexElement : IBufferElementData {
@@ -26,9 +26,9 @@ namespace UGUIDots.Render {
         /// Descriptor for the mesh generated for text.
         /// </summary>
         public static readonly VertexAttributeDescriptor[] VertexDescriptors = new [] {
-            new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float16, 3),
-            new VertexAttributeDescriptor(VertexAttribute.Normal, VertexAttributeFormat.Float16, 3),
-            new VertexAttributeDescriptor(VertexAttribute.TexCoord0, VertexAttributeFormat.Float16, 2)
+            new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float32, 3),
+            new VertexAttributeDescriptor(VertexAttribute.Normal, VertexAttributeFormat.Float32, 3),
+            new VertexAttributeDescriptor(VertexAttribute.TexCoord0, VertexAttributeFormat.Float32, 2)
         };
     }
 }

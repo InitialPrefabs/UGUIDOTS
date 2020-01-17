@@ -11,6 +11,12 @@ namespace UGUIDots.Conversions.Systems {
     [UpdateInGroup(typeof(GameObjectDeclareReferencedObjectsGroup))]
     public class FontAssetDeclarationSystem : GameObjectConversionSystem {
 
+        private const FontStyle All = 
+            FontStyle.Normal |
+            FontStyle.Bold   |
+            FontStyle.Italic |
+            FontStyle.BoldAndItalic;
+
         // TODO: Move to unicode instead - this is only temporary
         private const string ASCIICharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" +
             "0123456789`~!@#$%^&*()_+-=[]{}\\|;:'\",<.>/? \n";
@@ -23,8 +29,10 @@ namespace UGUIDots.Conversions.Systems {
 
                     // TODO: Support other languages
                     // Build the ASCII based texts for the time being
-                    font.RequestCharactersInTexture(ASCIICharacters, 0, 
-                        FontStyle.Normal | FontStyle.Bold | FontStyle.BoldAndItalic | FontStyle.Italic);
+                    font.RequestCharactersInTexture(ASCIICharacters, font.fontSize, FontStyle.Normal);
+                    font.RequestCharactersInTexture(ASCIICharacters, font.fontSize, FontStyle.Italic);
+                    font.RequestCharactersInTexture(ASCIICharacters, font.fontSize, FontStyle.Bold);
+                    font.RequestCharactersInTexture(ASCIICharacters, font.fontSize, FontStyle.BoldAndItalic);
                 }
             });
         }
@@ -35,7 +43,7 @@ namespace UGUIDots.Conversions.Systems {
 
         protected override void OnUpdate() {
             if (FontEngine.InitializeFontEngine() != 0) {
-                throw new InvalidOperationException("$FontEngine cannot load!");
+                throw new InvalidOperationException("FontEngine cannot load!");
             }
 
             Entities.ForEach((Font font) => {
@@ -63,12 +71,15 @@ namespace UGUIDots.Conversions.Systems {
             for (int i = 0; i < info.Length; i++) {
                 var characterInfo = info[i];
 
+                Debug.Log(characterInfo.style);
+
                 buffer.Add(new GlyphElement {
-                    Char = (ushort)characterInfo.index,
-                    Advance = characterInfo.Advance(),
+                    Char     = (ushort)characterInfo.index,
+                    Advance  = characterInfo.Advance(),
                     Bearings = new float2(characterInfo.BearingX(), characterInfo.BearingY(0)),
-                    Size = new float2(characterInfo.Width(), characterInfo.Height()),
-                    UV = new float2x4(characterInfo.uvBottomLeft, characterInfo.uvTopLeft,
+                    Size     = new float2(characterInfo.Width(), characterInfo.Height()),
+                    Style    = characterInfo.style,
+                    UV       = new float2x4(characterInfo.uvBottomLeft, characterInfo.uvTopLeft,
                             characterInfo.uvTopRight, characterInfo.uvBottomRight)
                 });
             }
@@ -89,14 +100,13 @@ namespace UGUIDots.Conversions.Systems {
                 DstEntityManager.AddComponentData(entity, new Dimensions   { Value = c0.rectTransform.Int2Size() });
                 DstEntityManager.AddComponentData(entity, new AppliedColor { Value = c0.color });
                 DstEntityManager.AddComponentData(entity, new TextOptions  {
-                    ID    = c0.GetHashCode(),
+                    ID    = c0.font.GetHashCode(),
                     Size  = (ushort)c0.fontSize ,
                     Style = c0.fontStyle
                 });
 
                 DstEntityManager.AddComponentData(entity, new DirtyTag       { });
                 DstEntityManager.AddComponentData(entity, new TextRebuildTag { });
-
 
                 DstEntityManager.AddComponentObject(entity, c0.material);
                 AddTextData(entity, c0.text);

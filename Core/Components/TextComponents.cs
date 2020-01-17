@@ -1,3 +1,4 @@
+using System;
 using System.Runtime.CompilerServices;
 using Unity.Collections;
 using Unity.Entities;
@@ -37,6 +38,7 @@ namespace UGUIDots {
         /// Should be considered read only...use the extension functions to grab the UV coords
         /// </summary>
         public float2x4 UV;
+        public FontStyle Style;
     }
 
     /// <summary>
@@ -46,13 +48,23 @@ namespace UGUIDots {
         public ushort Size;
         public int ID;
         public FontStyle Style;
+
+        // TODO: Add options for paragraph alignment.
     }
 
     /// <summary>
-    /// Stores the Font's unique identifier
+    /// Stores the Font's unique identifier - this should typically be used on the "font" being converted.
     /// </summary>
-    public struct FontID : IComponentData {
+    public struct FontID : IComponentData, IEquatable<FontID> {
         public int Value;
+
+        public bool Equals(FontID other) {
+            return other.Value == Value;
+        }
+
+        public override int GetHashCode() {
+            return Value.GetHashCode();
+        }
     }
 
     public static class GlyphExtensions {

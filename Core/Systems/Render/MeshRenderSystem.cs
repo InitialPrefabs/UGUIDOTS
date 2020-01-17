@@ -52,6 +52,7 @@ namespace UGUIDots.Render.Systems {
             var localToWorlds = GetComponentDataFromEntity<LocalToWorld>(true);
             var txtRebuilds   = GetComponentDataFromEntity<TextRebuildTag>(true);
             var renderBuffers = GetBufferFromEntity<RenderElement>(true);
+            var options       = GetComponentDataFromEntity<TextOptions>(true);
             var pairs         = renderSortSystem.SortedOrderPairs;
 
             for (int i = 0; i < pairs.Count; i++) {
@@ -62,7 +63,7 @@ namespace UGUIDots.Render.Systems {
                     var current = renders[k].Value;
                     var dim     = dimensions[current];
 
-                    if (txtRebuilds.Exists(current)) {
+                    if (txtRebuilds.Exists(current) || options.Exists(current)) {
                         continue;
                     }
 
