@@ -6,6 +6,14 @@ using UnityEngine.TextCore;
 
 namespace UGUIDots {
 
+    /// <summary>
+    /// Marks a mesh to be rebuilt.
+    /// </summary>
+    public struct TextRebuildTag : IComponentData { }
+
+    /// <summary>
+    /// Stores a buffer of character values 
+    /// </summary>
     // TODO: Represent chars as ushort instead?
     public struct TextElement : IBufferElementData {
         public char Value;
@@ -14,6 +22,9 @@ namespace UGUIDots {
         public static implicit operator char(TextElement value) => value.Value;
     }
 
+    /// <summary>
+    /// Stores glyph metric information to help generate the vertices required for the mesh.
+    /// </summary>
     public struct GlyphElement : IBufferElementData {
         public ushort Char;
 

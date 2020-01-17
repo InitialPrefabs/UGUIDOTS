@@ -50,7 +50,7 @@ namespace UGUIDots.Render.Systems {
             var keys          = GetComponentDataFromEntity<ImageKey>(true);
             var dimensions    = GetComponentDataFromEntity<Dimensions>(true);
             var localToWorlds = GetComponentDataFromEntity<LocalToWorld>(true);
-            var disabled      = GetComponentDataFromEntity<Disabled>(true);
+            var txtRebuilds   = GetComponentDataFromEntity<TextRebuildTag>(true);
             var renderBuffers = GetBufferFromEntity<RenderElement>(true);
             var pairs         = renderSortSystem.SortedOrderPairs;
 
@@ -62,7 +62,7 @@ namespace UGUIDots.Render.Systems {
                     var current = renders[k].Value;
                     var dim     = dimensions[current];
 
-                    if (disabled.Exists(current)) {
+                    if (txtRebuilds.Exists(current)) {
                         continue;
                     }
 

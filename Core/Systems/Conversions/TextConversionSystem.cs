@@ -43,13 +43,12 @@ namespace UGUIDots.Conversions.Systems {
                 var engineError = FontEngine.LoadFontFace(font);
 
                 if (engineError != 0) {
-                    throw new InvalidOperationException($"Cannot load {font} due to error code: " + 
+                    throw new InvalidOperationException($"Cannot load {font} due to error code: " +
                         $"{((FontEngineError)engineError)}! Please make sure the font is Dynamic!");
                 }
 
                 var fontFaceInfo = FontEngine.GetFaceInfo().ToFontFaceInfo(font.fontSize);
-                DstEntityManager.AddComponentData(entity, fontFaceInfo); 
-
+                DstEntityManager.AddComponentData(entity, fontFaceInfo);
                 var buffer = DstEntityManager.AddBuffer<GlyphElement>(entity);
                 SetUpGlyphLib(font.characterInfo, ref buffer);
             });
@@ -62,11 +61,11 @@ namespace UGUIDots.Conversions.Systems {
                 var characterInfo = info[i];
 
                 buffer.Add(new GlyphElement {
-                    Char     = (ushort)characterInfo.index,
-                    Advance  = characterInfo.Advance(),
+                    Char = (ushort)characterInfo.index,
+                    Advance = characterInfo.Advance(),
                     Bearings = new float2(characterInfo.BearingX(), characterInfo.BearingY(0)),
-                    Size     = new float2(characterInfo.Width(), characterInfo.Height()),
-                    UV       = new float2x4(characterInfo.uvBottomLeft, characterInfo.uvTopLeft,
+                    Size = new float2(characterInfo.Width(), characterInfo.Height()),
+                    UV = new float2x4(characterInfo.uvBottomLeft, characterInfo.uvTopLeft,
                             characterInfo.uvTopRight, characterInfo.uvBottomRight)
                 });
             }
@@ -85,10 +84,10 @@ namespace UGUIDots.Conversions.Systems {
                 var entity = GetPrimaryEntity(c0);
 
                 // TODO: Remove the disabled tag
-                DstEntityManager.AddComponentData(entity, new Dimensions   { Value = c0.rectTransform.Int2Size() });
+                DstEntityManager.AddComponentData(entity, new Dimensions { Value = c0.rectTransform.Int2Size() });
                 DstEntityManager.AddComponentData(entity, new AppliedColor { Value = c0.color });
-                DstEntityManager.AddComponentData(entity, new DirtyTag     { });
-                DstEntityManager.AddComponentData(entity, new Disabled     { });
+                DstEntityManager.AddComponentData(entity, new DirtyTag { });
+                DstEntityManager.AddComponentData(entity, new TextRebuildTag { });
 
                 DstEntityManager.AddComponentObject(entity, c0.material);
                 AddTextData(entity, c0.text);
@@ -107,6 +106,12 @@ namespace UGUIDots.Conversions.Systems {
 
             var vertexBuffer = DstEntityManager.AddBuffer<MeshVertexData>(e);
             vertexBuffer.ResizeUninitialized(text.Length);
+
+            for (int i = 0; i < text.Length; i++) {
+                vertexBuffer[i] = default;
+            }
+
+            var indexBuffer = DstEntityManager.AddBuffer<TriangleIndexElement>(e);
         }
     }
 }
