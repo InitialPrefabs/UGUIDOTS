@@ -1,3 +1,4 @@
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
@@ -15,6 +16,7 @@ namespace UGUIDots.Transforms.Systems {
     [UpdateInGroup(typeof(PresentationSystemGroup))]
     public class ConsumeChangeEvtSystem : JobComponentSystem {
 
+        [BurstCompile]
         private struct ConsumeJob : IJobForEachWithEntity<ResolutionChangeEvt> {
 
             public EntityCommandBuffer.Concurrent CmdBuffer;

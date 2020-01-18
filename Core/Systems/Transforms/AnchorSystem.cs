@@ -1,3 +1,4 @@
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
@@ -14,6 +15,7 @@ namespace UGUIDots.Transforms.Systems {
     [UpdateInGroup(typeof(PresentationSystemGroup))]
     public unsafe class AnchorSystem : JobComponentSystem {
 
+        [BurstCompile]
         private struct RepositionToAnchorJob : IJobChunk {
 
             public int2 Resolution;
@@ -37,7 +39,7 @@ namespace UGUIDots.Transforms.Systems {
             public ComponentDataFromEntity<Parent> Parents;
 
             [ReadOnly]
-            public ComponentDataFromEntity<ImageDimensions> Dimensions;
+            public ComponentDataFromEntity<Dimensions> Dimensions;
 
             public EntityCommandBuffer.Concurrent CmdBuffer;
 
@@ -137,7 +139,7 @@ namespace UGUIDots.Transforms.Systems {
                 ChildBuffers = GetBufferFromEntity<Child>(true),
                 Anchors      = GetComponentDataFromEntity<Anchor>(true),
                 Parents      = GetComponentDataFromEntity<Parent>(true),
-                Dimensions   = GetComponentDataFromEntity<ImageDimensions>(true),
+                Dimensions   = GetComponentDataFromEntity<Dimensions>(true),
                 EntityType   = GetArchetypeChunkEntityType(),
                 CmdBuffer    = cmdBufferSystem.CreateCommandBuffer().ToConcurrent()
             }.Schedule(canvasQuery, inputDeps);

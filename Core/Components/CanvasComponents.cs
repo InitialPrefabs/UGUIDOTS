@@ -39,5 +39,4 @@ namespace UGUIDots {
     /// rendered needs to be rebuilt.
     /// </summary>
     public struct DirtyTag : IComponentData { }
-
 }

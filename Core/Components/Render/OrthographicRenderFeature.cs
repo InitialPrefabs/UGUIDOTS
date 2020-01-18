@@ -17,6 +17,10 @@ namespace UGUIDots.Render {
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData) {
+            if (InstructionQueue.Count <= 0) {
+                return;
+            }
+
             var cmd = CommandBufferPool.Get(profilerTag);
             using (new ProfilingSample(cmd, profilerTag)) {
                 context.ExecuteCommandBuffer(cmd);
@@ -29,9 +33,12 @@ namespace UGUIDots.Render {
 
                 while (InstructionQueue.Count > 0) {
                     var tuple = InstructionQueue.Dequeue();
-                    cmd.DrawMesh(tuple.Item1, tuple.Item3, tuple.Item2, 0, 0, tuple.Item4);
-                }
+                    var mesh = tuple.Item1;
 
+                    for (int i = 0; i < mesh.subMeshCount; i++) {
+                        cmd.DrawMesh(mesh, tuple.Item3, tuple.Item2, i, -1, tuple.Item4);
+                    }
+                }
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);

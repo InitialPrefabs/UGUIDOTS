@@ -7,26 +7,29 @@ namespace UGUIDots.Render.Systems {
 
     [UpdateInGroup(typeof(PresentationSystemGroup))]
     public class BuildMeshSystem : JobComponentSystem {
-    
+
         // TODO: Add a reactive system such that if the dimensions change, then we rebuild the mesh by removing the tag.
         /// <summary>
         /// Internal tag so that meshes that have been cached haven't been rechecked.
         /// </summary>
         public struct CachedMeshTag : IComponentData { }
 
-        private IDictionary<ImageDimensions, Mesh> meshCache;
+        private IDictionary<Dimensions, Mesh> meshCache;
         private IDictionary<Entity, MaterialPropertyBlock> propertyBlocks;
         private EntityQuery imgQuery;
         private EntityCommandBufferSystem cmdBufferSystem;
 
         protected override void OnCreate() {
-            meshCache      = new Dictionary<ImageDimensions, Mesh>();
+            meshCache      = new Dictionary<Dimensions, Mesh>();
             propertyBlocks = new Dictionary<Entity, MaterialPropertyBlock>();
 
             imgQuery = GetEntityQuery(new EntityQueryDesc { 
                 All = new [] { 
-                    ComponentType.ReadOnly<ImageDimensions>(),
-                    ComponentType.ReadOnly<DefaultImageColor>()
+                    ComponentType.ReadOnly<Dimensions>(),
+                    ComponentType.ReadOnly<AppliedColor>()
+                },
+                Any = new [] {
+                    ComponentType.ReadOnly<ImageKey>()
                 },
                 None = new [] {
                     ComponentType.ReadOnly<CachedMeshTag>()
@@ -38,13 +41,14 @@ namespace UGUIDots.Render.Systems {
 
         protected override JobHandle OnUpdate(JobHandle inputDeps) {
             // TODO: Causes all jobs to sync - check if there's a way to defer grabbing the TextureCollectionBlob...
-            var atlas = GetSingleton<TextureCollectionBlob>();
+            var atlas      = GetSingleton<TextureCollectionBlob>();
+            var imageKeys  = GetComponentDataFromEntity<ImageKey>(true);
 
             var cmdBuffer = cmdBufferSystem.CreateCommandBuffer();
 
             // TODO: Add a profiling marker
             Entities.WithStoreEntityQueryInField(ref imgQuery).WithoutBurst()
-                .ForEach((Entity e, ref ImageDimensions c0, ref DefaultImageColor c1) => {
+                .ForEach((Entity e, ref Dimensions c0, ref AppliedColor c2) => {
 
                 if (!meshCache.ContainsKey(c0)) {
                     // Build the mesh
@@ -54,8 +58,11 @@ namespace UGUIDots.Render.Systems {
                 if (!propertyBlocks.ContainsKey(e)) {
                     var propertyBlock = new MaterialPropertyBlock {};
 
-                    propertyBlock.SetTexture(ShaderIDConstants.MainTex, atlas.At(c0.TextureKey));
-                    propertyBlock.SetColor(ShaderIDConstants.Color, c1.Value);
+                    if (imageKeys.Exists(e)) {
+                        propertyBlock.SetTexture(ShaderIDConstants.MainTex, atlas.At(imageKeys[e].Value));
+                    }
+
+                    propertyBlock.SetColor(ShaderIDConstants.Color, c2.Value);
 
                     // Build the property block that we can use
                     propertyBlocks.Add(e, propertyBlock);
@@ -66,7 +73,7 @@ namespace UGUIDots.Render.Systems {
             return inputDeps;
         }
 
-        public Mesh MeshWith(ImageDimensions dim) => meshCache[dim];
+        public Mesh MeshWith(Dimensions dim)                   => meshCache[dim];
         public MaterialPropertyBlock PropertyBlockOf(Entity e) => propertyBlocks[e];
     }
 }

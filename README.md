@@ -1,6 +1,7 @@
 # UGUIDots
 
-Current project of transforming the default UGUI into a DOTS compliant implementation.
+Current project of transforming the default UGUI into a DOTS compliant implementation. Please keep in mind that I am 
+actively developing it - so _violent_ changes might occur to the structure of the repo.
 
 ## Why do this?
 A DOTS compliant UI is still underway (which will be based off of UIElements). Until then, I need a UI solution,
@@ -27,7 +28,7 @@ Support for the following will come over time - depends on the needs for my own 
 * [ ] Button actions
 * [ ] Button states (with color support)
 * [ ] Hierarchy based disabling
-* [ ] Text Rendering
+* [x] Text Rendering
 * [ ] Input fields
 * [ ] Subscene caching
 * [ ] Convert reference types to use pointers to avoid chunk splitting (?)

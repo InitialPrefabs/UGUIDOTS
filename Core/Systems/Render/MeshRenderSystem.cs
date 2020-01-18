@@ -47,18 +47,25 @@ namespace UGUIDots.Render.Systems {
             // TODO: See if there's a better way of doing this...
             inputDeps.Complete();
 
-            var dimensions    = GetComponentDataFromEntity<ImageDimensions>(true);
-            var renderBuffers = GetBufferFromEntity<RenderElement>(true);
+            var keys          = GetComponentDataFromEntity<ImageKey>(true);
+            var dimensions    = GetComponentDataFromEntity<Dimensions>(true);
             var localToWorlds = GetComponentDataFromEntity<LocalToWorld>(true);
-            var pairs = renderSortSystem.SortedOrderPairs;
+            var txtRebuilds   = GetComponentDataFromEntity<TextRebuildTag>(true);
+            var renderBuffers = GetBufferFromEntity<RenderElement>(true);
+            var options       = GetComponentDataFromEntity<TextOptions>(true);
+            var pairs         = renderSortSystem.SortedOrderPairs;
 
             for (int i = 0; i < pairs.Count; i++) {
-                var pair   = pairs[i];
-                var buffer = renderBuffers[pair.Root];
+                var pair    = pairs[i];
+                var renders = renderBuffers[pair.Root];
 
-                for (int k = 0; k < buffer.Length; k++) {
-                    var current = buffer[k].Value;
+                for (int k = 0; k < renders.Length; k++) {
+                    var current = renders[k].Value;
                     var dim     = dimensions[current];
+
+                    if (txtRebuilds.Exists(current) || options.Exists(current)) {
+                        continue;
+                    }
 
                     var propertyBlock = buildMeshSystem.PropertyBlockOf(current);
                     var mesh          = buildMeshSystem.MeshWith(dim);
