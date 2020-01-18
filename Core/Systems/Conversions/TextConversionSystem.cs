@@ -11,12 +11,6 @@ namespace UGUIDots.Conversions.Systems {
     [UpdateInGroup(typeof(GameObjectDeclareReferencedObjectsGroup))]
     public class FontAssetDeclarationSystem : GameObjectConversionSystem {
 
-        private const FontStyle All = 
-            FontStyle.Normal |
-            FontStyle.Bold   |
-            FontStyle.Italic |
-            FontStyle.BoldAndItalic;
-
         // TODO: Move to unicode instead - this is only temporary
         private const string ASCIICharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" +
             "0123456789`~!@#$%^&*()_+-=[]{}\\|;:'\",<.>/? \n";
@@ -70,8 +64,6 @@ namespace UGUIDots.Conversions.Systems {
         private void SetUpGlyphLib(in CharacterInfo[] info, ref DynamicBuffer<GlyphElement> buffer) {
             for (int i = 0; i < info.Length; i++) {
                 var characterInfo = info[i];
-
-                Debug.Log(characterInfo.style);
 
                 buffer.Add(new GlyphElement {
                     Char     = (ushort)characterInfo.index,
