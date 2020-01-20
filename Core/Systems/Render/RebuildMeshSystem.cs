@@ -19,9 +19,6 @@ namespace UGUIDots.Render.Systems {
             public ArchetypeChunkEntityType EntityType;
 
             [ReadOnly]
-            public Arhc
-
-            [ReadOnly]
             public EntityManager Manager;
 
             public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex) {
