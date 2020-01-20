@@ -8,10 +8,11 @@ using UnityEngine.TextCore;
 
 namespace UGUIDots {
 
+    // TODO: Rename this to the mesh rebuild tag
     /// <summary>
     /// Marks a mesh to be rebuilt.
     /// </summary>
-    public struct TextRebuildTag : IComponentData { }
+    public struct MeshRebuildTag : IComponentData { }
 
     /// <summary>
     /// Stores a buffer of character values 

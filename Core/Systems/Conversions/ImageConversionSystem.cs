@@ -27,15 +27,19 @@ namespace UGUIDots.Conversions.Systems {
                     images.Add(image);
                 }
 
-                var entity = GetPrimaryEntity(image);
+                var entity   = GetPrimaryEntity(image);
+                var material = image.material != null ? image.material : Canvas.GetDefaultCanvasMaterial();
+                DstEntityManager.AddComponentObject(entity, material);
+                DstEntityManager.AddSharedComponentData(entity, new MaterialID { Value = material.GetInstanceID() });
 
-                DstEntityManager.AddSharedComponentData(entity, new RenderMaterial {
-                    Value = image.material != null ? image.material : Canvas.GetDefaultCanvasMaterial()
-                });
+                DstEntityManager.AddComponentData(entity, new ImageKey       { Value = images.IndexOf(image) });
+                DstEntityManager.AddComponentData(entity, new AppliedColor   { Value = image.color });
+                DstEntityManager.AddComponentData(entity, new Dimensions     { Value = image.rectTransform.Int2Size() });
+                DstEntityManager.AddComponentData(entity, new MeshRebuildTag { });
 
-                DstEntityManager.AddComponentData(entity, new ImageKey     { Value = images.IndexOf(image) });
-                DstEntityManager.AddComponentData(entity, new AppliedColor { Value = image.color });
-                DstEntityManager.AddComponentData(entity, new Dimensions   { Value = image.rectTransform.Int2Size() });
+                // TODO: Does not handle image slicing
+                DstEntityManager.AddBuffer<MeshVertexData>(entity).ResizeUninitialized(4);
+                DstEntityManager.AddBuffer<TriangleIndexElement>(entity).ResizeUninitialized(6);
             });
 
 

@@ -63,7 +63,7 @@ namespace UGUIDots.Render.Systems {
                     }
 
                     var textEntity = entities[i];
-                    CmdBuffer.RemoveComponent<TextRebuildTag>(textEntity.Index, textEntity);
+                    CmdBuffer.RemoveComponent<MeshRebuildTag>(textEntity.Index, textEntity);
                 }
             }
         }
@@ -85,7 +85,7 @@ namespace UGUIDots.Render.Systems {
                     ComponentType.ReadWrite<TriangleIndexElement>(),
                     ComponentType.ReadOnly<CharElement>(),
                     ComponentType.ReadOnly<TextOptions>(),
-                    ComponentType.ReadOnly<TextRebuildTag>(),
+                    ComponentType.ReadOnly<MeshRebuildTag>(),
                 }
             });
 

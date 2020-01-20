@@ -98,7 +98,7 @@ namespace UGUIDots.Conversions.Systems {
                 });
 
                 DstEntityManager.AddComponentData(entity, new DirtyTag       { });
-                DstEntityManager.AddComponentData(entity, new TextRebuildTag { });
+                DstEntityManager.AddComponentData(entity, new MeshRebuildTag { });
 
                 DstEntityManager.AddComponentObject(entity, c0.material);
                 AddTextData(entity, c0.text);

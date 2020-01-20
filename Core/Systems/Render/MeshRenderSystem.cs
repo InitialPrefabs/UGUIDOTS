@@ -50,7 +50,7 @@ namespace UGUIDots.Render.Systems {
             var keys          = GetComponentDataFromEntity<ImageKey>(true);
             var dimensions    = GetComponentDataFromEntity<Dimensions>(true);
             var localToWorlds = GetComponentDataFromEntity<LocalToWorld>(true);
-            var txtRebuilds   = GetComponentDataFromEntity<TextRebuildTag>(true);
+            var txtRebuilds   = GetComponentDataFromEntity<MeshRebuildTag>(true);
             var renderBuffers = GetBufferFromEntity<RenderElement>(true);
             var options       = GetComponentDataFromEntity<TextOptions>(true);
             var pairs         = renderSortSystem.SortedOrderPairs;
