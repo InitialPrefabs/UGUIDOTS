@@ -13,11 +13,13 @@ namespace UGUIDots.Conversions.Systems {
     /// </summary>
     public class ImageConversionSystem : GameObjectConversionSystem {
 
+        private HashSet<int> visited;
         private List<Image> images;
 
         protected override void OnCreate() {
             base.OnCreate();
             images = new List<Image>();
+            visited = new HashSet<int>();
         }
 
         protected override void OnUpdate() {
@@ -26,6 +28,13 @@ namespace UGUIDots.Conversions.Systems {
                 if (!images.Contains(image)) {
                     images.Add(image);
                 }
+
+                var hash = image.GetHashCode();
+                if (visited.Contains(hash)) {
+                    return;
+                }
+
+                visited.Add(hash);
 
                 var entity   = GetPrimaryEntity(image);
                 var material = image.material != null ? image.material : Canvas.GetDefaultCanvasMaterial();
@@ -41,7 +50,6 @@ namespace UGUIDots.Conversions.Systems {
                 DstEntityManager.AddBuffer<MeshVertexData>(entity).ResizeUninitialized(4);
                 DstEntityManager.AddBuffer<TriangleIndexElement>(entity).ResizeUninitialized(6);
             });
-
 
             if (images.Count > 0) {
                 // TODO: Have a check because if the conversion system continuously runs, then we have multiple smaller

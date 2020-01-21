@@ -1,6 +1,4 @@
-using System.Runtime.CompilerServices;
 using Unity.Entities;
-using Unity.Mathematics;
 using UnityEngine;
 
 namespace UGUIDots {
@@ -18,5 +16,4 @@ namespace UGUIDots {
     public struct ImageKey : IComponentData {
         public int Value;
     }
-
 }
