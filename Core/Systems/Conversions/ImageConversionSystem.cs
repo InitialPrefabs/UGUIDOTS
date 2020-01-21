@@ -44,7 +44,7 @@ namespace UGUIDots.Conversions.Systems {
                 DstEntityManager.AddComponentData(entity, new ImageKey       { Value = images.IndexOf(image) });
                 DstEntityManager.AddComponentData(entity, new AppliedColor   { Value = image.color });
                 DstEntityManager.AddComponentData(entity, new Dimensions     { Value = image.rectTransform.Int2Size() });
-                DstEntityManager.AddComponentData(entity, new MeshRebuildTag { });
+                // DstEntityManager.AddComponentData(entity, new MeshRebuildTag { });
 
                 // TODO: Does not handle image slicing
                 DstEntityManager.AddBuffer<MeshVertexData>(entity).ResizeUninitialized(4);

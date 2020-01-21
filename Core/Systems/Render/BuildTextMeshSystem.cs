@@ -5,6 +5,7 @@ using Unity.Jobs;
 
 namespace UGUIDots.Render.Systems {
 
+    [DisableAutoCreation]
     [UpdateInGroup(typeof(PresentationSystemGroup))]
     public class BuildTextMeshVertexSystem : JobComponentSystem {
 

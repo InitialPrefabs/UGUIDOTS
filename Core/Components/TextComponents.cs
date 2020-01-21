@@ -12,7 +12,7 @@ namespace UGUIDots {
     /// <summary>
     /// Marks a mesh to be rebuilt.
     /// </summary>
-    public struct MeshRebuildTag : IComponentData { }
+    public struct MeshRebuildTag : IComponentData { public byte FakeValue; }
 
     /// <summary>
     /// Stores a buffer of character values 

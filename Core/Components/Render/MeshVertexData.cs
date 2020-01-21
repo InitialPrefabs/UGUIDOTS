@@ -1,6 +1,7 @@
 using System.Runtime.InteropServices;
 using Unity.Entities;
 using Unity.Mathematics;
+using UnityEngine;
 using UnityEngine.Rendering;
 
 namespace UGUIDots.Render {
@@ -10,6 +11,7 @@ namespace UGUIDots.Render {
         public float2 Position;
         public float3 Normal;
         public float2 UVs;
+        public Color32 Color;
     }
 
     public struct TriangleIndexElement : IBufferElementData {
@@ -28,7 +30,8 @@ namespace UGUIDots.Render {
         public static readonly VertexAttributeDescriptor[] VertexDescriptors = new [] {
             new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float32, 3),
             new VertexAttributeDescriptor(VertexAttribute.Normal, VertexAttributeFormat.Float32, 3),
-            new VertexAttributeDescriptor(VertexAttribute.TexCoord0, VertexAttributeFormat.Float32, 2)
+            new VertexAttributeDescriptor(VertexAttribute.TexCoord0, VertexAttributeFormat.Float32, 2),
+            new VertexAttributeDescriptor(VertexAttribute.Color, VertexAttributeFormat.UInt8, 4)
         };
     }
 }

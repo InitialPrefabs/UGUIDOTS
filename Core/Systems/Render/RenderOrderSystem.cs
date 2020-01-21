@@ -5,25 +5,25 @@ using Unity.Transforms;
 
 namespace UGUIDots.Render.Systems {
 
-    public struct RenderPair : IComparer<RenderPair>, IEquatable<RenderPair> {
-        public Entity Root;
-        public int ID;
-
-        public int Compare(RenderPair x, RenderPair y) {
-            return x.ID.CompareTo(y.ID);
-        }
-
-        public bool Equals(RenderPair other) {
-            return other.Root == Root && other.ID == ID;
-        }
-        public override int GetHashCode() {
-            return Root.GetHashCode() ^ ID.GetHashCode();
-        }
-    }
-
     [UpdateInGroup(typeof(PresentationSystemGroup))]
     [UpdateAfter(typeof(RenderBatchSystem))]
     public class RenderSortSystem : ComponentSystem {
+
+        public struct RenderPair : IComparer<RenderPair>, IEquatable<RenderPair> {
+            public Entity Root;
+            public int ID;
+
+            public int Compare(RenderPair x, RenderPair y) {
+                return x.ID.CompareTo(y.ID);
+            }
+
+            public bool Equals(RenderPair other) {
+                return other.Root == Root && other.ID == ID;
+            }
+            public override int GetHashCode() {
+                return Root.GetHashCode() ^ ID.GetHashCode();
+            }
+        }
 
         private class RenderGroupComparer : IComparer<RenderPair> {
             public int Compare(RenderPair x, RenderPair y) {
@@ -68,7 +68,7 @@ namespace UGUIDots.Render.Systems {
     /// Constructs the batches required to do rendering.
     /// </summary>
     [UpdateInGroup(typeof(PresentationSystemGroup))]
-    [UpdateAfter(typeof(BuildMeshSystem))]
+    [UpdateAfter(typeof(BuildMeshVertexDataSystem))]
     public class RenderBatchSystem : ComponentSystem {
 
         private EntityArchetype renderBatchArchetype;

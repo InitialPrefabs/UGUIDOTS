@@ -1,10 +1,10 @@
+using UGUIDots.Render;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
-using static UGUIDots.Render.Systems.BuildMeshSystem;
 
 namespace UGUIDots.Transforms.Systems {
 
@@ -32,7 +32,6 @@ namespace UGUIDots.Transforms.Systems {
 
         protected override void OnCreate() {
             cmdBufferSystem = World.GetOrCreateSystem<BeginPresentationEntityCommandBufferSystem>();
-
             RequireSingletonForUpdate<ResolutionChangeEvt>();
         }
 
