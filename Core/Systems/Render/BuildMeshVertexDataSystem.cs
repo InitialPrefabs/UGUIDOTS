@@ -3,10 +3,35 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
+using UnityEngine;
 
 namespace UGUIDots.Render.Systems {
 
-    [UpdateInGroup(typeof(PresentationSystemGroup))]
+    [UpdateInGroup(typeof(MeshBatchingGroup))]
+    [UpdateAfter(typeof(BuildMeshVertexDataSystem))]
+    public class CacheMeshSystem : JobComponentSystem {
+
+        private EntityQuery uncachedQuery;
+
+        protected override void OnCreate() {
+            uncachedQuery = GetEntityQuery(new EntityQueryDesc {
+                All = new [] { 
+                    ComponentType.ReadOnly<Dimensions>(), ComponentType.ReadWrite<MeshVertexData>(),
+                    ComponentType.ReadWrite<TriangleIndexElement>()
+                },
+                None = new [] {
+                    ComponentType.ReadOnly<CachedMeshTag>(),
+                    ComponentType.ReadOnly<Mesh>()
+                }
+            });
+        }
+
+        protected override JobHandle OnUpdate(JobHandle inputDeps) {
+            return inputDeps;
+        }
+    }
+
+    [UpdateInGroup(typeof(MeshBatchingGroup))]
     public class BuildMeshVertexDataSystem : JobComponentSystem {
 
         [BurstCompile]
@@ -34,13 +59,12 @@ namespace UGUIDots.Render.Systems {
                 var vertexBuffer   = chunk.GetBufferAccessor(VertexType);
                 var triangleBuffer = chunk.GetBufferAccessor(TriangleType);
                 var colors         = chunk.GetNativeArray(ColorType);
-                var entities = chunk.GetNativeArray(EntityType);
+                var entities       = chunk.GetNativeArray(EntityType);
 
                 if (chunk.Has(CharType)) {
                     // TODO: Figure out how to handle text generation
                 } else {
                     for (int i = 0; i < chunk.Count; i++) {
-
                         var dimension = dimensions[i];
                         var indices   = triangleBuffer[i];
                         var vertices  = vertexBuffer[i];

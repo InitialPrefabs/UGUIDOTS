@@ -5,7 +5,7 @@ using Unity.Transforms;
 
 namespace UGUIDots.Render.Systems {
 
-    [UpdateInGroup(typeof(PresentationSystemGroup))]
+    [UpdateInGroup(typeof(MeshBatchingGroup))]
     [UpdateAfter(typeof(RenderBatchSystem))]
     public class RenderSortSystem : ComponentSystem {
 
@@ -67,7 +67,7 @@ namespace UGUIDots.Render.Systems {
     /// <summary>
     /// Constructs the batches required to do rendering.
     /// </summary>
-    [UpdateInGroup(typeof(PresentationSystemGroup))]
+    [UpdateInGroup(typeof(MeshBatchingGroup))]
     [UpdateAfter(typeof(BuildMeshVertexDataSystem))]
     public class RenderBatchSystem : ComponentSystem {
 
