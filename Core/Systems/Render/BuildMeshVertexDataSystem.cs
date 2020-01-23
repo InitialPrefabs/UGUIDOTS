@@ -25,6 +25,9 @@ namespace UGUIDots.Render.Systems {
             [ReadOnly]
             public ArchetypeChunkEntityType EntityType;
 
+            [ReadOnly]
+            public ArchetypeChunkComponentType<SpriteData> SpriteDataType;
+
             public ArchetypeChunkBufferType<MeshVertexData> VertexType;
             public ArchetypeChunkBufferType<TriangleIndexElement> TriangleType;
 
@@ -40,12 +43,15 @@ namespace UGUIDots.Render.Systems {
                 if (chunk.Has(CharType)) {
                     // TODO: Figure out how to handle text generation
                 } else {
+                    var spriteData = chunk.GetNativeArray(SpriteDataType);
+
                     for (int i = 0; i < chunk.Count; i++) {
                         var dimension = dimensions[i];
                         var indices   = triangleBuffer[i];
                         var vertices  = vertexBuffer[i];
                         var color     = colors[i].Value.ToNormalizedFloat4();
                         var entity    = entities[i];
+                        var uv        = spriteData[i].OuterUV;
 
                         indices.Clear();
                         vertices.Clear();
@@ -57,25 +63,25 @@ namespace UGUIDots.Render.Systems {
                             Position = new float3(-extents.x, -extents.y, 0),
                             Normal   = right,
                             Color    = color,
-                            UVs      = new float2(0, 0),
+                            UVs      = new float2(uv.x, uv.y),
                         });
                         vertices.Add(new MeshVertexData {
                             Position = new float3(-extents.x, extents.y, 0),
                             Normal   = right,
                             Color    = color,
-                            UVs      = new float2(0, 1),
+                            UVs      = new float2(uv.x, uv.w),
                         });
                         vertices.Add(new MeshVertexData {
                             Position = new float3(extents, 0),
                             Normal   = right,
                             Color    = color,
-                            UVs      = new float2(1, 1),
+                            UVs      = new float2(uv.z, uv.w),
                         });
                         vertices.Add(new MeshVertexData {
                             Position = new float3(extents.x, -extents.y, 0),
                             Normal   = right,
                             Color    = color,
-                            UVs      = new float2(1, 0),
+                            UVs      = new float2(uv.z, uv.y),
                         });
 
                         // TODO: Figure this out mathematically instead of hard coding
@@ -112,13 +118,14 @@ namespace UGUIDots.Render.Systems {
 
         protected override JobHandle OnUpdate(JobHandle inputDeps) {
             var rebuildDeps = new RebuildMeshJob {
-                DimensionType = GetArchetypeChunkComponentType<Dimensions>(true),
-                ColorType     = GetArchetypeChunkComponentType<AppliedColor>(true),
-                VertexType    = GetArchetypeChunkBufferType<MeshVertexData>(),
-                TriangleType  = GetArchetypeChunkBufferType<TriangleIndexElement>(),
-                CharType      = GetArchetypeChunkBufferType<CharElement>(true),
-                EntityType    = GetArchetypeChunkEntityType(),
-                CmdBuffer     = cmdBufferSystem.CreateCommandBuffer().ToConcurrent()
+                DimensionType  = GetArchetypeChunkComponentType<Dimensions>(true),
+                ColorType      = GetArchetypeChunkComponentType<AppliedColor>(true),
+                VertexType     = GetArchetypeChunkBufferType<MeshVertexData>(),
+                TriangleType   = GetArchetypeChunkBufferType<TriangleIndexElement>(),
+                CharType       = GetArchetypeChunkBufferType<CharElement>(true),
+                SpriteDataType = GetArchetypeChunkComponentType<SpriteData>(true),
+                EntityType     = GetArchetypeChunkEntityType(),
+                CmdBuffer      = cmdBufferSystem.CreateCommandBuffer().ToConcurrent()
             }.Schedule(graphicQuery, inputDeps);
 
             cmdBufferSystem.AddJobHandleForProducer(rebuildDeps);

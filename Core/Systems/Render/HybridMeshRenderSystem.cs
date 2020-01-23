@@ -12,25 +12,31 @@ namespace UGUIDots.Render.Systems {
         private MeshCacheSystem meshCacheSystem;
         private RenderSortSystem renderSortSystem;
 
-        private EntityQuery orderedRenderQuery, renderCmdQuery;
+        private EntityQuery orderedRenderQuery, renderCmdQuery, textureBinQuery;
         private OrthographicRenderFeature feature;
 
-        private TextureCollectionBlob textureBlob;
+        private TextureBin textureBin;
 
         protected override void OnCreate() {
-            meshCacheSystem  = World.GetOrCreateSystem<MeshCacheSystem>();
+            meshCacheSystem = World.GetOrCreateSystem<MeshCacheSystem>();
             renderSortSystem = World.GetOrCreateSystem<RenderSortSystem>();
 
             orderedRenderQuery = GetEntityQuery(new EntityQueryDesc {
-                All = new[] {
+                All = new [] {
                     ComponentType.ReadOnly<RenderGroupID>(),
                     ComponentType.ReadOnly<RenderElement>()
                 }
             });
 
             renderCmdQuery = GetEntityQuery(new EntityQueryDesc {
-                All = new[] {
+                All = new [] {
                     ComponentType.ReadOnly<RenderCommand>()
+                }
+            });
+
+            textureBinQuery = GetEntityQuery(new EntityQueryDesc {
+                All = new [] {
+                    ComponentType.ReadOnly<TextureBin>()
                 }
             });
         }
@@ -40,26 +46,23 @@ namespace UGUIDots.Render.Systems {
                 feature = cmd.RenderFeature;
             }).WithoutBurst().Run();
 
-            // TODO: Multiple texture blobs can be problematic - I think having editor tools to help batch this would be
-            // a much better idea.
-            // textureBlob = GetSingleton<TextureCollectionBlob>();
+            Entities.WithStoreEntityQueryInField(ref textureBinQuery).ForEach((TextureBin c0) => {
+                textureBin = c0;
+            }).WithoutBurst().Run();
         }
 
         protected override JobHandle OnUpdate(JobHandle inputDeps) {
             inputDeps.Complete();
-            return inputDeps;
 
-            // var txtRebuilds   = GetComponentDataFromEntity<TextRebuildTag>(true);
             var keys          = GetComponentDataFromEntity<TextureKey>(true);
             var dimensions    = GetComponentDataFromEntity<Dimensions>(true);
             var localToWorlds = GetComponentDataFromEntity<LocalToWorld>(true);
             var renderBuffers = GetBufferFromEntity<RenderElement>(true);
-            // var options       = GetComponentDataFromEntity<TextOptions>(true);
             var meshIndices   = GetComponentDataFromEntity<MeshIndex>(true);
             var pairs         = renderSortSystem.SortedOrderPairs;
 
             for (int i = 0; i < pairs.Count; i++) {
-                var pair = pairs[i];
+                var pair    = pairs[i];
                 var renders = renderBuffers[pair.Root];
 
                 for (int k = 0; k < renders.Length; k++) {
@@ -75,7 +78,7 @@ namespace UGUIDots.Render.Systems {
                         var material = EntityManager.GetComponentObject<Material>(entity);
 
                         var block = meshPropertyPair.PropertyBlock;
-                        block.SetTexture(ShaderIDConstants.MainTex, textureBlob.At(meshIdx));
+                        block.SetTexture(ShaderIDConstants.MainTex, textureBin.At(key));
                         feature.Pass.InstructionQueue.Enqueue((meshPropertyPair.Mesh, material, ltw, block));
                     }
                 }

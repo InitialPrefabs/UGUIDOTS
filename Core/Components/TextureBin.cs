@@ -15,20 +15,13 @@ namespace UGUIDots {
         private IList<Texture> textures;
 
         private void OnEnable() {
-            textures = new List<Texture>(InitialCapacity);
-        }
-
-        public bool Exists(Texture texture) {
-            for (int i = 0; i < textures.Count; i++) {
-                if (textures[i] == texture) {
-                    return true;
-                }
+            if (textures == null) {
+                textures = new List<Texture>(InitialCapacity);
             }
-            return false;
         }
 
         public int Add(Texture texture) {
-            if (!Exists(texture)) {
+            if (!(textures as List<Texture>).Exists(t => t == texture)) {
                 textures.Add(texture);
             }
             return textures.IndexOf(texture);
@@ -42,6 +35,21 @@ namespace UGUIDots {
             if (disposeOnCompletion) {
                 indices.Dispose();
             }
+        }
+
+        public Texture At(int index) {
+            return textures[index];
+        }
+
+        public static bool TryLoadTextureBin(string path, out TextureBin textureBin) {
+            textureBin = Resources.Load<TextureBin>(path);
+            var isNull = textureBin == null;
+#if UNITY_EDITOR
+            if (isNull) {
+                throw new System.NullReferenceException($"Project does not have a TextureBin at Assets/Resources/{path}!");
+            }
+#endif
+            return !isNull;
         }
     }
 }
