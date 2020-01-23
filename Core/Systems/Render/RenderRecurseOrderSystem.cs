@@ -9,7 +9,7 @@ namespace UGUIDots.Render.Systems {
     /// Constructs the batches required to do rendering.
     /// </summary>
     [UpdateInGroup(typeof(MeshBatchingGroup))]
-    [UpdateAfter(typeof(BuildMeshVertexDataSystem))]
+    [UpdateAfter(typeof(BuildImageVertexDataSystem))]
     public class RenderRecurseOrderSystem : ComponentSystem {
 
         private EntityArchetype renderBatchArchetype;
