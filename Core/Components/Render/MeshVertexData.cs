@@ -10,8 +10,8 @@ namespace UGUIDots.Render {
     public struct MeshVertexData : IBufferElementData {
         public float3 Position;
         public float3 Normal;
+        public float4 Color;
         public float2 UVs;
-        // public Color32 Color;
     }
 
     public struct TriangleIndexElement : IBufferElementData {
@@ -30,8 +30,8 @@ namespace UGUIDots.Render {
         public static readonly VertexAttributeDescriptor[] VertexDescriptors = new [] {
             new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float32, 3),
             new VertexAttributeDescriptor(VertexAttribute.Normal, VertexAttributeFormat.Float32, 3),
+            new VertexAttributeDescriptor(VertexAttribute.Color, VertexAttributeFormat.Float32, 4),
             new VertexAttributeDescriptor(VertexAttribute.TexCoord0, VertexAttributeFormat.Float32, 2),
-            // new VertexAttributeDescriptor(VertexAttribute.Color, VertexAttributeFormat.Float32, 1)
         };
     }
 }

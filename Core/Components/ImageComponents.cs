@@ -1,5 +1,6 @@
 using System;
 using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace UGUIDots {
@@ -16,6 +17,12 @@ namespace UGUIDots {
 
         public override int GetHashCode() {
             return Value.GetHashCode();
+        }
+    }
+
+    public static class ColorExtensions {
+        public static float4 ToFloat4(this Color32 color) {
+            return new float4(color.r, color.g, color.b, color.a);
         }
     }
 

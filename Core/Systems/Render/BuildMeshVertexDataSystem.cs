@@ -44,10 +44,8 @@ namespace UGUIDots.Render.Systems {
                         var dimension = dimensions[i];
                         var indices   = triangleBuffer[i];
                         var vertices  = vertexBuffer[i];
-                        // var color     = colors[i].Value;
+                        var color     = colors[i].Value.ToFloat4();
                         var entity    = entities[i];
-
-                        var color = Color.cyan;
 
                         indices.Clear();
                         vertices.Clear();
@@ -58,26 +56,26 @@ namespace UGUIDots.Render.Systems {
                         vertices.Add(new MeshVertexData {
                             Position = new float3(-extents.x, -extents.y, 0),
                             Normal   = right,
+                            Color    = color,
                             UVs      = new float2(0, 0),
-                            // Color    = color
                         });
                         vertices.Add(new MeshVertexData {
                             Position = new float3(-extents.x, extents.y, 0),
                             Normal   = right,
+                            Color    = color,
                             UVs      = new float2(0, 1),
-                            // Color    = color
                         });
                         vertices.Add(new MeshVertexData {
                             Position = new float3(extents, 0),
                             Normal   = right,
+                            Color    = color,
                             UVs      = new float2(1, 1),
-                            // Color    = color
                         });
                         vertices.Add(new MeshVertexData {
                             Position = new float3(extents.x, -extents.y, 0),
                             Normal   = right,
+                            Color    = color,
                             UVs      = new float2(1, 0),
-                            // Color    = color
                         });
 
                         // TODO: Figure this out mathematically instead of hard coding
