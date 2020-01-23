@@ -12,6 +12,7 @@ namespace UGUIDots {
     /// <summary>
     /// Marks a mesh to be rebuilt.
     /// </summary>
+    [Obsolete("This was originally a hack that should not be used...")]
     public struct MeshRebuildTag : IComponentData { public byte FakeValue; }
 
     /// <summary>

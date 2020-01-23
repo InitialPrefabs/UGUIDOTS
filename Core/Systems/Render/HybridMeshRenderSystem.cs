@@ -42,11 +42,12 @@ namespace UGUIDots.Render.Systems {
 
             // TODO: Multiple texture blobs can be problematic - I think having editor tools to help batch this would be
             // a much better idea.
-            textureBlob = GetSingleton<TextureCollectionBlob>();
+            // textureBlob = GetSingleton<TextureCollectionBlob>();
         }
 
         protected override JobHandle OnUpdate(JobHandle inputDeps) {
             inputDeps.Complete();
+            return inputDeps;
 
             // var txtRebuilds   = GetComponentDataFromEntity<TextRebuildTag>(true);
             var keys          = GetComponentDataFromEntity<TextureKey>(true);

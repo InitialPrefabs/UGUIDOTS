@@ -1,9 +1,34 @@
 using System;
+using System.Runtime.InteropServices;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.Sprites;
 
 namespace UGUIDots {
+
+    /// <summary>
+    /// Stores the sprite's UVs, padding, and minimum size.
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
+    public struct SpriteData : IComponentData {
+        public float4 InnerUV;
+        public float4 OuterUV;
+        public float4 Padding;
+        public float2 MinSize;
+
+        public static SpriteData FromSprite(Sprite sprite) {
+            if (sprite) {
+                return new SpriteData {
+                    InnerUV = DataUtility.GetInnerUV(sprite),
+                    OuterUV = DataUtility.GetOuterUV(sprite),
+                    Padding = DataUtility.GetPadding(sprite),
+                    MinSize = DataUtility.GetMinSize(sprite)
+                };
+            }
+            return default;
+        }
+    }
 
     /// <summary>
     /// Stores the intended color to apply to the entity.

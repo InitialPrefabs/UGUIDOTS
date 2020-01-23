@@ -39,12 +39,15 @@ namespace UGUIDots.Conversions.Systems {
                 var entity   = GetPrimaryEntity(image);
                 var material = image.material != null ? image.material : Canvas.GetDefaultCanvasMaterial();
                 DstEntityManager.AddComponentObject(entity, material);
-                DstEntityManager.AddSharedComponentData(entity, new MaterialID { Value = material.GetInstanceID() });
 
-                DstEntityManager.AddComponentData(entity, new TextureKey       { Value = images.IndexOf(image) });
-                DstEntityManager.AddComponentData(entity, new AppliedColor   { Value = image.color });
-                DstEntityManager.AddComponentData(entity, new Dimensions     { Value = image.rectTransform.Int2Size() });
-                // DstEntityManager.AddComponentData(entity, new MeshRebuildTag { });
+                // Internally this would need a look up table...
+                // DstEntityManager.AddSharedComponentData(entity, new MaterialID { Value = material.GetInstanceID() });
+
+                DstEntityManager.AddComponentData(entity, new TextureKey   { Value = images.IndexOf(image) });
+                DstEntityManager.AddComponentData(entity, new AppliedColor { Value = image.color });
+                DstEntityManager.AddComponentData(entity, new Dimensions   { Value = image.rectTransform.Int2Size() });
+
+                DstEntityManager.AddComponentData(entity, SpriteData.FromSprite(image.sprite));
 
                 // TODO: Does not handle image slicing
                 DstEntityManager.AddBuffer<MeshVertexData>(entity).ResizeUninitialized(4);
@@ -52,13 +55,7 @@ namespace UGUIDots.Conversions.Systems {
             });
 
             if (images.Count > 0) {
-                // TODO: Have a check because if the conversion system continuously runs, then we have multiple smaller
-                // mini blobs with more images.
-                // Create a mega blob which references all of the sprites/images that we need.
                 var entity     = DstEntityManager.CreateEntity();
-                var collection = new TextureCollectionBlob { BlobAsset = ConstructBlob() };
-
-                DstEntityManager.AddComponentData(entity, collection);
 #if UNITY_EDITOR
                 DstEntityManager.SetName(entity, "UI Texture Atlas");
 #endif
