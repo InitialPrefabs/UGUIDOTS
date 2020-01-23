@@ -25,22 +25,22 @@ namespace UGUIDots.Render {
                     var right  = new float3(1, 0, 0);
 
                     vertices.Add(new MeshVertexData {
-                        Position = new float2(xPos, yPos),
+                        Position = new float3(xPos, yPos, 0),
                         Normal   = right,
                         UVs      = glyph.UVBottomLeft()
                     });
                     vertices.Add(new MeshVertexData {
-                        Position = new float2(xPos, yPos + height),
+                        Position = new float3(xPos, yPos + height, 0),
                         Normal   = right,
                         UVs      = glyph.UVTopLeft()
                     });
                     vertices.Add(new MeshVertexData {
-                        Position = new float2(xPos + width, yPos + height),
+                        Position = new float3(xPos + width, yPos + height, 0),
                         Normal   = right,
                         UVs      = glyph.UVTopRight()
                     });
                     vertices.Add(new MeshVertexData {
-                        Position = new float2(xPos + width, yPos),
+                        Position = new float3(xPos + width, yPos, 0),
                         Normal   = right,
                         UVs      = glyph.UVBottomRight()
                     });

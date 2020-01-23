@@ -8,30 +8,6 @@ using UnityEngine;
 namespace UGUIDots.Render.Systems {
 
     [UpdateInGroup(typeof(MeshBatchingGroup))]
-    [UpdateAfter(typeof(BuildMeshVertexDataSystem))]
-    public class CacheMeshSystem : JobComponentSystem {
-
-        private EntityQuery uncachedQuery;
-
-        protected override void OnCreate() {
-            uncachedQuery = GetEntityQuery(new EntityQueryDesc {
-                All = new [] { 
-                    ComponentType.ReadOnly<Dimensions>(), ComponentType.ReadWrite<MeshVertexData>(),
-                    ComponentType.ReadWrite<TriangleIndexElement>()
-                },
-                None = new [] {
-                    ComponentType.ReadOnly<CachedMeshTag>(),
-                    ComponentType.ReadOnly<Mesh>()
-                }
-            });
-        }
-
-        protected override JobHandle OnUpdate(JobHandle inputDeps) {
-            return inputDeps;
-        }
-    }
-
-    [UpdateInGroup(typeof(MeshBatchingGroup))]
     public class BuildMeshVertexDataSystem : JobComponentSystem {
 
         [BurstCompile]
@@ -40,7 +16,7 @@ namespace UGUIDots.Render.Systems {
             [ReadOnly]
             public ArchetypeChunkComponentType<Dimensions> DimensionType;
 
-            [ReadOnly] 
+            [ReadOnly]
             public ArchetypeChunkBufferType<CharElement> CharType;
 
             [ReadOnly]
@@ -68,8 +44,10 @@ namespace UGUIDots.Render.Systems {
                         var dimension = dimensions[i];
                         var indices   = triangleBuffer[i];
                         var vertices  = vertexBuffer[i];
-                        var color     = colors[i].Value;
+                        // var color     = colors[i].Value;
                         var entity    = entities[i];
+
+                        var color = Color.cyan;
 
                         indices.Clear();
                         vertices.Clear();
@@ -78,28 +56,28 @@ namespace UGUIDots.Render.Systems {
                         var extents = dimension.Extents();
 
                         vertices.Add(new MeshVertexData {
-                            Position = new float2(-extents.x, -extents.y),
+                            Position = new float3(-extents.x, -extents.y, 0),
                             Normal   = right,
                             UVs      = new float2(0, 0),
-                            Color    = color
+                            // Color    = color
                         });
                         vertices.Add(new MeshVertexData {
-                            Position = new float2(-extents.x, extents.y),
+                            Position = new float3(-extents.x, extents.y, 0),
                             Normal   = right,
                             UVs      = new float2(0, 1),
-                            Color    = color
+                            // Color    = color
                         });
                         vertices.Add(new MeshVertexData {
-                            Position = extents,
+                            Position = new float3(extents, 0),
                             Normal   = right,
                             UVs      = new float2(1, 1),
-                            Color    = color
+                            // Color    = color
                         });
                         vertices.Add(new MeshVertexData {
-                            Position = new float2(extents.x, -extents.y),
+                            Position = new float3(extents.x, -extents.y, 0),
                             Normal   = right,
                             UVs      = new float2(1, 0),
-                            Color    = color
+                            // Color    = color
                         });
 
                         // TODO: Figure this out mathematically instead of hard coding
@@ -122,7 +100,7 @@ namespace UGUIDots.Render.Systems {
 
         protected override void OnCreate() {
             graphicQuery = GetEntityQuery(new EntityQueryDesc {
-                All = new [] { 
+                All = new [] {
                     ComponentType.ReadOnly<Dimensions>(), ComponentType.ReadWrite<MeshVertexData>(),
                     ComponentType.ReadWrite<TriangleIndexElement>()
                 },

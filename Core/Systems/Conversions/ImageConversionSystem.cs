@@ -41,7 +41,7 @@ namespace UGUIDots.Conversions.Systems {
                 DstEntityManager.AddComponentObject(entity, material);
                 DstEntityManager.AddSharedComponentData(entity, new MaterialID { Value = material.GetInstanceID() });
 
-                DstEntityManager.AddComponentData(entity, new ImageKey       { Value = images.IndexOf(image) });
+                DstEntityManager.AddComponentData(entity, new TextureKey       { Value = images.IndexOf(image) });
                 DstEntityManager.AddComponentData(entity, new AppliedColor   { Value = image.color });
                 DstEntityManager.AddComponentData(entity, new Dimensions     { Value = image.rectTransform.Int2Size() });
                 // DstEntityManager.AddComponentData(entity, new MeshRebuildTag { });

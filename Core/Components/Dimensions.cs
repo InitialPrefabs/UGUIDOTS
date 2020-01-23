@@ -6,6 +6,10 @@ using UnityEngine;
 
 namespace UGUIDots {
 
+    /// <summary>
+    /// Represents the bounding box which may be used to generate the quads for images. For text based entities,
+    /// this struct would be defined as the "bounding box" of the text for word wrapping/truncation.
+    /// </summary>
     public struct Dimensions : IComponentData, IEquatable<Dimensions> {
         public int2 Value;
 

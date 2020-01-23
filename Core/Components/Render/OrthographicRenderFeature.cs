@@ -36,7 +36,7 @@ namespace UGUIDots.Render {
                     var mesh = tuple.Item1;
 
                     for (int i = 0; i < mesh.subMeshCount; i++) {
-                        cmd.DrawMesh(mesh, tuple.Item3, tuple.Item2, i, -1, tuple.Item4);
+                        cmd.DrawMesh(mesh, tuple.Item3, tuple.Item2, i, 0, tuple.Item4);
                     }
                 }
             }
