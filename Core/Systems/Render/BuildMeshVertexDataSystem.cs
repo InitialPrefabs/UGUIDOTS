@@ -3,7 +3,7 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
-using UnityEngine;
+using Unity.Profiling;
 
 namespace UGUIDots.Render.Systems {
 
@@ -11,7 +11,9 @@ namespace UGUIDots.Render.Systems {
     public class BuildMeshVertexDataSystem : JobComponentSystem {
 
         [BurstCompile]
-        private struct RebuildMeshJob : IJobChunk {
+        private unsafe struct RebuildMeshJob : IJobChunk {
+
+            public ProfilerMarker BuildMeshProfiler;
 
             [ReadOnly]
             public ArchetypeChunkComponentType<Dimensions> DimensionType;
@@ -34,6 +36,8 @@ namespace UGUIDots.Render.Systems {
             public EntityCommandBuffer.Concurrent CmdBuffer;
 
             public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex) {
+                BuildMeshProfiler.Begin();
+
                 var dimensions     = chunk.GetNativeArray(DimensionType);
                 var vertexBuffer   = chunk.GetBufferAccessor(VertexType);
                 var triangleBuffer = chunk.GetBufferAccessor(TriangleType);
@@ -96,6 +100,7 @@ namespace UGUIDots.Render.Systems {
                         CmdBuffer.AddComponent<CachedMeshTag>(entity.Index, entity);
                     }
                 }
+                BuildMeshProfiler.End();
             }
         }
 
@@ -118,14 +123,15 @@ namespace UGUIDots.Render.Systems {
 
         protected override JobHandle OnUpdate(JobHandle inputDeps) {
             var rebuildDeps = new RebuildMeshJob {
-                DimensionType  = GetArchetypeChunkComponentType<Dimensions>(true),
-                ColorType      = GetArchetypeChunkComponentType<AppliedColor>(true),
-                VertexType     = GetArchetypeChunkBufferType<MeshVertexData>(),
-                TriangleType   = GetArchetypeChunkBufferType<TriangleIndexElement>(),
-                CharType       = GetArchetypeChunkBufferType<CharElement>(true),
-                SpriteDataType = GetArchetypeChunkComponentType<SpriteData>(true),
-                EntityType     = GetArchetypeChunkEntityType(),
-                CmdBuffer      = cmdBufferSystem.CreateCommandBuffer().ToConcurrent()
+                BuildMeshProfiler = new ProfilerMarker("BuildMeshVertexDataSystem.RebuildMeshJob"),
+                DimensionType     = GetArchetypeChunkComponentType<Dimensions>(true),
+                ColorType         = GetArchetypeChunkComponentType<AppliedColor>(true),
+                VertexType        = GetArchetypeChunkBufferType<MeshVertexData>(),
+                TriangleType      = GetArchetypeChunkBufferType<TriangleIndexElement>(),
+                CharType          = GetArchetypeChunkBufferType<CharElement>(true),
+                SpriteDataType    = GetArchetypeChunkComponentType<SpriteData>(true),
+                EntityType        = GetArchetypeChunkEntityType(),
+                CmdBuffer         = cmdBufferSystem.CreateCommandBuffer().ToConcurrent()
             }.Schedule(graphicQuery, inputDeps);
 
             cmdBufferSystem.AddJobHandleForProducer(rebuildDeps);
