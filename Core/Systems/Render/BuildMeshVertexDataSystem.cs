@@ -44,7 +44,7 @@ namespace UGUIDots.Render.Systems {
                         var dimension = dimensions[i];
                         var indices   = triangleBuffer[i];
                         var vertices  = vertexBuffer[i];
-                        var color     = colors[i].Value.ToFloat4();
+                        var color     = colors[i].Value.ToNormalizedFloat4();
                         var entity    = entities[i];
 
                         indices.Clear();

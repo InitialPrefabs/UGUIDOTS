@@ -6,7 +6,7 @@ using UnityEngine.Rendering;
 
 namespace UGUIDots.Render.Systems {
 
-    // I'm not entirely convinced this achitecture would work, it does not include batching of meshes which would be 
+    // I'm not entirely convinced this achitecture would work, it does not include batching of meshes which would be
     // important to reduce the # of issued draw calls to the GPU...
     [UpdateInGroup(typeof(MeshBatchingGroup))]
     [UpdateAfter(typeof(BuildMeshVertexDataSystem))]
@@ -25,7 +25,7 @@ namespace UGUIDots.Render.Systems {
             }
         }
 
-        // TODO: Don't think this is well thought out - I think I can just get away with 2 lists, a free list and a 
+        // TODO: Don't think this is well thought out - I think I can just get away with 2 lists, a free list and a
         // used list
         private IList<MeshPropertyPair> cached, free;
 
@@ -33,7 +33,7 @@ namespace UGUIDots.Render.Systems {
 
         protected override void OnCreate() {
             unmappedMeshQuery = GetEntityQuery(new EntityQueryDesc {
-                All = new [] { 
+                All = new [] {
                     ComponentType.ReadOnly<Dimensions>(), ComponentType.ReadOnly<MeshVertexData>(),
                     ComponentType.ReadOnly<TriangleIndexElement>()
                 },
@@ -87,7 +87,7 @@ namespace UGUIDots.Render.Systems {
             if (free.Count > 0) {
                 var last = free.Count - 1;
                 var pair = free[last];
-                
+
                 free.RemoveAt(last);
                 pair.Mesh.Clear();
                 pair.PropertyBlock.Clear();

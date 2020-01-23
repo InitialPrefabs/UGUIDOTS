@@ -15,6 +15,8 @@ namespace UGUIDots.Render.Systems {
         private EntityQuery orderedRenderQuery, renderCmdQuery;
         private OrthographicRenderFeature feature;
 
+        private TextureCollectionBlob textureBlob;
+
         protected override void OnCreate() {
             meshCacheSystem  = World.GetOrCreateSystem<MeshCacheSystem>();
             renderSortSystem = World.GetOrCreateSystem<RenderSortSystem>();
@@ -37,10 +39,13 @@ namespace UGUIDots.Render.Systems {
             Entities.WithStoreEntityQueryInField(ref renderCmdQuery).ForEach((RenderCommand cmd) => {
                 feature = cmd.RenderFeature;
             }).WithoutBurst().Run();
+
+            // TODO: Multiple texture blobs can be problematic - I think having editor tools to help batch this would be
+            // a much better idea.
+            textureBlob = GetSingleton<TextureCollectionBlob>();
         }
 
         protected override JobHandle OnUpdate(JobHandle inputDeps) {
-            var textureBlob = GetSingleton<TextureCollectionBlob>();
             inputDeps.Complete();
 
             // var txtRebuilds   = GetComponentDataFromEntity<TextRebuildTag>(true);
