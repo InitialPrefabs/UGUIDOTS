@@ -13,7 +13,7 @@ namespace UGUIDots.Transforms.Systems {
         public byte Value;
     }
 
-    [UpdateInGroup(typeof(PresentationSystemGroup))]
+    [UpdateInGroup(typeof(UITransformUpdateGroup))]
     public class ConsumeChangeEvtSystem : JobComponentSystem {
 
         [BurstCompile]
@@ -45,7 +45,7 @@ namespace UGUIDots.Transforms.Systems {
     /// <summary>
     /// Scales all the canvases if the resolution of the window changes.
     /// </summary>
-    [UpdateInGroup(typeof(PresentationSystemGroup))]
+    [UpdateInGroup(typeof(UITransformUpdateGroup))]
     [UpdateAfter(typeof(ConsumeChangeEvtSystem))]
     public class CanvasScalerSystem : JobComponentSystem {
 
