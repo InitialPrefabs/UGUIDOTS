@@ -13,7 +13,7 @@ namespace UGUIDots {
     /// Marks a mesh to be rebuilt.
     /// </summary>
     [Obsolete("This was originally a hack that should not be used...")]
-    public struct MeshRebuildTag : IComponentData { public byte FakeValue; }
+    public struct BuildTextTag : IComponentData { }
 
     /// <summary>
     /// Stores a buffer of character values 
@@ -42,16 +42,29 @@ namespace UGUIDots {
         public float2x4 UV;
         public FontStyle Style;
     }
+    
+    /// <summary>
+    /// Stores the unique identifier for the font.
+    /// </summary>
+    public struct TextFontID : IComponentData, IEquatable<TextFontID> {
+        public int Value;
+
+        public bool Equals(TextFontID other) {
+            return other.Value == Value;
+        }
+
+        public override int GetHashCode() {
+            return Value.GetHashCode();
+        }
+    }
 
     /// <summary>
-    /// Stores how big the Text component's font is.
+    /// Stores stylizations of the text component
     /// </summary>
     public struct TextOptions : IComponentData {
         public ushort Size;
-        public int ID;
         public FontStyle Style;
-
-        // TODO: Add options for paragraph alignment.
+        public TextAnchor Alignment;
     }
 
     /// <summary>
@@ -112,17 +125,17 @@ namespace UGUIDots {
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool GetGlyphOf(this in DynamicBuffer<GlyphElement> glyphs, in char c, out GlyphElement glyph) {
+        public static bool TryGetGlyph(this in DynamicBuffer<GlyphElement> glyphs, in char c, in FontStyle style, out GlyphElement glyph) {
             var glyphArray = glyphs.AsNativeArray();
-            return GetGlyphOf(in glyphArray, in c, out glyph);
+            return TryGetGlyph(in glyphArray, in c, in style, out glyph);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool GetGlyphOf(this in NativeArray<GlyphElement> glyphs, in char c, out GlyphElement glyph) {
+        public static bool TryGetGlyph(this in NativeArray<GlyphElement> glyphs, in char c, in FontStyle style, out GlyphElement glyph) {
             for (int i = 0; i < glyphs.Length; i++) {
                 var current = glyphs[i];
 
-                if (current.Char == (ushort)c) {
+                if (current.Char == (ushort)c && current.Style == style) {
                     glyph = current;
                     return true;
                 }

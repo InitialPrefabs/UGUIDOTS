@@ -55,7 +55,7 @@ namespace UGUIDots.Conversions.Systems {
                 var buffer = DstEntityManager.AddBuffer<GlyphElement>(entity);
                 SetUpGlyphLib(font.characterInfo, ref buffer);
 
-                DstEntityManager.AddComponentData(entity, new FontID { Value = font.GetHashCode() });
+                DstEntityManager.AddComponentData(entity, new FontID { Value = font.GetInstanceID() });
             });
 
             FontEngine.DestroyFontEngine();
@@ -89,18 +89,17 @@ namespace UGUIDots.Conversions.Systems {
             Entities.ForEach((Text c0) => {
                 var entity = GetPrimaryEntity(c0);
 
+                DstEntityManager.AddComponentData(entity, new BuildTextTag { });
                 DstEntityManager.AddComponentData(entity, new Dimensions   { Value = c0.rectTransform.Int2Size() });
                 DstEntityManager.AddComponentData(entity, new AppliedColor { Value = c0.color });
+                DstEntityManager.AddComponentData(entity, new TextFontID   { Value = c0.font.GetInstanceID() });
                 DstEntityManager.AddComponentData(entity, new TextOptions  {
-                    ID    = c0.font.GetHashCode(),
-                    Size  = (ushort)c0.fontSize ,
-                    Style = c0.fontStyle
+                    Size      = (ushort)c0.fontSize,
+                    Style     = c0.fontStyle,
+                    Alignment = c0.alignment
                 });
 
-                DstEntityManager.AddComponentData(entity, new DirtyTag       { });
-                DstEntityManager.AddComponentData(entity, new MeshRebuildTag { });
-
-                DstEntityManager.AddComponentObject(entity, c0.material);
+                DstEntityManager.AddComponentObject(entity, c0.font.material);
                 AddTextData(entity, c0.text);
             });
         }

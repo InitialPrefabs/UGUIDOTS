@@ -1,13 +1,15 @@
-﻿using Unity.Burst;
+﻿using UGUIDots.Transforms;
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
+using Unity.Mathematics;
+using Unity.Transforms;
 
 namespace UGUIDots.Render.Systems {
 
-    [DisableAutoCreation]
-    [UpdateInGroup(typeof(PresentationSystemGroup))]
-    public class BuildTextMeshVertexSystem : JobComponentSystem {
+    [UpdateInGroup(typeof(MeshBatchingGroup))]
+    public class BuildTextVertexSystem : JobComponentSystem {
 
         [BurstCompile]
         private struct BuildGlyphMapJob : IJobForEachWithEntity<FontID> {
@@ -30,6 +32,9 @@ namespace UGUIDots.Render.Systems {
             [ReadOnly] public ArchetypeChunkEntityType EntityType;
             [ReadOnly] public ArchetypeChunkBufferType<CharElement> CharBufferType;
             [ReadOnly] public ArchetypeChunkComponentType<TextOptions> TextOptionType;
+            [ReadOnly] public ArchetypeChunkComponentType<TextFontID> TxtFontIDType;
+            [ReadOnly] public ArchetypeChunkComponentType<AppliedColor> ColorType;
+            [ReadOnly] public ArchetypeChunkComponentType<LocalToWorld> LTWType;
 
             public ArchetypeChunkBufferType<MeshVertexData> MeshVertexDataType;
             public ArchetypeChunkBufferType<TriangleIndexElement> TriangleIndexType;
@@ -40,31 +45,35 @@ namespace UGUIDots.Render.Systems {
                 var textBufferAccessor    = chunk.GetBufferAccessor(CharBufferType);
                 var vertexBufferAccessor  = chunk.GetBufferAccessor(MeshVertexDataType);
                 var triangleIndexAccessor = chunk.GetBufferAccessor(TriangleIndexType);
-                var fontInfo              = chunk.GetNativeArray(TextOptionType);
+                var textOptions           = chunk.GetNativeArray(TextOptionType);
+                var txtFontIDs            = chunk.GetNativeArray(TxtFontIDType);
                 var entities              = chunk.GetNativeArray(EntityType);
+                var colors                = chunk.GetNativeArray(ColorType);
+                var ltws                  = chunk.GetNativeArray(LTWType);
 
                 for (int i = 0; i < chunk.Count; i++) {
-                    var text     = textBufferAccessor[i].AsNativeArray();
-                    var vertices = vertexBufferAccessor[i];
-                    var indices  = triangleIndexAccessor[i];
-                    var fontID   = fontInfo[i].ID;
+                    var text       = textBufferAccessor[i].AsNativeArray();
+                    var vertices   = vertexBufferAccessor[i];
+                    var indices    = triangleIndexAccessor[i];
+                    var fontID     = txtFontIDs[i].Value;
+                    var textOption = textOptions[i];
+                    var color      = colors[i].Value.ToNormalizedFloat4();
 
                     vertices.Clear();
                     indices.Clear();
 
-                    var glyphTableExists = GlyphMap.TryGetValue(fontID, out var glyphEntity);
+                    var glyphTableExists  = GlyphMap.TryGetValue(fontID, out var glyphEntity);
                     var glyphBufferExists = GlyphData.Exists(glyphEntity);
 
                     if (glyphTableExists && glyphBufferExists) {
-                        var scale = (float)fontID / FontFaces[glyphEntity].DefaultFontSize;
-
+                        var scale = ltws[i].AverageScale();
                         var glyphData = GlyphData[glyphEntity].AsNativeArray();
                         TextMeshGenerationUtil.BuildTextMesh(ref vertices, ref indices, in text,
-                            in glyphData, default, default, scale);
+                            in glyphData, new float2(0, 0), scale, textOption.Style, color);
                     }
 
                     var textEntity = entities[i];
-                    CmdBuffer.RemoveComponent<MeshRebuildTag>(textEntity.Index, textEntity);
+                    CmdBuffer.RemoveComponent<BuildTextTag>(textEntity.Index, textEntity);
                 }
             }
         }
@@ -86,7 +95,7 @@ namespace UGUIDots.Render.Systems {
                     ComponentType.ReadWrite<TriangleIndexElement>(),
                     ComponentType.ReadOnly<CharElement>(),
                     ComponentType.ReadOnly<TextOptions>(),
-                    ComponentType.ReadOnly<MeshRebuildTag>(),
+                    ComponentType.ReadOnly<BuildTextTag>(),
                 }
             });
 
@@ -105,8 +114,11 @@ namespace UGUIDots.Render.Systems {
                 GlyphData          = GetBufferFromEntity<GlyphElement>(true),
                 FontFaces          = GetComponentDataFromEntity<FontFaceInfo>(true),
                 EntityType         = GetArchetypeChunkEntityType(),
-                CharBufferType     = GetArchetypeChunkBufferType<CharElement>(),
-                TextOptionType     = GetArchetypeChunkComponentType<TextOptions>(),
+                CharBufferType     = GetArchetypeChunkBufferType<CharElement>(true),
+                TextOptionType     = GetArchetypeChunkComponentType<TextOptions>(true),
+                TxtFontIDType      = GetArchetypeChunkComponentType<TextFontID>(true),
+                ColorType          = GetArchetypeChunkComponentType<AppliedColor>(true),
+                LTWType            = GetArchetypeChunkComponentType<LocalToWorld>(true),
                 MeshVertexDataType = GetArchetypeChunkBufferType<MeshVertexData>(),
                 TriangleIndexType  = GetArchetypeChunkBufferType<TriangleIndexElement>(),
                 CmdBuffer          = cmdBufferSystem.CreateCommandBuffer().ToConcurrent()

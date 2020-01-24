@@ -54,7 +54,7 @@ namespace UGUIDots.Render.Systems {
         protected override JobHandle OnUpdate(JobHandle inputDeps) {
             inputDeps.Complete();
 
-            var keys          = GetComponentDataFromEntity<TextureKey>(true);
+            var textureKeys   = GetComponentDataFromEntity<TextureKey>(true);
             var dimensions    = GetComponentDataFromEntity<Dimensions>(true);
             var localToWorlds = GetComponentDataFromEntity<LocalToWorld>(true);
             var renderBuffers = GetBufferFromEntity<RenderElement>(true);
@@ -72,13 +72,26 @@ namespace UGUIDots.Render.Systems {
 
                     if (hasMesh) {
                         var ltw = localToWorlds[entity].Value;
-                        var key = keys[entity].Value;
+
+                        if (!EntityManager.HasComponent<Material>(entity)) {
+#if UNITY_EDITOR
+                            var name = EntityManager.GetName(entity);
+                            Debug.LogWarning($"{entity} does not have a material attached!");
+#endif
+                            continue;
+                        }
 
                         // TODO: I think a material idx would be ideal...
                         var material = EntityManager.GetComponentObject<Material>(entity);
 
                         var block = meshPropertyPair.PropertyBlock;
-                        block.SetTexture(ShaderIDConstants.MainTex, textureBin.At(key));
+
+                        // TODO: Have a system which just sets the material property block instead of setting it here.
+                        if (textureKeys.Exists(entity)) {
+                            var key = textureKeys[entity].Value;
+                            block.SetTexture(ShaderIDConstants.MainTex, textureBin.At(key));
+                        }
+
                         feature.Pass.InstructionQueue.Enqueue((meshPropertyPair.Mesh, material, ltw, block));
                     }
                 }

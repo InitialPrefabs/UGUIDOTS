@@ -1,6 +1,7 @@
 using Unity.Mathematics;
 using Unity.Entities;
 using Unity.Collections;
+using UnityEngine;
 
 namespace UGUIDots.Render {
 
@@ -8,13 +9,13 @@ namespace UGUIDots.Render {
 
         public static void BuildTextMesh(ref DynamicBuffer<MeshVertexData> vertices,
             ref DynamicBuffer<TriangleIndexElement> indices, in NativeArray<CharElement> text,
-            in NativeArray<GlyphElement> glyphs, float2 startPos, float2 maxDimensions, float scale, 
+            in NativeArray<GlyphElement> glyphs, float2 startPos, float scale, FontStyle style, float4 color,
             float spacing = 1f) {
 
             for (int i = 0; i < text.Length; i++) {
                 var c = text[i].Value;
 
-                if (glyphs.GetGlyphOf(in c, out var glyph)) {
+                if (glyphs.TryGetGlyph(in c, in style, out var glyph)) {
                     var baseIndex = (ushort)vertices.Length;
                    
                     var xPos = startPos.x + glyph.Bearings.x * scale;
@@ -27,21 +28,25 @@ namespace UGUIDots.Render {
                     vertices.Add(new MeshVertexData {
                         Position = new float3(xPos, yPos, 0),
                         Normal   = right,
+                        Color    = color,
                         UVs      = glyph.UVBottomLeft()
                     });
                     vertices.Add(new MeshVertexData {
                         Position = new float3(xPos, yPos + height, 0),
                         Normal   = right,
+                        Color    = color,
                         UVs      = glyph.UVTopLeft()
                     });
                     vertices.Add(new MeshVertexData {
                         Position = new float3(xPos + width, yPos + height, 0),
                         Normal   = right,
+                        Color    = color,
                         UVs      = glyph.UVTopRight()
                     });
                     vertices.Add(new MeshVertexData {
                         Position = new float3(xPos + width, yPos, 0),
                         Normal   = right,
+                        Color    = color,
                         UVs      = glyph.UVBottomRight()
                     });
 
