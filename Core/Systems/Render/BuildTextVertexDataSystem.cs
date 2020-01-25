@@ -5,11 +5,12 @@ using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Transforms;
+using UnityEngine;
 
 namespace UGUIDots.Render.Systems {
 
     [UpdateInGroup(typeof(MeshBatchingGroup))]
-    public class BuildTextVertexSystem : JobComponentSystem {
+    public class BuildTextVertexDataSystem : JobComponentSystem {
 
         [BurstCompile]
         private struct BuildGlyphMapJob : IJobForEachWithEntity<FontID> {
@@ -67,6 +68,15 @@ namespace UGUIDots.Render.Systems {
 
                     if (glyphTableExists && glyphBufferExists) {
                         var scale = ltws[i].AverageScale();
+
+                        if (scale < 1) {
+                            scale *= 2;
+                        }
+
+                        if (scale > 1) {
+                            scale *= 0.5f;
+                        }
+
                         var glyphData = GlyphData[glyphEntity].AsNativeArray();
                         TextMeshGenerationUtil.BuildTextMesh(ref vertices, ref indices, in text,
                             in glyphData, new float2(0, 0), scale, textOption.Style, color);
@@ -95,9 +105,11 @@ namespace UGUIDots.Render.Systems {
                     ComponentType.ReadWrite<TriangleIndexElement>(),
                     ComponentType.ReadOnly<CharElement>(),
                     ComponentType.ReadOnly<TextOptions>(),
-                    ComponentType.ReadOnly<BuildTextTag>(),
+                    ComponentType.ReadOnly<BuildTextTag>()
                 }
             });
+
+            RequireForUpdate(textQuery);
 
             cmdBufferSystem = World.GetOrCreateSystem<BeginPresentationEntityCommandBufferSystem>();
         }
