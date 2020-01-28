@@ -10,24 +10,33 @@ namespace UGUIDots.Render {
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float2 GetAlignmentPosition(
-            in GlyphElement glyph,
-            in float lineHeight, 
-            in TextAnchor anchor, 
+            in FontFaceInfo fontFace,
+            in TextOptions options,
+            in float2 canvasScale,
             in Dimensions dimension) {
 
-            switch (anchor) {
+            var extents   = (dimension.Value * canvasScale) / 2;
+            var fontScale = fontFace.DefaultFontSize / (float)options.Size;
+
+            Debug.Log($"Scale: {canvasScale}, Font Scale: {fontScale}");
+
+            switch (options.Alignment) {
                 case TextAnchor.UpperLeft:
-                    throw new System.NotImplementedException();
+                {
+                    var topLeft = new float2(-extents.x, extents.y);
+                    var ascentLine = fontFace.AscentLine * fontScale;
+                    return topLeft - new float2(0, ascentLine);
+                }
                 case TextAnchor.MiddleLeft:
                     throw new System.NotImplementedException();
                 case TextAnchor.LowerLeft:
                     throw new System.NotImplementedException();
                 case TextAnchor.UpperCenter:
-                    return new float2(0, dimension.Value.y - lineHeight);
+                    throw new System.NotImplementedException();
                 case TextAnchor.MiddleCenter:
-                    return new float2();
+                    throw new System.NotImplementedException();
                 case TextAnchor.LowerCenter:
-                    return new float2(0, lineHeight);
+                    throw new System.NotImplementedException();
                 case TextAnchor.UpperRight:
                     throw new System.NotImplementedException();
                 case TextAnchor.MiddleRight:
@@ -58,8 +67,14 @@ namespace UGUIDots.Render {
 
                     // Represents the bottom left hand corner
                     // Right now it is offsetted towards the upper right (looks like by half the height / width of the glyph?
-                    var xPos = startPos.x + glyph.Bearings.x * scale;
-                    var yPos = startPos.y - (glyph.Size.y - glyph.Bearings.y) * scale;
+ 
+                    var xPos = startPos.x;
+                    var yPos = startPos.y;
+
+                    if (i == 0) {
+                        xPos = startPos.x + glyph.Bearings.x * scale;
+                        yPos = startPos.y - (glyph.Size.y - glyph.Bearings.y) * scale;
+                    }
 
                     Debug.Log($"{xPos}, {yPos}");
 

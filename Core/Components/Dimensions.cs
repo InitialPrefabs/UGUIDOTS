@@ -22,7 +22,19 @@ namespace UGUIDots {
         }
     }
 
+    // TODO: Define a much more descriptive functions - since these use "texture" space where 0,0 is the BL corner.
     public static class DimensionsExtensions {
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float2 LocalSpaceOrigin(this Dimensions dim) {
+            return default;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float2 LocalSpaceUpperLeft(this Dimensions dim) {
+            var extents = dim.Extents();
+            return dim.LocalSpaceOrigin() + new float2(-extents.x, extents.y);
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int Width(this Dimensions dim) {

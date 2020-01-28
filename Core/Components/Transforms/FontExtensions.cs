@@ -54,7 +54,8 @@ namespace UGUIDots {
                 SuperscriptSize        = info.superscriptSize,
                 SuperscriptOffset      = info.superscriptOffset,
                 TabWidth               = info.tabWidth,
-                UnderlineOffset        = info.underlineOffset
+                UnderlineOffset        = info.underlineOffset,
+                LineHeight             = info.lineHeight
             };
         }
     }
