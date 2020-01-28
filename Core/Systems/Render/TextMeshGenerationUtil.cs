@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using Unity.Mathematics;
 using Unity.Entities;
 using Unity.Collections;
@@ -7,9 +8,46 @@ namespace UGUIDots.Render {
 
     public static class TextMeshGenerationUtil {
 
-        public static void BuildTextMesh(ref DynamicBuffer<MeshVertexData> vertices,
-            ref DynamicBuffer<TriangleIndexElement> indices, in NativeArray<CharElement> text,
-            in NativeArray<GlyphElement> glyphs, float2 startPos, float scale, FontStyle style, float4 color,
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float2 GetAlignmentPosition(
+            in GlyphElement glyph,
+            in float lineHeight, 
+            in TextAnchor anchor, 
+            in Dimensions dimension) {
+
+            switch (anchor) {
+                case TextAnchor.UpperLeft:
+                    throw new System.NotImplementedException();
+                case TextAnchor.MiddleLeft:
+                    throw new System.NotImplementedException();
+                case TextAnchor.LowerLeft:
+                    throw new System.NotImplementedException();
+                case TextAnchor.UpperCenter:
+                    return new float2(0, dimension.Value.y - lineHeight);
+                case TextAnchor.MiddleCenter:
+                    return new float2();
+                case TextAnchor.LowerCenter:
+                    return new float2(0, lineHeight);
+                case TextAnchor.UpperRight:
+                    throw new System.NotImplementedException();
+                case TextAnchor.MiddleRight:
+                    throw new System.NotImplementedException();
+                case TextAnchor.LowerRight:
+                    throw new System.NotImplementedException();
+                default:
+                    throw new System.ArgumentException("Invalid anchor, please use a valid TextAnchor");
+            }
+        }
+
+        public static void BuildTextMesh(
+            ref DynamicBuffer<MeshVertexData> vertices,
+            ref DynamicBuffer<TriangleIndexElement> indices, 
+            in NativeArray<CharElement> text,
+            in NativeArray<GlyphElement> glyphs, 
+            float2 startPos, 
+            float scale, 
+            FontStyle style, 
+            float4 color,
             float spacing = 1f) {
 
             for (int i = 0; i < text.Length; i++) {
@@ -17,9 +55,15 @@ namespace UGUIDots.Render {
 
                 if (glyphs.TryGetGlyph(in c, in style, out var glyph)) {
                     var baseIndex = (ushort)vertices.Length;
-                   
+
+                    // Represents the bottom left hand corner
+                    // Right now it is offsetted towards the upper right (looks like by half the height / width of the glyph?
                     var xPos = startPos.x + glyph.Bearings.x * scale;
                     var yPos = startPos.y - (glyph.Size.y - glyph.Bearings.y) * scale;
+
+                    Debug.Log($"{xPos}, {yPos}");
+
+                    Debug.Log(glyph.Bearings.x * scale);
 
                     var width  = glyph.Size.x * scale;
                     var height = glyph.Size.y * scale;

@@ -36,6 +36,7 @@ namespace UGUIDots.Render.Systems {
             [ReadOnly] public ArchetypeChunkComponentType<TextFontID> TxtFontIDType;
             [ReadOnly] public ArchetypeChunkComponentType<AppliedColor> ColorType;
             [ReadOnly] public ArchetypeChunkComponentType<LocalToWorld> LTWType;
+            [ReadOnly] public ArchetypeChunkComponentType<Dimensions> DimensionType;
 
             public ArchetypeChunkBufferType<MeshVertexData> MeshVertexDataType;
             public ArchetypeChunkBufferType<TriangleIndexElement> TriangleIndexType;
@@ -51,6 +52,7 @@ namespace UGUIDots.Render.Systems {
                 var entities              = chunk.GetNativeArray(EntityType);
                 var colors                = chunk.GetNativeArray(ColorType);
                 var ltws                  = chunk.GetNativeArray(LTWType);
+                var dimensionsChunk       = chunk.GetNativeArray(DimensionType);
 
                 for (int i = 0; i < chunk.Count; i++) {
                     var text       = textBufferAccessor[i].AsNativeArray();
@@ -59,6 +61,7 @@ namespace UGUIDots.Render.Systems {
                     var fontID     = txtFontIDs[i].Value;
                     var textOption = textOptions[i];
                     var color      = colors[i].Value.ToNormalizedFloat4();
+                    var dimensions = dimensionsChunk[i];
 
                     vertices.Clear();
                     indices.Clear();
@@ -78,8 +81,22 @@ namespace UGUIDots.Render.Systems {
                         }
 
                         var glyphData = GlyphData[glyphEntity].AsNativeArray();
+
+                        var center = dimensions.Center();
+                        glyphData.TryGetGlyph(text[0], in textOption.Style, out var initial);
+
+                        center =+ (new float2(-initial.Advance, -initial.Size.y) * scale / 2);
+
+                        var ltwM     = float4x4.TRS(new float3(dimensions.Center(), 0), quaternion.identity, new float3(1));
+                        var inversed = math.inverse(ltwM);
+
+                        var blCorner = float4x4.TRS(new float3(0, 0 - (initial.Size.y - initial.Bearings.y), 0), quaternion.identity, new float3(1));
+
+                        var originToWorld = new LocalToWorld { Value = math.mul(float4x4.TRS(default, quaternion.identity, new float3(1)), blCorner) };
+                        Debug.Log($"originToWorld: {originToWorld.Position}");
+
                         TextMeshGenerationUtil.BuildTextMesh(ref vertices, ref indices, in text,
-                            in glyphData, new float2(0, 0), scale, textOption.Style, color);
+                            in glyphData, center, scale, textOption.Style, color);
                     }
 
                     var textEntity = entities[i];
@@ -131,6 +148,7 @@ namespace UGUIDots.Render.Systems {
                 TxtFontIDType      = GetArchetypeChunkComponentType<TextFontID>(true),
                 ColorType          = GetArchetypeChunkComponentType<AppliedColor>(true),
                 LTWType            = GetArchetypeChunkComponentType<LocalToWorld>(true),
+                DimensionType      = GetArchetypeChunkComponentType<Dimensions>(true),
                 MeshVertexDataType = GetArchetypeChunkBufferType<MeshVertexData>(),
                 TriangleIndexType  = GetArchetypeChunkBufferType<TriangleIndexElement>(),
                 CmdBuffer          = cmdBufferSystem.CreateCommandBuffer().ToConcurrent()
