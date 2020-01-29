@@ -1,5 +1,6 @@
 ﻿using System;
 using UGUIDots.Render;
+using UGUIDots.Transforms;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
@@ -98,7 +99,7 @@ namespace UGUIDots.Conversions.Systems {
                 DstEntityManager.AddComponentData(entity, new TextOptions  {
                     Size      = (ushort)c0.fontSize,
                     Style     = c0.fontStyle,
-                    Alignment = c0.alignment
+                    Alignment = c0.alignment.FromTextAnchor()
                 });
 
                 DstEntityManager.AddComponentObject(entity, c0.font.material);

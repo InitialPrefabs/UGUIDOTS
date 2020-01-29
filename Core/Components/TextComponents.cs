@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.CompilerServices;
+using UGUIDots.Transforms;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -44,7 +45,7 @@ namespace UGUIDots {
     }
     
     /// <summary>
-    /// Stores the unique identifier for the font.
+    /// Stores the unique identifier for the text component's font.
     /// </summary>
     public struct TextFontID : IComponentData, IEquatable<TextFontID> {
         public int Value;
@@ -59,12 +60,12 @@ namespace UGUIDots {
     }
 
     /// <summary>
-    /// Stores stylizations of the text component
+    /// Stores stylizations of the text component.
     /// </summary>
     public struct TextOptions : IComponentData {
         public ushort Size;
         public FontStyle Style;
-        public TextAnchor Alignment;
+        public AnchoredState Alignment;
     }
 
     /// <summary>

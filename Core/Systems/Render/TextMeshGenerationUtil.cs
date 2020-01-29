@@ -3,48 +3,37 @@ using Unity.Mathematics;
 using Unity.Entities;
 using Unity.Collections;
 using UnityEngine;
+using UGUIDots.Transforms;
 
 namespace UGUIDots.Render {
 
     public static class TextMeshGenerationUtil {
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float2 GetAlignmentPosition(
+        public static float2 GetVerticalAlignmentPosition(
             in FontFaceInfo fontFace,
             in TextOptions options,
-            in float2 canvasScale,
             in Dimensions dimension) {
 
             var extents   = (dimension.Value) / 2;
             var fontScale = (float)options.Size / fontFace.DefaultFontSize;
+            var alignment = options.Alignment;
 
-            Debug.Log($"Scale: {canvasScale}, Font Scale: {fontScale}");
-
-            switch (options.Alignment) {
-                case TextAnchor.UpperLeft:
+            switch (alignment) {
+                case var _ when (alignment | AnchoredState.TopRow) > 0:
                 {
                     var topLeft = new float2(-extents.x, extents.y);
                     var ascentLine = fontFace.AscentLine * fontScale;
                     return topLeft - new float2(0, ascentLine);
                 }
-                case TextAnchor.MiddleLeft:
+                case var _ when (alignment | AnchoredState.MiddleRow) > 0:
                 {
+                    throw new System.NotImplementedException();
                 }
+                case var _ when (alignment | AnchoredState.BottomRow) > 0:
+                {
                     throw new System.NotImplementedException();
-                case TextAnchor.LowerLeft:
-                    throw new System.NotImplementedException();
-                case TextAnchor.UpperCenter:
-                    throw new System.NotImplementedException();
-                case TextAnchor.MiddleCenter:
-                    throw new System.NotImplementedException();
-                case TextAnchor.LowerCenter:
-                    throw new System.NotImplementedException();
-                case TextAnchor.UpperRight:
-                    throw new System.NotImplementedException();
-                case TextAnchor.MiddleRight:
-                    throw new System.NotImplementedException();
-                case TextAnchor.LowerRight:
-                    throw new System.NotImplementedException();
+                }
                 default:
                     throw new System.ArgumentException("Invalid anchor, please use a valid TextAnchor");
             }

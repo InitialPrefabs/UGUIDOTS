@@ -87,8 +87,8 @@ namespace UGUIDots.Render.Systems {
                         var glyphData   = GlyphData[glyphEntity].AsNativeArray();
                         var canvasScale = ltw.Scale().xy;
 
-                        var startPos = TextMeshGenerationUtil.GetAlignmentPosition(in fontFace, in textOption, 
-                            in canvasScale, in dimensions);
+                        var startPos = TextMeshGenerationUtil.GetVerticalAlignmentPosition(in fontFace, in textOption,
+                            in dimensions);
 
                         TextMeshGenerationUtil.BuildTextMesh(ref vertices, ref indices, in text,
                             in glyphData, startPos, scale, textOption.Style, color);
