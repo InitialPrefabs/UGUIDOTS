@@ -10,36 +10,39 @@ public class AscentLineDrawer : MonoBehaviour
     FaceInfo faceInfo;
     void OnDrawGizmos() 
     {
-
         var text = GetComponent<Text>();
         FontEngine.InitializeFontEngine();
 
-        FontEngine.LoadFontFace(text.font, text.fontSize);
+        FontEngine.LoadFontFace(text.font, text.font.fontSize);
         faceInfo = FontEngine.GetFaceInfo();
 
         FontEngine.DestroyFontEngine();
 
-
+        var parentScale  = transform.root.localScale.x;
         Vector2 position = text.transform.position;
-        var rect = text.rectTransform.rect;
-        var size = rect.size;
+        var rect         = text.rectTransform.rect;
+        var size         = rect.size;
 
-        var bl = position - size / 2;
-        var tl = position + new Vector2(-size.x, size.y) / 2;
-        var tr = position + size / 2;
-        var br = position + new Vector2(size.x,-size.y) / 2;
+        var localBL = -size / 2;
+        var localTL = new Vector2(-size.x, size.y) / 2;
+        var localTR = size / 2;
+        var localBR = new Vector2(size.x, -size.y) / 2;
 
-        Gizmos.DrawLine(bl, tl);
-        Gizmos.DrawLine(tl, tr);
-        Gizmos.DrawLine(br, tr);
-        Gizmos.DrawLine(bl, br);
+        var localToWorld = transform.localToWorldMatrix;
 
-        var ascent = faceInfo.ascentLine;
+        Gizmos.DrawLine(localToWorld.MultiplyPoint3x4(localBL), localToWorld.MultiplyPoint3x4(localBR));
+        Gizmos.DrawLine(localToWorld.MultiplyPoint3x4(localBR), localToWorld.MultiplyPoint3x4(localTR));
+        Gizmos.DrawLine(localToWorld.MultiplyPoint3x4(localTR), localToWorld.MultiplyPoint3x4(localTL));
+        Gizmos.DrawLine(localToWorld.MultiplyPoint3x4(localBL), localToWorld.MultiplyPoint3x4(localTL));
 
-        var al = tl - new Vector2(0, ascent);
-        var ar = tr - new Vector2(0, ascent);
+        size = rect.size * parentScale;
+        var fontScale = (float)text.fontSize / text.font.fontSize;
+        var ascent = faceInfo.ascentLine * fontScale;
+
+        var al = localTL - new Vector2(0, ascent);
+        var ar = localTR - new Vector2(0, ascent);
 
         Gizmos.color = Color.red;
-        Gizmos.DrawLine(al, ar);
+        Gizmos.DrawLine(localToWorld.MultiplyPoint3x4(al), localToWorld.MultiplyPoint3x4(ar));
     }
 }

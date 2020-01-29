@@ -21,7 +21,7 @@ namespace UGUIDots.Render {
                 return;
             }
 
-
+            // TODO: Need a better way to handle finding the camera
             if (renderingData.cameraData.camera != null) {
                 var cmd = CommandBufferPool.Get(profilerTag);
                 using (new ProfilingSample(cmd, profilerTag)) {

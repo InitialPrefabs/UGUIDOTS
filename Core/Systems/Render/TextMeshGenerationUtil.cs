@@ -15,8 +15,8 @@ namespace UGUIDots.Render {
             in float2 canvasScale,
             in Dimensions dimension) {
 
-            var extents   = (dimension.Value * canvasScale) / 2;
-            var fontScale = fontFace.DefaultFontSize / (float)options.Size;
+            var extents   = (dimension.Value) / 2;
+            var fontScale = (float)options.Size / fontFace.DefaultFontSize;
 
             Debug.Log($"Scale: {canvasScale}, Font Scale: {fontScale}");
 
@@ -28,6 +28,8 @@ namespace UGUIDots.Render {
                     return topLeft - new float2(0, ascentLine);
                 }
                 case TextAnchor.MiddleLeft:
+                {
+                }
                     throw new System.NotImplementedException();
                 case TextAnchor.LowerLeft:
                     throw new System.NotImplementedException();
@@ -65,20 +67,8 @@ namespace UGUIDots.Render {
                 if (glyphs.TryGetGlyph(in c, in style, out var glyph)) {
                     var baseIndex = (ushort)vertices.Length;
 
-                    // Represents the bottom left hand corner
-                    // Right now it is offsetted towards the upper right (looks like by half the height / width of the glyph?
- 
-                    var xPos = startPos.x;
-                    var yPos = startPos.y;
-
-                    if (i == 0) {
-                        xPos = startPos.x + glyph.Bearings.x * scale;
-                        yPos = startPos.y - (glyph.Size.y - glyph.Bearings.y) * scale;
-                    }
-
-                    Debug.Log($"{xPos}, {yPos}");
-
-                    Debug.Log(glyph.Bearings.x * scale);
+                    var xPos = startPos.x + glyph.Bearings.x * scale;
+                    var yPos = startPos.y - (glyph.Size.y - glyph.Bearings.y) * scale;
 
                     var width  = glyph.Size.x * scale;
                     var height = glyph.Size.y * scale;
