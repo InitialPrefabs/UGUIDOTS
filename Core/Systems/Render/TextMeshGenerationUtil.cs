@@ -15,22 +15,23 @@ namespace UGUIDots.Render {
             in TextOptions options,
             in Dimensions dimension) {
 
-            var extents   = (dimension.Value) / 2;
-            var fontScale = (float)options.Size / fontFace.DefaultFontSize;
-            var alignment = options.Alignment;
+            var extents    = (dimension.Value) / 2;
+            var fontScale  = options.Size > 0 ? (float)options.Size / fontFace.DefaultFontSize : 1f;
+            var alignment  = options.Alignment;
 
             switch (alignment) {
-                case var _ when (alignment | AnchoredState.TopRow) > 0:
+                case var _ when (alignment & AnchoredState.TopRow) > 0:
                 {
-                    var topLeft = new float2(-extents.x, extents.y);
                     var ascentLine = fontFace.AscentLine * fontScale;
+                    var topLeft    = new float2(-extents.x, extents.y);
                     return topLeft - new float2(0, ascentLine);
                 }
-                case var _ when (alignment | AnchoredState.MiddleRow) > 0:
+                case var _ when (alignment & AnchoredState.MiddleRow) > 0:
                 {
-                    throw new System.NotImplementedException();
+                    var avgLineHeight = (fontFace.LineHeight * fontScale) / 2 + (fontFace.DescentLine * fontScale);
+                    return new float2(-extents.x, -avgLineHeight);
                 }
-                case var _ when (alignment | AnchoredState.BottomRow) > 0:
+                case var _ when (alignment & AnchoredState.BottomRow) > 0:
                 {
                     throw new System.NotImplementedException();
                 }

@@ -31,7 +31,11 @@ namespace UGUIDots {
     /// Stores glyph metric information to help generate the vertices required for the mesh.
     /// </summary>
     public struct GlyphElement : IBufferElementData {
-        public ushort Char;
+        public ushort Unicode;
+
+#if UNITY_EDITOR
+        public char Char;
+#endif
 
         public float Advance;
         public float2 Bearings;
@@ -136,7 +140,7 @@ namespace UGUIDots {
             for (int i = 0; i < glyphs.Length; i++) {
                 var current = glyphs[i];
 
-                if (current.Char == (ushort)c && current.Style == style) {
+                if (current.Unicode == (ushort)c && current.Style == style) {
                     glyph = current;
                     return true;
                 }

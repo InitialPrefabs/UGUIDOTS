@@ -39,10 +39,22 @@ public class AscentLineDrawer : MonoBehaviour
         var fontScale = (float)text.fontSize / text.font.fontSize;
         var ascent = faceInfo.ascentLine * fontScale;
 
-        var al = localTL - new Vector2(0, ascent);
-        var ar = localTR - new Vector2(0, ascent);
+        {
+            var al = localTL - new Vector2(0, ascent);
+            var ar = localTR - new Vector2(0, ascent);
 
-        Gizmos.color = Color.red;
-        Gizmos.DrawLine(localToWorld.MultiplyPoint3x4(al), localToWorld.MultiplyPoint3x4(ar));
+            Gizmos.color = Color.red;
+            Gizmos.DrawLine(localToWorld.MultiplyPoint3x4(al), localToWorld.MultiplyPoint3x4(ar));
+        }
+
+        {
+            var avgLineHeight = (faceInfo.lineHeight * fontScale) / 2 + (faceInfo.descentLine * fontScale);
+
+            var al = new Vector2(-size.x / 2, 0) - new Vector2(0, avgLineHeight);
+            var ar = new Vector2(size.x / 2, 0) - new Vector2(0, avgLineHeight);
+
+            Gizmos.color = Color.cyan;
+            Gizmos.DrawLine(localToWorld.MultiplyPoint3x4(al), localToWorld.MultiplyPoint3x4(ar));
+        }
     }
 }

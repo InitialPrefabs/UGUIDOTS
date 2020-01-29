@@ -69,13 +69,16 @@ namespace UGUIDots.Conversions.Systems {
                 var characterInfo = info[i];
 
                 buffer.Add(new GlyphElement {
-                    Char     = (ushort)characterInfo.index,
+                    Unicode  = (ushort)characterInfo.index,
                     Advance  = characterInfo.Advance(),
                     Bearings = new float2(characterInfo.BearingX(), characterInfo.BearingY(0)),
                     Size     = new float2(characterInfo.Width(), characterInfo.Height()),
                     Style    = characterInfo.style,
                     UV       = new float2x4(characterInfo.uvBottomLeft, characterInfo.uvTopLeft,
-                            characterInfo.uvTopRight, characterInfo.uvBottomRight)
+                            characterInfo.uvTopRight, characterInfo.uvBottomRight),
+#if UNITY_EDITOR    
+                    Char     = (char)characterInfo.index
+#endif
                 });
             }
         }
