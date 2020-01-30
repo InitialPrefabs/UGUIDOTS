@@ -68,6 +68,12 @@ namespace UGUIDots {
 
                 Debug.Log($"For {c}, bearing x: {glyph.metrics.horizontalBearingX}, y: {glyph.metrics.horizontalBearingY}, ");
 
+                var bearingUpL = localToWorld.MultiplyPoint3x4(new Vector2(localTL.x, start.y - (height - glyph.metrics.horizontalBearingY) * fontScale * parentScale.y));
+                var bearingUpR = localToWorld.MultiplyPoint3x4(new Vector2(localTR.x, start.y - (height - glyph.metrics.horizontalBearingY) * fontScale * parentScale.y));
+
+                Gizmos.color = Color.cyan;
+                Gizmos.DrawLine(bearingUpL, bearingUpR);
+
                 var xPos = (start.x + glyph.metrics.horizontalBearingX - normalStyle) * fontScale * parentScale.x;
                 var yPos = (start.y - (height - glyph.metrics.horizontalBearingY - normalStyle)) * fontScale * parentScale.y;
 
