@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using TMPro;
 
 namespace UGUIDots {
@@ -15,15 +13,15 @@ namespace UGUIDots {
             }
 
             var fontAsset = text.font;
-            var fontSize  = text.fontSize;
-            var faceInfo  = fontAsset.faceInfo;
+            var fontSize = text.fontSize;
+            var faceInfo = fontAsset.faceInfo;
 
             var fontScale = fontSize / (float)faceInfo.pointSize;
 
-            var parentScale  = transform.root.localScale;
+            var parentScale = transform.root.localScale;
             Vector2 position = text.transform.position;
-            var rect         = text.rectTransform.rect;
-            var size         = rect.size;
+            var rect = text.rectTransform.rect;
+            var size = rect.size;
 
             var localBL = -size / 2;
             var localTL = new Vector2(-size.x, size.y) / 2;
@@ -50,45 +48,51 @@ namespace UGUIDots {
                 Gizmos.color = Color.red;
                 Gizmos.DrawLine(localToWorld.MultiplyPoint3x4(al), localToWorld.MultiplyPoint3x4(ar));
 
-                if (text.alignment == TextAlignmentOptions.TopLeft) 
-                {
+                if (text.alignment == TextAlignmentOptions.TopLeft) {
                     start = al;
                 }
             }
 
             // Draw the font lines
             {
-                var c     = text.text[0];
-                var glyph = fontAsset.glyphLookupTable[(uint)c];
+                for (int i = 0; i < text.text.Length; i++) {
+                    var c = text.text[i];
+                    var glyph = fontAsset.characterLookupTable[(uint)c];
 
-                float width  = glyph.glyphRect.width;
-                float height = glyph.glyphRect.height;
+                    var glyphRect = glyph.glyph.glyphRect;
+                    var metrics = glyph.glyph.metrics;
 
-                var normalStyle = fontAsset.normalStyle;
+                    float width = glyphRect.width;
+                    float height = glyphRect.height;
 
-                Debug.Log($"For {c}, bearing x: {glyph.metrics.horizontalBearingX}, y: {glyph.metrics.horizontalBearingY}, ");
+                    var normalStyle = fontAsset.normalStyle;
 
-                var bearingUpL = localToWorld.MultiplyPoint3x4(new Vector2(localTL.x, start.y - (height - glyph.metrics.horizontalBearingY) * fontScale * parentScale.y));
-                var bearingUpR = localToWorld.MultiplyPoint3x4(new Vector2(localTR.x, start.y - (height - glyph.metrics.horizontalBearingY) * fontScale * parentScale.y));
+                    Debug.Log($"For {c}, bearing x: {metrics.horizontalBearingX}, y: {metrics.horizontalBearingY}, ");
 
-                Gizmos.color = Color.cyan;
-                Gizmos.DrawLine(bearingUpL, bearingUpR);
+                    var bearingUpL = localToWorld.MultiplyPoint3x4(new Vector2(localTL.x, start.y - (height - metrics.horizontalBearingY) * fontScale * parentScale.y));
+                    var bearingUpR = localToWorld.MultiplyPoint3x4(new Vector2(localTR.x, start.y - (height - metrics.horizontalBearingY) * fontScale * parentScale.y));
 
-                var xPos = (start.x + glyph.metrics.horizontalBearingX - normalStyle) * fontScale * parentScale.x;
-                var yPos = (start.y - (height - glyph.metrics.horizontalBearingY - normalStyle)) * fontScale * parentScale.y;
+                    Gizmos.color = Color.cyan;
+                    Gizmos.DrawLine(bearingUpL, bearingUpR);
 
-                width  *= fontScale * parentScale.x;
-                height = (height + normalStyle * 2) + fontScale * parentScale.y;
+                    var xPos = start.x + (metrics.horizontalBearingX) * parentScale.x * fontScale;
+                    var yPos = start.y - ((height - metrics.horizontalBearingY) * parentScale.y);
 
-                var bl = localToWorld.MultiplyPoint3x4(new Vector2(xPos, yPos));
-                var tl = localToWorld.MultiplyPoint3x4(new Vector2(xPos, yPos + height));
-                var tr = localToWorld.MultiplyPoint3x4(new Vector2(xPos + width, yPos + height));
-                var br = localToWorld.MultiplyPoint3x4(new Vector2(xPos + width, yPos));
+                    width *= fontScale * parentScale.x;
+                    height *= fontScale * parentScale.y;
 
-                Debug.DrawLine(bl, tl, Color.yellow);
-                Debug.DrawLine(tl, tr, Color.yellow);
-                Debug.DrawLine(tr, br, Color.yellow);
-                Debug.DrawLine(bl, br, Color.yellow);
+                    var bl = localToWorld.MultiplyPoint3x4(new Vector2(xPos, yPos));
+                    var tl = localToWorld.MultiplyPoint3x4(new Vector2(xPos, yPos + height));
+                    var tr = localToWorld.MultiplyPoint3x4(new Vector2(xPos + width, yPos + height));
+                    var br = localToWorld.MultiplyPoint3x4(new Vector2(xPos + width, yPos));
+
+                    Debug.DrawLine(bl, tl, Color.yellow);
+                    Debug.DrawLine(tl, tr, Color.yellow);
+                    Debug.DrawLine(tr, br, Color.yellow);
+                    Debug.DrawLine(bl, br, Color.yellow);
+
+                    start += new Vector2(metrics.horizontalAdvance * parentScale.x * fontScale, 0);
+                }
             }
         }
     }
