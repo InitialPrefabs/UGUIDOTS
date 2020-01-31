@@ -1,4 +1,5 @@
-﻿using UGUIDots.Transforms;
+﻿using TMPro;
+using UGUIDots.Transforms;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -68,7 +69,7 @@ namespace UGUIDots.Render.Systems {
 
                     var glyphTableExists  = GlyphMap.TryGetValue(fontID, out var glyphEntity);
                     var glyphBufferExists = GlyphData.Exists(glyphEntity);
-                    var fontFaceExists = FontFaces.Exists(glyphEntity);
+                    var fontFaceExists    = FontFaces.Exists(glyphEntity);
 
                     if (glyphTableExists && glyphBufferExists && fontFaceExists) {
                         var scale = ltws[i].AverageScale();
@@ -90,8 +91,15 @@ namespace UGUIDots.Render.Systems {
                         var startPos = TextMeshGenerationUtil.GetVerticalAlignmentPosition(in fontFace, in textOption,
                             in dimensions);
 
+                        /*
                         TextMeshGenerationUtil.BuildTextMesh(ref vertices, ref indices, in text,
                             in glyphData, startPos, scale, textOption.Style, color);
+                        */
+
+                        var padding = 1.25f + ((textOption.Style == FontStyles.Bold) ? 
+                            fontFace.BoldStyle.x / 4 : fontFace.NormalStyle.x / 4.0f);
+
+                        TextMeshGenerationUtil.BuildTextMesh(ref vertices, ref indices, in text, in glyphData, startPos, scale, textOption.Style, color, fontFace.AtlasSize, padding);
                     }
 
                     var textEntity = entities[i];

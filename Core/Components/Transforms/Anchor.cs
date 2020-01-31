@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using TMPro;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
@@ -117,25 +118,25 @@ namespace UGUIDots.Transforms {
         /// Switches TextAnchor to their AnchoredState equivalent.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static AnchoredState FromTextAnchor(this TextAnchor anchor) {
+        public static AnchoredState FromTextAnchor(this TextAlignmentOptions anchor) {
             switch (anchor) {
-                case TextAnchor.LowerLeft:
+                case TextAlignmentOptions.BottomLeft:
                     return AnchoredState.LeftColumn   | AnchoredState.BottomRow;
-                case TextAnchor.LowerCenter:
+                case TextAlignmentOptions.Bottom:
                     return AnchoredState.MiddleColumn | AnchoredState.BottomRow;
-                case TextAnchor.LowerRight:
+                case TextAlignmentOptions.BottomRight:
                     return AnchoredState.RightColumn  | AnchoredState.BottomRow;
-                case TextAnchor.MiddleLeft:
+                case TextAlignmentOptions.Left:
                     return AnchoredState.LeftColumn   | AnchoredState.MiddleRow;
-                case TextAnchor.MiddleCenter:
+                case TextAlignmentOptions.Center:
                     return AnchoredState.MiddleColumn | AnchoredState.MiddleRow;
-                case TextAnchor.MiddleRight:
+                case TextAlignmentOptions.Right:
                     return AnchoredState.RightColumn  | AnchoredState.MiddleRow;
-                case TextAnchor.UpperLeft:
+                case TextAlignmentOptions.TopLeft:
                     return AnchoredState.LeftColumn   | AnchoredState.TopRow;
-                case TextAnchor.UpperCenter:
+                case TextAlignmentOptions.Top:
                     return AnchoredState.MiddleColumn | AnchoredState.TopRow;
-                case TextAnchor.UpperRight:
+                case TextAlignmentOptions.TopRight:
                     return AnchoredState.RightColumn  | AnchoredState.TopRow;
                 default:
                     throw new System.ArgumentException($"Cannot convert {anchor} to a valid AnchoredState!");

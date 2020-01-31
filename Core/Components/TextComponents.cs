@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.CompilerServices;
+using TMPro;
 using UGUIDots.Transforms;
 using Unity.Collections;
 using Unity.Entities;
@@ -42,10 +43,11 @@ namespace UGUIDots {
         public float2 Size;
 
         /// <summary>
-        /// Should be considered read only...use the extension functions to grab the UV coords
+        /// Should be considered read only...use the extension functions to grab the UV coords. These 
+        /// values are not normalized.
         /// </summary>
-        public float2x4 UV;
-        public FontStyle Style;
+        public float4 RawUV;
+        public FontStyles Style;
     }
     
     /// <summary>
@@ -68,7 +70,7 @@ namespace UGUIDots {
     /// </summary>
     public struct TextOptions : IComponentData {
         public ushort Size;
-        public FontStyle Style;
+        public FontStyles Style;
         public AnchoredState Alignment;
     }
 
@@ -89,54 +91,42 @@ namespace UGUIDots {
 
     public static class GlyphExtensions {
 
+        /// <summary>
+        /// Normalizes the uvs based on the atlas size and some kind of style padding.
+        /// </summary>
+        /// <param name="uvMinMax">A vector 4 value where xy are the mins and zw are the maxes.</param>
+        /// <param name="stylePadding">Pixel based dimension to shift the uvs.</param>
+        /// <param name="atlasSize">The max size of the atlas.</param>
+        /// <returns>A float2x4 matrix is returned with the order: bottom left, top left, top right, bottom right.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float2 UVBottomLeft(this in GlyphElement element) {
-            return element.UV.c0;
+        public static float2x4 NormalizeAdjustedUV(this in float4 uvMinMax, float stylePadding, 
+            float2 atlasSize) {
+            var minX = uvMinMax.x - stylePadding;
+            var minY = uvMinMax.x - stylePadding;
+            var maxX = uvMinMax.z + stylePadding;
+            var maxY = uvMinMax.y + stylePadding;
+
+            // BL, TL, TR, BR -> Order of the float2x4
+            return new float2x4(
+                new float2(minX, minY) / atlasSize,
+                new float2(minX, maxY) / atlasSize,
+                new float2(maxX, maxY) / atlasSize,
+                new float2(maxX, minY) / atlasSize
+            );
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static half2 UVBottomLeftAsHalf2(this in GlyphElement element) {
-            return new half2(element.UVBottomLeft());
-        }
+        public static bool TryGetGlyph(this in DynamicBuffer<GlyphElement> glyphs, in char c, in FontStyles style, 
+            out GlyphElement glyph) {
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float2 UVBottomRight(this in GlyphElement element) {
-            return element.UV.c3;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static half2 UVBottomRightAsHalf2(this in GlyphElement element) {
-            return new half2(element.UVBottomRight());
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float2 UVTopLeft(this in GlyphElement element) {
-            return element.UV.c1;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static half2 UVTopLeftAsHalf2(this in GlyphElement element) {
-            return new half2(element.UVTopLeft());
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float2 UVTopRight(this in GlyphElement element) {
-            return element.UV.c2;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static half2 UVTopRightAsHalf2(this in GlyphElement element) {
-            return new half2(element.UVTopRight());
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool TryGetGlyph(this in DynamicBuffer<GlyphElement> glyphs, in char c, in FontStyle style, out GlyphElement glyph) {
             var glyphArray = glyphs.AsNativeArray();
             return TryGetGlyph(in glyphArray, in c, in style, out glyph);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool TryGetGlyph(this in NativeArray<GlyphElement> glyphs, in char c, in FontStyle style, out GlyphElement glyph) {
+        public static bool TryGetGlyph(this in NativeArray<GlyphElement> glyphs, in char c, in FontStyles style, 
+            out GlyphElement glyph) {
+
             for (int i = 0; i < glyphs.Length; i++) {
                 var current = glyphs[i];
 
@@ -161,7 +151,6 @@ namespace UGUIDots {
         public float BaseLine;
         public float CapLine;
         public float DescentLine;
-        public FixedString32 FamilyName;
         public float LineHeight;
         public float MeanLine;
         public float PointSize;
@@ -175,6 +164,10 @@ namespace UGUIDots {
         public float TabWidth;
         public float UnderlineOffset;
         public float UnderlineThickness;
+        public float2 NormalStyle;
+        public float2 BoldStyle;
+        public int2 AtlasSize;
+        public FixedString32 FamilyName;
 
         public static implicit operator FontFaceInfo(in FaceInfo info) {
             return new FontFaceInfo {

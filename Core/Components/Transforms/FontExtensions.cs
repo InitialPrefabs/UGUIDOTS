@@ -36,7 +36,9 @@ namespace UGUIDots {
             return info.advance;
         }
 
-        public static FontFaceInfo ToFontFaceInfo(this in FaceInfo info, int fontSize) {
+        public static FontFaceInfo ToFontFaceInfo(this in FaceInfo info, int fontSize, 
+            float2 normalStyle, float2 boldStyle, int2 atlasSize) {
+
             return new FontFaceInfo {
                 DefaultFontSize        = fontSize,
                 AscentLine             = info.ascentLine,
@@ -55,7 +57,10 @@ namespace UGUIDots {
                 SuperscriptOffset      = info.superscriptOffset,
                 TabWidth               = info.tabWidth,
                 UnderlineOffset        = info.underlineOffset,
-                LineHeight             = info.lineHeight
+                LineHeight             = info.lineHeight,
+                NormalStyle            = normalStyle,
+                BoldStyle              = boldStyle,
+                AtlasSize = atlasSize
             };
         }
     }

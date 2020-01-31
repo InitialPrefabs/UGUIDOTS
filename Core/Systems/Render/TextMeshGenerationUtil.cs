@@ -4,6 +4,7 @@ using Unity.Entities;
 using Unity.Collections;
 using UnityEngine;
 using UGUIDots.Transforms;
+using TMPro;
 
 namespace UGUIDots.Render {
 
@@ -47,8 +48,10 @@ namespace UGUIDots.Render {
             in NativeArray<GlyphElement> glyphs, 
             float2 startPos, 
             float scale, 
-            FontStyle style, 
+            FontStyles style, 
             float4 color,
+            float2 atlasSize,
+            float padding,
             float spacing = 1f) {
 
             for (int i = 0; i < text.Length; i++) {
@@ -64,29 +67,31 @@ namespace UGUIDots.Render {
                     var height = glyph.Size.y * scale;
                     var right  = new float3(1, 0, 0);
 
+                    var uvs = glyph.RawUV.NormalizeAdjustedUV(padding, atlasSize);
+
                     vertices.Add(new MeshVertexData {
                         Position = new float3(xPos, yPos, 0),
                         Normal   = right,
                         Color    = color,
-                        UVs      = glyph.UVBottomLeft()
+                        UVs      = uvs.c0
                     });
                     vertices.Add(new MeshVertexData {
                         Position = new float3(xPos, yPos + height, 0),
                         Normal   = right,
                         Color    = color,
-                        UVs      = glyph.UVTopLeft()
+                        UVs      = uvs.c1
                     });
                     vertices.Add(new MeshVertexData {
                         Position = new float3(xPos + width, yPos + height, 0),
                         Normal   = right,
                         Color    = color,
-                        UVs      = glyph.UVTopRight()
+                        UVs      = uvs.c2
                     });
                     vertices.Add(new MeshVertexData {
                         Position = new float3(xPos + width, yPos, 0),
                         Normal   = right,
                         Color    = color,
-                        UVs      = glyph.UVBottomRight()
+                        UVs      = uvs.c3
                     });
 
                     var bl = baseIndex;
