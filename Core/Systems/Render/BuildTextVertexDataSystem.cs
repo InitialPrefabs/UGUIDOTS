@@ -6,10 +6,8 @@ using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Transforms;
-using UnityEngine;
 
-namespace UGUIDots.Render.Systems
-{
+namespace UGUIDots.Render.Systems {
 
     [UpdateInGroup(typeof(MeshBatchingGroup))]
     public class BuildTextVertexDataSystem : JobComponentSystem {
@@ -90,6 +88,8 @@ namespace UGUIDots.Render.Systems
                         var parentScale = textOption.Size * new float2(1) / fontFace.PointSize;
                         var isBold = textOption.Style == FontStyles.Bold;
 
+                        var styleSpaceMultiplier = 1f + (isBold ? fontFace.BoldStyle.y : fontFace.NormalStyle.y) * 0.01f;
+
                         for (int k = 0; k < text.Length; k++) {
                             var c = text[k].Value;
 
@@ -99,13 +99,12 @@ namespace UGUIDots.Render.Systems
 
                             var baseIndex = (ushort)vertices.Length;
 
-                            var xPos = start.x + glyph.Bearings.x * fontScale;
-                            var yPos = start.y - (glyph.Size.y - glyph.Bearings.y) * fontScale;
+                            var xPos = start.x + (glyph.Bearings.x - stylePadding) * fontScale;
+                            var yPos = start.y - (glyph.Size.y - glyph.Bearings.y - stylePadding) * fontScale;
 
-                            var size  = glyph.Size * fontScale;
+                            var size  = (glyph.Size + new float2(stylePadding * 2)) * fontScale;
                             var uv1   = glyph.RawUV.NormalizeAdjustedUV(stylePadding, fontFace.AtlasSize);
-                            var uv2 = new float2(glyph.Scale) * math.select(canvasScale, -canvasScale, 
-                                isBold);
+                            var uv2   = new float2(glyph.Scale) * math.select(canvasScale, -canvasScale, isBold);
                             var right = new float3(1, 0, 0);
 
                             var vertexColor = color.Value.ToNormalizedFloat4();
@@ -152,7 +151,7 @@ namespace UGUIDots.Render.Systems
                             indices.Add(new TriangleIndexElement { Value = tr });
                             indices.Add(new TriangleIndexElement { Value = br });
 
-                            start += new float2(glyph.Advance * fontScale, 0);
+                            start += new float2(glyph.Advance * fontScale * styleSpaceMultiplier, 0);
                         }
                     }
 

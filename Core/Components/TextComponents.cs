@@ -5,7 +5,6 @@ using UGUIDots.Transforms;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
-using UnityEngine;
 using UnityEngine.TextCore;
 
 namespace UGUIDots {
@@ -131,7 +130,7 @@ namespace UGUIDots {
             for (int i = 0; i < glyphs.Length; i++) {
                 var current = glyphs[i];
 
-                if (current.Unicode == (ushort)c && current.Style == style) {
+                if (current.Unicode == (ushort)c) {
                     glyph = current;
                     return true;
                 }
