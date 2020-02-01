@@ -10,7 +10,7 @@ namespace UGUIDots.Render {
         public float3 Position;
         public float3 Normal;
         public float4 Color;
-        public float2 UV;
+        public float2 UV1;
         public float2 UV2;
     }
 

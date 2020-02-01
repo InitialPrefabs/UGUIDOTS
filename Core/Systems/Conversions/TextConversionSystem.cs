@@ -51,8 +51,8 @@ namespace UGUIDots.Conversions.Systems {
                         var rect = entry.Value.glyph.glyphRect;
 
                         var rawUV = new float4(
-                            new float2(rect.x, rect.y),
-                            new float2(rect.x + rect.width, rect.y + rect.height)
+                            new float2(rect.x, rect.y), // Min
+                            new float2(rect.x + rect.width, rect.y + rect.height) // Max
                         );
 
                         buffer[i]    = new GlyphElement {

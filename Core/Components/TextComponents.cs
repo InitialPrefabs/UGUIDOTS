@@ -103,9 +103,9 @@ namespace UGUIDots {
         public static float2x4 NormalizeAdjustedUV(this in float4 uvMinMax, float stylePadding, 
             float2 atlasSize) {
             var minX = uvMinMax.x - stylePadding;
-            var minY = uvMinMax.x - stylePadding;
+            var minY = uvMinMax.y - stylePadding;
             var maxX = uvMinMax.z + stylePadding;
-            var maxY = uvMinMax.y + stylePadding;
+            var maxY = uvMinMax.w + stylePadding;
 
             // BL, TL, TR, BR -> Order of the float2x4
             return new float2x4(
@@ -131,7 +131,7 @@ namespace UGUIDots {
             for (int i = 0; i < glyphs.Length; i++) {
                 var current = glyphs[i];
 
-                if (current.Unicode == (ushort)c) { // && current.Style == style) {
+                if (current.Unicode == (ushort)c && current.Style == style) {
                     glyph = current;
                     return true;
                 }

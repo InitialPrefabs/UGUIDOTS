@@ -86,25 +86,25 @@ namespace UGUIDots.Render {
                     Position = new float3(xPos, yPos, 0),
                     Normal   = normal,
                     Color    = color.Value.ToNormalizedFloat4(),
-                    UV       = uv1.c0
+                    UV1       = uv1.c0
                 });
                 vertices.Add(new MeshVertexData {
                     Position = new float3(xPos, yPos + adjustedSize.y, 0),
                     Normal   = normal,
                     Color    = color.Value.ToNormalizedFloat4(),
-                    UV       = uv1.c1
+                    UV1       = uv1.c1
                 });
                  vertices.Add(new MeshVertexData {
                     Position = new float3(xPos + adjustedSize.x, yPos + adjustedSize.y, 0),
                     Normal   = normal,
                     Color    = color.Value.ToNormalizedFloat4(),
-                    UV       = uv1.c2
+                    UV1       = uv1.c2
                 });
                 vertices.Add(new MeshVertexData {
                     Position = new float3(xPos + adjustedSize.x, yPos, 0),
                     Normal   = normal,
                     Color    = color.Value.ToNormalizedFloat4(),
-                    UV       = uv1.c3
+                    UV1       = uv1.c3
                 });
 
                 var bl = baseIndex;
@@ -159,25 +159,25 @@ namespace UGUIDots.Render {
                         Position = new float3(xPos, yPos, 0),
                         Normal   = right,
                         Color    = color,
-                        UV       = uv1.c0
+                        UV1       = uv1.c0
                     });
                     vertices.Add(new MeshVertexData {
                         Position = new float3(xPos, yPos + height, 0),
                         Normal   = right,
                         Color    = color,
-                        UV       = uv1.c1
+                        UV1       = uv1.c1
                     });
                     vertices.Add(new MeshVertexData {
                         Position = new float3(xPos + width, yPos + height, 0),
                         Normal   = right,
                         Color    = color,
-                        UV       = uv1.c2
+                        UV1       = uv1.c2
                     });
                     vertices.Add(new MeshVertexData {
                         Position = new float3(xPos + width, yPos, 0),
                         Normal   = right,
                         Color    = color,
-                        UV       = uv1.c3
+                        UV1       = uv1.c3
                     });
 
                     var bl = baseIndex;

@@ -76,56 +76,84 @@ namespace UGUIDots.Render.Systems
                     if (glyphTableExists && glyphBufferExists && fontFaceExists) {
                         var scale = ltws[i].AverageScale();
 
-                        /*
-                        if (scale > 1) {
-                            scale *= 0.5f;
-                            UnityEngine.Debug.Log("Halve");
-                        } else if (scale < 1) {
-                            scale *= 2;
-                            UnityEngine.Debug.Log("Doubled");
-                        }
-                        */
-
                         var fontFace  = FontFaces[glyphEntity];
                         var fontScale = textOption.Size / (float)fontFace.PointSize;
 
                         var glyphData   = GlyphData[glyphEntity].AsNativeArray();
                         var canvasScale = ltw.Scale().xy;
 
-                        var startPos = TextMeshGenerationUtil.GetVerticalAlignmentPosition(in fontFace, in textOption,
-                            in dimensions, canvasScale);
+                        var start = TextMeshGenerationUtil.GetVerticalAlignmentPosition(in fontFace, 
+                            in textOption, in dimensions, canvasScale);
+                        var stylePadding = TextMeshGenerationUtil.SelectStylePadding(in textOption, 
+                            in fontFace);
 
-                        var padding = 1.25f + ((textOption.Style == FontStyles.Bold) ? 
-                            fontFace.BoldStyle.x / 4 : fontFace.NormalStyle.x / 4.0f);
+                        var parentScale = textOption.Size * new float2(1) / fontFace.PointSize;
+                        var isBold = textOption.Style == FontStyles.Bold;
 
-                        TextMeshGenerationUtil.BuildTextMesh(
-                            ref vertices, 
-                            ref indices, 
-                            in text,
-                            in glyphData, 
-                            startPos, 
-                            scale, 
-                            textOption.Style, 
-                            color.Value.ToNormalizedFloat4(),
-                            fontFace.AtlasSize,
-                            fontScale,
-                            padding);
+                        for (int k = 0; k < text.Length; k++) {
+                            var c = text[k].Value;
 
-                            /*
-                        var parentScale = new float2(scale);
-                        Debug.Log(parentScale);
+                            if (!glyphData.TryGetGlyph(c, textOption.Style, out var glyph)) {
+                                continue;
+                            }
 
-                        TextMeshGenerationUtil.NewBuildTextMesh(
-                            ref vertices, 
-                            ref indices, 
-                            in text, 
-                            in glyphData, 
-                            in textOption, 
-                            in color, 
-                            in fontFace, 
-                            in parentScale,
-                            ref startPos);
-                            */
+                            var baseIndex = (ushort)vertices.Length;
+
+                            var xPos = start.x + glyph.Bearings.x * fontScale;
+                            var yPos = start.y - (glyph.Size.y - glyph.Bearings.y) * fontScale;
+
+                            var size  = glyph.Size * fontScale;
+                            var uv1   = glyph.RawUV.NormalizeAdjustedUV(stylePadding, fontFace.AtlasSize);
+                            var uv2 = new float2(glyph.Scale) * math.select(canvasScale, -canvasScale, 
+                                isBold);
+                            var right = new float3(1, 0, 0);
+
+                            var vertexColor = color.Value.ToNormalizedFloat4();
+
+                            vertices.Add(new MeshVertexData {
+                                Position = new float3(xPos, yPos, 0),
+                                Normal   = right,
+                                Color    = vertexColor,
+                                UV1      = uv1.c0,
+                                UV2      = uv2
+                            });
+                            vertices.Add(new MeshVertexData {
+                                Position = new float3(xPos, yPos + size.y, 0),
+                                Normal   = right,
+                                Color    = vertexColor,
+                                UV1      = uv1.c1,
+                                UV2      = uv2
+                            });
+                            vertices.Add(new MeshVertexData {
+                                Position = new float3(xPos + size.x, yPos + size.y, 0),
+                                Normal   = right,
+                                Color    = vertexColor,
+                                UV1      = uv1.c2,
+                                UV2      = uv2
+                            });
+                            vertices.Add(new MeshVertexData {
+                                Position = new float3(xPos + size.x, yPos, 0),
+                                Normal   = right,
+                                Color    = vertexColor,
+                                UV1      = uv1.c3,
+                                UV2      = uv2
+                            });
+
+                            var bl = baseIndex;
+                            var tl = (ushort)(baseIndex + 1);
+                            var tr = (ushort)(baseIndex + 2);
+                            var br = (ushort)(baseIndex + 3);
+
+                            indices.Add(new TriangleIndexElement { Value = bl });
+                            indices.Add(new TriangleIndexElement { Value = tl });
+                            indices.Add(new TriangleIndexElement { Value = tr });
+
+                            indices.Add(new TriangleIndexElement { Value = bl });
+                            indices.Add(new TriangleIndexElement { Value = tr });
+                            indices.Add(new TriangleIndexElement { Value = br });
+
+                            start += new float2(glyph.Advance * fontScale, 0);
+                        }
                     }
 
                     var textEntity = entities[i];

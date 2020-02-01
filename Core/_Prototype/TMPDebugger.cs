@@ -100,6 +100,15 @@ namespace UGUIDots {
 
                     start += new Vector2(metrics.horizontalAdvance * fontScale, 0);
                 }
+
+                { // Debug the uv2...
+                    var uv2 = text.mesh.uv2;
+
+                    foreach (var uv in uv2)
+                    {
+                        Debug.Log(uv);
+                    }
+                }
             }
         }
     }
