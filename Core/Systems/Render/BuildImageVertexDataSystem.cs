@@ -63,25 +63,25 @@ namespace UGUIDots.Render.Systems {
                         Position = new float3(-extents.x, -extents.y, 0),
                         Normal   = right,
                         Color    = color,
-                        UVs      = new float2(uv.x, uv.y),
+                        UV       = new float2(uv.x, uv.y),
                     });
                     vertices.Add(new MeshVertexData {
                         Position = new float3(-extents.x, extents.y, 0),
                         Normal   = right,
                         Color    = color,
-                        UVs      = new float2(uv.x, uv.w),
+                        UV       = new float2(uv.x, uv.w),
                     });
                     vertices.Add(new MeshVertexData {
                         Position = new float3(extents, 0),
                         Normal   = right,
                         Color    = color,
-                        UVs      = new float2(uv.z, uv.w),
+                        UV       = new float2(uv.z, uv.w),
                     });
                     vertices.Add(new MeshVertexData {
                         Position = new float3(extents.x, -extents.y, 0),
                         Normal   = right,
                         Color    = color,
-                        UVs      = new float2(uv.z, uv.y),
+                        UV       = new float2(uv.z, uv.y),
                     });
 
                     // TODO: Figure this out mathematically instead of hard coding

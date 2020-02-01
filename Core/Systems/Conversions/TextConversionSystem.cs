@@ -3,7 +3,6 @@ using UGUIDots.Render;
 using UGUIDots.Transforms;
 using Unity.Entities;
 using Unity.Mathematics;
-using UnityEngine;
 
 namespace UGUIDots.Conversions.Systems {
 
@@ -36,7 +35,6 @@ namespace UGUIDots.Conversions.Systems {
 
                     DstEntityManager.AddComponentData(fontAssetEntity, 
                         fontAsset.faceInfo.ToFontFaceInfo(
-                            fontAsset.creationSettings.pointSize,
                             new float2(fontAsset.normalStyle, fontAsset.normalSpacingOffset),
                             new float2(fontAsset.boldStyle, fontAsset.boldSpacing),
                             new int2(fontAsset.atlasWidth, fontAsset.atlasHeight)
@@ -57,11 +55,12 @@ namespace UGUIDots.Conversions.Systems {
                             new float2(rect.x + rect.width, rect.y + rect.height)
                         );
 
-                        buffer[i] = new GlyphElement {
+                        buffer[i]    = new GlyphElement {
                             Unicode  = (ushort)entry.Key,
                             Advance  = metrics.horizontalAdvance,
                             Bearings = new float2(metrics.horizontalBearingX, metrics.horizontalBearingY),
                             Size     = new float2(metrics.width, metrics.height),
+                            Scale    = entry.Value.scale,
                             Style    = text.fontStyle,
                             RawUV    = rawUV,
 #if UNITY_EDITOR

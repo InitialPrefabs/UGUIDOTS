@@ -4,10 +4,12 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
+using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
-namespace UGUIDots.Render.Systems {
+namespace UGUIDots.Render.Systems
+{
 
     [UpdateInGroup(typeof(MeshBatchingGroup))]
     public class BuildTextVertexDataSystem : JobComponentSystem {
@@ -60,7 +62,7 @@ namespace UGUIDots.Render.Systems {
                     var indices    = triangleIndexAccessor[i];
                     var fontID     = txtFontIDs[i].Value;
                     var textOption = textOptions[i];
-                    var color      = colors[i].Value.ToNormalizedFloat4();
+                    var color      = colors[i];
                     var dimensions = dimensionsChunk[i];
                     var ltw        = ltws[i];
 
@@ -74,32 +76,56 @@ namespace UGUIDots.Render.Systems {
                     if (glyphTableExists && glyphBufferExists && fontFaceExists) {
                         var scale = ltws[i].AverageScale();
 
-                        if (scale < 1) {
-                            scale *= 2;
-                        }
-
+                        /*
                         if (scale > 1) {
                             scale *= 0.5f;
+                            UnityEngine.Debug.Log("Halve");
+                        } else if (scale < 1) {
+                            scale *= 2;
+                            UnityEngine.Debug.Log("Doubled");
                         }
+                        */
 
                         var fontFace  = FontFaces[glyphEntity];
-                        var fontScale = textOption.Size / fontFace.DefaultFontSize;
+                        var fontScale = textOption.Size / (float)fontFace.PointSize;
 
                         var glyphData   = GlyphData[glyphEntity].AsNativeArray();
                         var canvasScale = ltw.Scale().xy;
 
                         var startPos = TextMeshGenerationUtil.GetVerticalAlignmentPosition(in fontFace, in textOption,
-                            in dimensions);
-
-                        /*
-                        TextMeshGenerationUtil.BuildTextMesh(ref vertices, ref indices, in text,
-                            in glyphData, startPos, scale, textOption.Style, color);
-                        */
+                            in dimensions, canvasScale);
 
                         var padding = 1.25f + ((textOption.Style == FontStyles.Bold) ? 
                             fontFace.BoldStyle.x / 4 : fontFace.NormalStyle.x / 4.0f);
 
-                        TextMeshGenerationUtil.BuildTextMesh(ref vertices, ref indices, in text, in glyphData, startPos, scale, textOption.Style, color, fontFace.AtlasSize, padding);
+                        TextMeshGenerationUtil.BuildTextMesh(
+                            ref vertices, 
+                            ref indices, 
+                            in text,
+                            in glyphData, 
+                            startPos, 
+                            scale, 
+                            textOption.Style, 
+                            color.Value.ToNormalizedFloat4(),
+                            fontFace.AtlasSize,
+                            fontScale,
+                            padding);
+
+                            /*
+                        var parentScale = new float2(scale);
+                        Debug.Log(parentScale);
+
+                        TextMeshGenerationUtil.NewBuildTextMesh(
+                            ref vertices, 
+                            ref indices, 
+                            in text, 
+                            in glyphData, 
+                            in textOption, 
+                            in color, 
+                            in fontFace, 
+                            in parentScale,
+                            ref startPos);
+                            */
                     }
 
                     var textEntity = entities[i];

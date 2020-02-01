@@ -18,7 +18,9 @@ namespace UGUIDots {
 
             var fontScale = fontSize / (float)faceInfo.pointSize;
 
-            var parentScale = transform.root.localScale;
+            var canvas = GetComponentInParent<Canvas>();
+            var parentScale = canvas.transform.localScale;
+
             Vector2 position = text.transform.position;
             var rect = text.rectTransform.rect;
             var size = rect.size;
@@ -53,8 +55,17 @@ namespace UGUIDots {
                 }
             }
 
-            // Draw the font lines
-            {
+            var scale = new Vector2(parentScale.x, parentScale.y);
+
+            if (scale.x > 1) {
+                scale *= 0.5f;
+            }
+
+            if (scale.x < 1) {
+                scale *= 2;
+            }
+
+            { // Draw the font lines
                 for (int i = 0; i < text.text.Length; i++) {
                     var c = text.text[i];
                     var glyph = fontAsset.characterLookupTable[(uint)c];
@@ -65,21 +76,17 @@ namespace UGUIDots {
                     float width = glyphRect.width;
                     float height = glyphRect.height;
 
-                    var normalStyle = fontAsset.normalStyle;
-
-                    Debug.Log($"For {c}, bearing x: {metrics.horizontalBearingX}, y: {metrics.horizontalBearingY}, ");
-
-                    var bearingUpL = localToWorld.MultiplyPoint3x4(new Vector2(localTL.x, start.y - (height - metrics.horizontalBearingY) * fontScale * parentScale.y));
-                    var bearingUpR = localToWorld.MultiplyPoint3x4(new Vector2(localTR.x, start.y - (height - metrics.horizontalBearingY) * fontScale * parentScale.y));
+                    var bearingUpL = localToWorld.MultiplyPoint3x4(new Vector2(localTL.x, start.y - (height - metrics.horizontalBearingY) * fontScale * scale.y));
+                    var bearingUpR = localToWorld.MultiplyPoint3x4(new Vector2(localTR.x, start.y - (height - metrics.horizontalBearingY) * fontScale * scale.y));
 
                     Gizmos.color = Color.cyan;
                     Gizmos.DrawLine(bearingUpL, bearingUpR);
 
-                    var xPos = start.x + (metrics.horizontalBearingX) * parentScale.x * fontScale;
-                    var yPos = start.y - ((height - metrics.horizontalBearingY) * parentScale.y);
+                    var xPos = start.x + (metrics.horizontalBearingX) * fontScale;
+                    var yPos = start.y - ((height - metrics.horizontalBearingY) * fontScale);
 
-                    width *= fontScale * parentScale.x;
-                    height *= fontScale * parentScale.y;
+                    width *= fontScale;
+                    height *= fontScale;
 
                     var bl = localToWorld.MultiplyPoint3x4(new Vector2(xPos, yPos));
                     var tl = localToWorld.MultiplyPoint3x4(new Vector2(xPos, yPos + height));
@@ -91,7 +98,7 @@ namespace UGUIDots {
                     Debug.DrawLine(tr, br, Color.yellow);
                     Debug.DrawLine(bl, br, Color.yellow);
 
-                    start += new Vector2(metrics.horizontalAdvance * parentScale.x * fontScale, 0);
+                    start += new Vector2(metrics.horizontalAdvance * fontScale, 0);
                 }
             }
         }

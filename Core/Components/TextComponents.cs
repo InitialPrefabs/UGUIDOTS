@@ -41,6 +41,7 @@ namespace UGUIDots {
         public float Advance;
         public float2 Bearings;
         public float2 Size;
+        public float Scale;
 
         /// <summary>
         /// Should be considered read only...use the extension functions to grab the UV coords. These 
@@ -130,7 +131,7 @@ namespace UGUIDots {
             for (int i = 0; i < glyphs.Length; i++) {
                 var current = glyphs[i];
 
-                if (current.Unicode == (ushort)c && current.Style == style) {
+                if (current.Unicode == (ushort)c) { // && current.Style == style) {
                     glyph = current;
                     return true;
                 }
@@ -146,7 +147,6 @@ namespace UGUIDots {
     /// </summary>
     public struct FontFaceInfo : IComponentData {
 
-        public int DefaultFontSize;
         public float AscentLine;
         public float BaseLine;
         public float CapLine;

@@ -36,11 +36,10 @@ namespace UGUIDots {
             return info.advance;
         }
 
-        public static FontFaceInfo ToFontFaceInfo(this in FaceInfo info, int fontSize, 
-            float2 normalStyle, float2 boldStyle, int2 atlasSize) {
+        public static FontFaceInfo ToFontFaceInfo(this in FaceInfo info, float2 normalStyle, float2 boldStyle, 
+            int2 atlasSize) {
 
             return new FontFaceInfo {
-                DefaultFontSize        = fontSize,
                 AscentLine             = info.ascentLine,
                 BaseLine               = info.baseline,
                 CapLine                = info.capLine,
