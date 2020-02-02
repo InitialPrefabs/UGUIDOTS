@@ -30,6 +30,9 @@ namespace UGUIDots.Render.Systems {
             [ReadOnly]
             public ArchetypeChunkComponentType<SpriteData> SpriteDataType;
 
+            [ReadOnly]
+            public ArchetypeChunkComponentType<DefaultSpriteResolution> SpriteResType;
+
             public ArchetypeChunkBufferType<MeshVertexData> VertexType;
             public ArchetypeChunkBufferType<TriangleIndexElement> TriangleType;
 
@@ -44,14 +47,18 @@ namespace UGUIDots.Render.Systems {
                 var colors         = chunk.GetNativeArray(ColorType);
                 var entities       = chunk.GetNativeArray(EntityType);
                 var spriteData     = chunk.GetNativeArray(SpriteDataType);
+                var resolutions    = chunk.GetNativeArray(SpriteResType);
 
-                for (int i = 0; i < chunk.Count; i++) {
-                    var dimension = dimensions[i];
-                    var indices   = triangleBuffer[i];
-                    var vertices  = vertexBuffer[i];
-                    var color     = colors[i].Value.ToNormalizedFloat4();
-                    var entity    = entities[i];
-                    var uv        = spriteData[i].OuterUV;
+                for (int i         = 0; i < chunk.Count; i++) {
+                    var dimension  = dimensions[i];
+                    var indices    = triangleBuffer[i];
+                    var vertices   = vertexBuffer[i];
+                    var color      = colors[i].Value.ToNormalizedFloat4();
+                    var entity     = entities[i];
+                    var spriteInfo = spriteData[i];
+                    var resolution = resolutions[i].Value;
+
+                    var spriteScale = (float2)(dimension.Value) / resolution;
 
                     indices.Clear();
                     vertices.Clear();
@@ -59,29 +66,57 @@ namespace UGUIDots.Render.Systems {
                     var right   = new float3(1, 0, 0);
                     var extents = dimension.Extents();
 
+                    var outer   = spriteInfo.OuterUV;
+                    var padding = spriteInfo.Padding;
+
+                    var bl = -extents;
+
+                    var spriteW = dimension.Width();
+                    var spriteH = dimension.Height();
+
+                    var pixelAdjustments = new float4(
+                        padding.x / spriteW,
+                        (padding.y * spriteScale.y) / spriteH,
+                        (spriteW - padding.z) / spriteW,
+                        (spriteH - padding.w * spriteScale.y) / spriteH
+                    );
+
+                    var pixelYAdjust = spriteScale.y * 1.5f;
+
+                    var v = new float4(
+                        bl.x + spriteW * pixelAdjustments.x,
+                        (bl.y + spriteH * pixelAdjustments.y) + pixelYAdjust,
+                        bl.x + spriteW * pixelAdjustments.z,
+                        (bl.y + spriteH * pixelAdjustments.w) - pixelYAdjust
+                    );
+
                     vertices.Add(new MeshVertexData {
-                        Position = new float3(-extents.x, -extents.y, 0),
+                        Position = new float3(v.xy, 0),
                         Normal   = right,
                         Color    = color,
-                        UV1       = new float2(uv.x, uv.y),
+                        UV1      = outer.xy,
+                        UV2      = new float2(1)
                     });
                     vertices.Add(new MeshVertexData {
-                        Position = new float3(-extents.x, extents.y, 0),
+                        Position = new float3(v.xw, 0),
                         Normal   = right,
                         Color    = color,
-                        UV1       = new float2(uv.x, uv.w),
+                        UV1      = outer.xw,
+                        UV2      = new float2(1)
                     });
                     vertices.Add(new MeshVertexData {
-                        Position = new float3(extents, 0),
+                        Position = new float3(v.zw, 0),
                         Normal   = right,
                         Color    = color,
-                        UV1       = new float2(uv.z, uv.w),
+                        UV1      = outer.zw,
+                        UV2      = new float2(1)
                     });
                     vertices.Add(new MeshVertexData {
-                        Position = new float3(extents.x, -extents.y, 0),
+                        Position = new float3(v.zy, 0),
                         Normal   = right,
                         Color    = color,
-                        UV1       = new float2(uv.z, uv.y),
+                        UV1      = outer.zy,
+                        UV2      = new float2(1)
                     });
 
                     // TODO: Figure this out mathematically instead of hard coding
@@ -117,7 +152,7 @@ namespace UGUIDots.Render.Systems {
         }
 
         protected override JobHandle OnUpdate(JobHandle inputDeps) {
-            var rebuildDeps = new RebuildImgMeshJob {
+            var rebuildDeps       = new RebuildImgMeshJob {
                 BuildMeshProfiler = new ProfilerMarker("BuildImageVertexDataSystem.RebuildImgMeshJob"),
                 DimensionType     = GetArchetypeChunkComponentType<Dimensions>(true),
                 ColorType         = GetArchetypeChunkComponentType<AppliedColor>(true),
@@ -125,6 +160,7 @@ namespace UGUIDots.Render.Systems {
                 TriangleType      = GetArchetypeChunkBufferType<TriangleIndexElement>(),
                 CharType          = GetArchetypeChunkBufferType<CharElement>(true),
                 SpriteDataType    = GetArchetypeChunkComponentType<SpriteData>(true),
+                SpriteResType     = GetArchetypeChunkComponentType<DefaultSpriteResolution>(true),
                 EntityType        = GetArchetypeChunkEntityType(),
                 CmdBuffer         = cmdBufferSystem.CreateCommandBuffer().ToConcurrent()
             }.Schedule(graphicQuery, inputDeps);

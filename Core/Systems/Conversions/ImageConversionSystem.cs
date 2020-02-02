@@ -1,4 +1,5 @@
 using UGUIDots.Render;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -27,6 +28,9 @@ namespace UGUIDots.Conversions.Systems {
                 DstEntityManager.AddComponentData(entity, new TextureKey   { Value = imageIndex });
                 DstEntityManager.AddComponentData(entity, new AppliedColor { Value = image.color });
                 DstEntityManager.AddComponentData(entity, new Dimensions   { Value = image.rectTransform.Int2Size() });
+                DstEntityManager.AddComponentData(entity, new DefaultSpriteResolution {
+                    Value = new int2(image.sprite.texture.width, image.sprite.texture.height)
+                });
 
                 var spriteData = SpriteData.FromSprite(image.sprite);
                 DstEntityManager.AddComponentData(entity, spriteData);

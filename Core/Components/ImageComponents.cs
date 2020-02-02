@@ -30,6 +30,14 @@ namespace UGUIDots {
         }
     }
 
+    // TODO: This is a temporary solution for individual sprite data - may not work with packed atlases...
+    /// <summary>
+    /// Stores the sprite's texture resolution so that we can use it for scaling
+    /// </summary>
+    public struct DefaultSpriteResolution : IComponentData {
+        public int2 Value;
+    }
+
     /// <summary>
     /// Stores the intended color to apply to the entity.
     /// </summary>

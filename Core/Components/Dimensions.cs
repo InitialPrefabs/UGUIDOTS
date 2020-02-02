@@ -26,33 +26,33 @@ namespace UGUIDots {
     public static class DimensionsExtensions {
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float2 LocalSpaceOrigin(this Dimensions dim) {
+        public static float2 LocalSpaceOrigin(this in Dimensions dim) {
             return default;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float2 LocalSpaceUpperLeft(this Dimensions dim) {
+        public static float2 LocalSpaceUpperLeft(this in Dimensions dim) {
             var extents = dim.Extents();
             return dim.LocalSpaceOrigin() + new float2(-extents.x, extents.y);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int Width(this Dimensions dim) {
+        public static int Width(this in Dimensions dim) {
             return (int)dim.Value.x;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int Height(this Dimensions dim) {
+        public static int Height(this in Dimensions dim) {
             return (int)dim.Value.y;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int2 Int2Size(this Dimensions dim) {
+        public static int2 Int2Size(this in Dimensions dim) {
             return new int2(dim.Width(), dim.Height());
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float2 Extents(this Dimensions dim) {
+        public static float2 Extents(this in Dimensions dim) {
             return dim.Value / 2;
         }
 
@@ -67,12 +67,12 @@ namespace UGUIDots {
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float2 Center(this Dimensions dim) {
+        public static float2 Center(this in Dimensions dim) {
             return new float2(dim.Extents());
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int2 Int2Center(this Dimensions dim) {
+        public static int2 Int2Center(this in Dimensions dim) {
             return new int2(dim.Extents());
         }
     }
