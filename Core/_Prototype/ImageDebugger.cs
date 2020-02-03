@@ -8,6 +8,8 @@ namespace UGUIDots {
         void OnDrawGizmos() {
             var image = GetComponent<Image>();
 
+            if (image == null) { return; }
+
             var rect = image.rectTransform.rect;
 
             var localToWorld = image.transform.localToWorldMatrix;
@@ -30,6 +32,7 @@ namespace UGUIDots {
             Gizmos.DrawLine(wbr, wbl);
 
             { // Pixel adjust point
+                if (!image.sprite) { return; }
                 var spriteW = Mathf.RoundToInt(rect.width);
                 var spriteH = Mathf.RoundToInt(rect.height);
 
@@ -52,10 +55,13 @@ namespace UGUIDots {
                     bl.y + rect.height * adjustedV.w
                 );
 
-                var sBl = localToWorld.MultiplyPoint3x4(new Vector2(v.x, v.y + (scale.y * 1.5f)));
-                var sTl = localToWorld.MultiplyPoint3x4(new Vector2(v.x, v.w - (scale.y * 1.5f)));
-                var sTr = localToWorld.MultiplyPoint3x4(new Vector2(v.z, v.w - (scale.y * 1.5f)));
-                var sBr = localToWorld.MultiplyPoint3x4(new Vector2(v.z, v.y + (scale.y * 1.5f)));
+                var bottomAdjust = scale.y * 1.5f * padding.y > 0 ? 1f : 0f;
+                var topAdjust    = scale.y * 1.5f * padding.w > 0 ? 1f : 0f;
+
+                var sBl = localToWorld.MultiplyPoint3x4(new Vector2(v.x, v.y + bottomAdjust ));
+                var sTl = localToWorld.MultiplyPoint3x4(new Vector2(v.x, v.w - topAdjust ));
+                var sTr = localToWorld.MultiplyPoint3x4(new Vector2(v.z, v.w - topAdjust ));
+                var sBr = localToWorld.MultiplyPoint3x4(new Vector2(v.z, v.y + bottomAdjust ));
 
                 Gizmos.color = Color.yellow;
                 Gizmos.DrawLine(sBl, sTl);

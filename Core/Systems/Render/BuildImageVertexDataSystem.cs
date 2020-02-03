@@ -82,10 +82,12 @@ namespace UGUIDots.Render.Systems {
                     );
 
                     var pixelYAdjust = spriteScale.y * 1.5f;
+                    var topAdjust    = spriteScale.y * (padding.w > 0 ? 1f : 0f);
+                    var bottomAdjust = spriteScale.y * (padding.y > 0 ? 1f: 0f);
 
                     var v = new float4(
                         bl.x + spriteW * pixelAdjustments.x,
-                        (bl.y + spriteH * pixelAdjustments.y) + pixelYAdjust,
+                        (bl.y + spriteH * pixelAdjustments.y) + bottomAdjust,
                         bl.x + spriteW * pixelAdjustments.z,
                         (bl.y + spriteH * pixelAdjustments.w) - pixelYAdjust
                     );

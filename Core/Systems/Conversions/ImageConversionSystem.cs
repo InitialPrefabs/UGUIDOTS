@@ -25,12 +25,18 @@ namespace UGUIDots.Conversions.Systems {
                 // TODO: Internally this would need a look up table...
                 // DstEntityManager.AddSharedComponentData(entity, new MaterialID { Value = material.GetInstanceID() });
 
+                var rectSize = image.rectTransform.Int2Size();
+
                 DstEntityManager.AddComponentData(entity, new TextureKey   { Value = imageIndex });
                 DstEntityManager.AddComponentData(entity, new AppliedColor { Value = image.color });
-                DstEntityManager.AddComponentData(entity, new Dimensions   { Value = image.rectTransform.Int2Size() });
-                DstEntityManager.AddComponentData(entity, new DefaultSpriteResolution {
-                    Value = new int2(image.sprite.texture.width, image.sprite.texture.height)
-                });
+                DstEntityManager.AddComponentData(entity, new Dimensions   { Value = rectSize });
+
+                var spriteTexture = image.sprite;
+                var spriteRes = spriteTexture != null ? 
+                    new int2(spriteTexture.texture.width, spriteTexture.texture.height) :
+                    rectSize;
+
+                DstEntityManager.AddComponentData(entity, new DefaultSpriteResolution { Value = spriteRes });
 
                 var spriteData = SpriteData.FromSprite(image.sprite);
                 DstEntityManager.AddComponentData(entity, spriteData);
