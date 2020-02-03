@@ -38,10 +38,11 @@ namespace UGUIDots {
             Gizmos.DrawLine(localToWorld.MultiplyPoint3x4(localBL), localToWorld.MultiplyPoint3x4(localTL));
 
             var ascent = faceInfo.ascentLine * fontScale;
+            var descent = faceInfo.descentLine * fontScale;
             Vector2 start = default;
             Vector2 ascentLine = default;
 
-            {
+            { // Top Alignment
                 var al = localTL - new Vector2(0, ascent);
                 var ar = localTR - new Vector2(0, ascent);
 
@@ -51,6 +52,18 @@ namespace UGUIDots {
                 Gizmos.DrawLine(localToWorld.MultiplyPoint3x4(al), localToWorld.MultiplyPoint3x4(ar));
 
                 if (text.alignment == TextAlignmentOptions.TopLeft) {
+                    start = al;
+                }
+            }
+
+            { // Bottom Alignment
+                var al = localBL - new Vector2(0, descent);
+                var ar = localBR - new Vector2(0, descent);
+
+                Gizmos.color = Color.green;
+                Gizmos.DrawLine(localToWorld.MultiplyPoint3x4(al), localToWorld.MultiplyPoint3x4(ar));
+
+                if (text.alignment == TextAlignmentOptions.BottomLeft) {
                     start = al;
                 }
             }
@@ -79,8 +92,10 @@ namespace UGUIDots {
                     var bearingUpL = localToWorld.MultiplyPoint3x4(new Vector2(localTL.x, start.y - (height - metrics.horizontalBearingY) * fontScale * scale.y));
                     var bearingUpR = localToWorld.MultiplyPoint3x4(new Vector2(localTR.x, start.y - (height - metrics.horizontalBearingY) * fontScale * scale.y));
 
+                    /*
                     Gizmos.color = Color.cyan;
                     Gizmos.DrawLine(bearingUpL, bearingUpR);
+                    */
 
                     var xPos = start.x + (metrics.horizontalBearingX) * fontScale;
                     var yPos = start.y - ((height - metrics.horizontalBearingY) * fontScale);
@@ -99,15 +114,6 @@ namespace UGUIDots {
                     Debug.DrawLine(bl, br, Color.yellow);
 
                     start += new Vector2(metrics.horizontalAdvance * fontScale, 0);
-                }
-
-                { // Debug the uv2...
-                    var uv2 = text.mesh.uv2;
-
-                    foreach (var uv in uv2)
-                    {
-                        Debug.Log(uv);
-                    }
                 }
             }
         }
