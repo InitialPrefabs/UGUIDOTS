@@ -1,6 +1,6 @@
 # UGUIDots
 
-Current project of transforming the default UGUI into a DOTS compliant implementation. Please keep in mind that I am 
+Current project of transforming the default UGUI into a DOTS compliant implementation. Please keep in mind that I am
 actively developing it - so _violent_ changes might occur to the structure of the repo.
 
 ## Why do this?
@@ -15,6 +15,8 @@ capabilities for both mobile and desktops. That said supported platforms are pri
 * Windows 64 bit
 
 WebGL may be a hit or miss.
+
+## Wiki
 
 ## TODO
 
@@ -32,7 +34,7 @@ Support for the following will come over time - depends on the needs for my own 
 * [ ] Input fields
 * [ ] Subscene caching
 * [ ] Convert reference types to use pointers to avoid chunk splitting (?)
-* [ ] Support GPU instancing for duplicate UI elements (?)
+* [ ] Support manual image / text batching of static fields
 
 ## QuickStart
 
