@@ -2,12 +2,61 @@ using System.Runtime.CompilerServices;
 using Unity.Mathematics;
 using UGUIDots.Transforms;
 using TMPro;
+using Unity.Collections;
 
 namespace UGUIDots.Render {
 
     public static class TextUtil {
 
+        public struct LineInfo {
+            public float Width;
+            public int Start, End;
+
+            public override string ToString() {
+                return $"Width: {Width}, Start Index: {Start}, End Index: {End}";
+            }
+        }
+
         // TODO: Calculate lines
+        public static NativeList<LineInfo> GetLineInfo(
+            in NativeArray<CharElement> text,
+            in NativeArray<GlyphElement> glyphs,
+            Dimensions dimensions,
+            float fontScale,
+            float2 stylePadding,
+            out NativeHashMap<char, GlyphElement> glyphMappings) {
+
+            glyphMappings = new NativeHashMap<char, GlyphElement>(text.Length, Allocator.Temp);
+            var lineInfos = new NativeList<LineInfo>(Allocator.Temp);
+
+            var lineWidth = 0f;
+            var charCount = 0;
+            for (int i = 0; i < text.Length; i++) {
+                var c = text[i].Value;
+
+                if (!glyphs.TryGetGlyph(in c, out var glyph)) { continue; }
+                glyphMappings.TryAdd(c, glyph);
+            
+                var xOffset    = (glyph.Bearings.x - stylePadding.x) * fontScale;
+                var glyphWidth = glyph.Size.x + stylePadding.x * 2 * fontScale;
+                var advance    = glyph.Advance * fontScale * stylePadding.y;
+
+                if (lineWidth < dimensions.Width()) {
+                    lineWidth += (xOffset + glyphWidth + advance);
+                    charCount++;
+                } else {
+                    lineInfos.Add(new LineInfo {
+                        Width  = lineWidth,
+                        Start  = i - charCount,
+                        End    = i
+                    });
+
+                    charCount = 0;
+                    lineWidth = 0;
+                }
+            }
+            return lineInfos;
+        }
 
         /// <summary>
         /// Returns the relative vertical alignment of the text.

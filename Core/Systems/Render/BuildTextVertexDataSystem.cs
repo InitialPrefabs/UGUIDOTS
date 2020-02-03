@@ -6,6 +6,7 @@ using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Transforms;
+using UnityEngine;
 
 namespace UGUIDots.Render.Systems {
 
@@ -75,6 +76,7 @@ namespace UGUIDots.Render.Systems {
                         continue; 
                     }
 
+
                     var fontFace  = FontFaces[glyphEntity];
                     var fontScale = textOption.Size / (float)fontFace.PointSize;
 
@@ -94,10 +96,25 @@ namespace UGUIDots.Render.Systems {
 
                     var styleSpaceMultiplier = 1f + (isBold ? fontFace.BoldStyle.y : fontFace.NormalStyle.y) * 0.01f;
 
+                    { // Text line info debugging
+                        var lines = TextUtil.GetLineInfo(
+                            in text, in glyphData, dimensions, fontScale, 
+                            new float2(stylePadding, styleSpaceMultiplier), 
+                            out var glyphMappings);
+
+                        Debug.Log($"Line Length: {lines.Length}");
+
+                        for (int m = 0; m < lines.Length; m++) {
+                            Debug.Log($"{lines[m].ToString()}");
+                        }
+
+                        glyphMappings.Dispose();
+                    }
+
                     for (int k = 0; k < text.Length; k++) {
                         var c = text[k].Value;
 
-                        if (!glyphData.TryGetGlyph(c, textOption.Style, out var glyph)) {
+                        if (!glyphData.TryGetGlyph(in c, out var glyph)) {
                             continue;
                         }
 

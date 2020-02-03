@@ -116,17 +116,7 @@ namespace UGUIDots {
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool TryGetGlyph(this in DynamicBuffer<GlyphElement> glyphs, in char c, in FontStyles style, 
-            out GlyphElement glyph) {
-
-            var glyphArray = glyphs.AsNativeArray();
-            return TryGetGlyph(in glyphArray, in c, in style, out glyph);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool TryGetGlyph(this in NativeArray<GlyphElement> glyphs, in char c, in FontStyles style, 
-            out GlyphElement glyph) {
-
+        public static bool TryGetGlyph(this in NativeArray<GlyphElement> glyphs, in char c, out GlyphElement glyph) {
             for (int i = 0; i < glyphs.Length; i++) {
                 var current = glyphs[i];
 
@@ -138,6 +128,12 @@ namespace UGUIDots {
 
             glyph = default;
             return false;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool TryGetGlyph(this in DynamicBuffer<GlyphElement> glyphs, in char c, out GlyphElement glyph) {
+            var glyphArray = glyphs.AsNativeArray();
+            return glyphArray.TryGetGlyph(in c, out glyph);
         }
     }
     
