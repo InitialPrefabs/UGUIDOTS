@@ -12,7 +12,7 @@ namespace UGUIDots.Transforms.Systems {
     /// Recomputes the anchors if the resolution changes.
     /// </summary>
     [UpdateAfter(typeof(CanvasScalerSystem))]
-    [UpdateInGroup(typeof(PresentationSystemGroup))]
+    [UpdateInGroup(typeof(UITransformUpdateGroup))]
     public unsafe class AnchorSystem : JobComponentSystem {
 
         [BurstCompile]

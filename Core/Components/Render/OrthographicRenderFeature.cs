@@ -10,10 +10,13 @@ namespace UGUIDots.Render {
         public Queue<(Mesh, Material, Matrix4x4, MaterialPropertyBlock)> InstructionQueue { get; private set; }
         private string profilerTag;
 
+        // private CommandBuffer cmd;
+
         public OrthographicRenderPass(OrthographicRenderSettings settings) {
             profilerTag          = settings.ProfilerTag;
             base.renderPassEvent = settings.RenderPassEvt;
             InstructionQueue     = new Queue<(Mesh, Material, Matrix4x4, MaterialPropertyBlock)>();
+            // cmd                  = new CommandBuffer() { name = profilerTag };
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData) {
@@ -21,6 +24,7 @@ namespace UGUIDots.Render {
                 return;
             }
 
+            // TODO: Need a better way to handle finding the camera
             var cmd = CommandBufferPool.Get(profilerTag);
             using (new ProfilingSample(cmd, profilerTag)) {
                 context.ExecuteCommandBuffer(cmd);
@@ -36,7 +40,7 @@ namespace UGUIDots.Render {
                     var mesh = tuple.Item1;
 
                     for (int i = 0; i < mesh.subMeshCount; i++) {
-                        cmd.DrawMesh(mesh, tuple.Item3, tuple.Item2, i, -1, tuple.Item4);
+                        cmd.DrawMesh(mesh, tuple.Item3, tuple.Item2, i, 0, tuple.Item4);
                     }
                 }
             }

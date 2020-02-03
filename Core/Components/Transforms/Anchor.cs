@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+using TMPro;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
@@ -18,7 +20,6 @@ namespace UGUIDots.Transforms {
         LeftColumn   = 1 << 4,
         MiddleColumn = 1 << 5,
         RightColumn  = 1 << 6,
-
     }
 
     public struct Anchor : IComponentData {
@@ -28,16 +29,20 @@ namespace UGUIDots.Transforms {
 
     public static class AnchorExtensions {
 
+        /// <summary>
+        /// Returns the adjusted anchored positions.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float2 RecomputeAnchoredPosition(this Anchor anchor) {
             return anchor.State.AnchoredTo() - anchor.Distance;
         }
 
         /// <summary>
-        /// returns the position that the anchor is anchored to based on the current resolution. This performs a static
-        /// call which may not be thread safe.
+        /// Returns the position that the anchor is anchored to based on the current resolution.
         /// </summary>
         /// <param name="state">The current anchored state of the element.</param>
         /// <returns>The relative screenspace position that the anchor is referencing.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int2 AnchoredTo(this AnchoredState state) {
             var res = new int2(Screen.width, Screen.height);
             return state.AnchoredTo(res);
@@ -107,6 +112,35 @@ namespace UGUIDots.Transforms {
             }
 
             return anchor;
+        }
+
+        /// <summary>
+        /// Switches TextAnchor to their AnchoredState equivalent.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static AnchoredState FromTextAnchor(this TextAlignmentOptions anchor) {
+            switch (anchor) {
+                case TextAlignmentOptions.BottomLeft:
+                    return AnchoredState.LeftColumn   | AnchoredState.BottomRow;
+                case TextAlignmentOptions.Bottom:
+                    return AnchoredState.MiddleColumn | AnchoredState.BottomRow;
+                case TextAlignmentOptions.BottomRight:
+                    return AnchoredState.RightColumn  | AnchoredState.BottomRow;
+                case TextAlignmentOptions.Left:
+                    return AnchoredState.LeftColumn   | AnchoredState.MiddleRow;
+                case TextAlignmentOptions.Center:
+                    return AnchoredState.MiddleColumn | AnchoredState.MiddleRow;
+                case TextAlignmentOptions.Right:
+                    return AnchoredState.RightColumn  | AnchoredState.MiddleRow;
+                case TextAlignmentOptions.TopLeft:
+                    return AnchoredState.LeftColumn   | AnchoredState.TopRow;
+                case TextAlignmentOptions.Top:
+                    return AnchoredState.MiddleColumn | AnchoredState.TopRow;
+                case TextAlignmentOptions.TopRight:
+                    return AnchoredState.RightColumn  | AnchoredState.TopRow;
+                default:
+                    throw new System.ArgumentException($"Cannot convert {anchor} to a valid AnchoredState!");
+            }
         }
     }
 }

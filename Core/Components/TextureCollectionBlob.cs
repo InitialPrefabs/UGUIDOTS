@@ -15,6 +15,7 @@ namespace UGUIDots {
         public BlobArray<TextureWrapper> Ptr;
     }
 
+    [Obsolete("TextureCollectionBlob is not a scalable solution")]
     public struct TextureCollectionBlob : ISystemStateComponentData, IDisposable {
 
         public BlobAssetReference<TextureArrayPtr> BlobAsset;

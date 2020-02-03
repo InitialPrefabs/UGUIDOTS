@@ -1,7 +1,5 @@
-using System.Collections.Generic;
 using UGUIDots.Render;
-using Unity.Collections;
-using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -13,59 +11,40 @@ namespace UGUIDots.Conversions.Systems {
     /// </summary>
     public class ImageConversionSystem : GameObjectConversionSystem {
 
-        private List<Image> images;
-
-        protected override void OnCreate() {
-            base.OnCreate();
-            images = new List<Image>();
-        }
-
         protected override void OnUpdate() {
             Entities.ForEach((Image image) => {
-                // Add the image initially if it doesn't already exist
-                if (!images.Contains(image)) {
-                    images.Add(image);
-                }
+                TextureBin.TryLoadTextureBin("TextureBin", out TextureBin textureBin);
 
-                var entity = GetPrimaryEntity(image);
+                var texture    = image.sprite != null ? image.sprite.texture : Texture2D.whiteTexture;
+                var imageIndex = textureBin.Add(texture);
 
-                DstEntityManager.AddSharedComponentData(entity, new RenderMaterial {
-                    Value = image.material != null ? image.material : Canvas.GetDefaultCanvasMaterial()
-                });
+                var entity   = GetPrimaryEntity(image);
+                var material = image.material != null ? image.material : Canvas.GetDefaultCanvasMaterial();
+                DstEntityManager.AddComponentObject(entity, material);
 
-                DstEntityManager.AddComponentData(entity, new ImageKey     { Value = images.IndexOf(image) });
+                // TODO: Internally this would need a look up table...
+                // DstEntityManager.AddSharedComponentData(entity, new MaterialID { Value = material.GetInstanceID() });
+
+                var rectSize = image.rectTransform.Int2Size();
+
+                DstEntityManager.AddComponentData(entity, new TextureKey   { Value = imageIndex });
                 DstEntityManager.AddComponentData(entity, new AppliedColor { Value = image.color });
-                DstEntityManager.AddComponentData(entity, new Dimensions   { Value = image.rectTransform.Int2Size() });
+                DstEntityManager.AddComponentData(entity, new Dimensions   { Value = rectSize });
+
+                var spriteTexture = image.sprite;
+                var spriteRes = spriteTexture != null ? 
+                    new int2(spriteTexture.texture.width, spriteTexture.texture.height) :
+                    rectSize;
+
+                DstEntityManager.AddComponentData(entity, new DefaultSpriteResolution { Value = spriteRes });
+
+                var spriteData = SpriteData.FromSprite(image.sprite);
+                DstEntityManager.AddComponentData(entity, spriteData);
+
+                // TODO: Does not handle image slicing
+                DstEntityManager.AddBuffer<MeshVertexData>(entity).ResizeUninitialized(4);
+                DstEntityManager.AddBuffer<TriangleIndexElement>(entity).ResizeUninitialized(6);
             });
-
-
-            if (images.Count > 0) {
-                // TODO: Have a check because if the conversion system continuously runs, then we have multiple smaller
-                // mini blobs with more images.
-                // Create a mega blob which references all of the sprites/images that we need.
-                var entity     = DstEntityManager.CreateEntity();
-                var collection = new TextureCollectionBlob { BlobAsset = ConstructBlob() };
-
-                DstEntityManager.AddComponentData(entity, collection);
-#if UNITY_EDITOR
-                DstEntityManager.SetName(entity, "UI Texture Atlas");
-#endif
-            }
-        }
-
-        private BlobAssetReference<TextureArrayPtr> ConstructBlob() {
-            var size     = images.Count;
-            var builder  = new BlobBuilder(Allocator.Temp);
-            ref var root = ref builder.ConstructRoot<TextureArrayPtr>();
-            var textures = builder.Allocate(ref root.Ptr, size);
-
-            for (int i = 0; i < size; i++) {
-                textures[i] = images[i].mainTexture;
-            }
-
-            var blobAsset = builder.CreateBlobAssetReference<TextureArrayPtr>(Allocator.Persistent);
-            builder.Dispose();
-            return blobAsset;
         }
     }
 }

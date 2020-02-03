@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.TextCore;
 using Unity.Mathematics;
 using UnityEngine.Rendering;
+using UnityEngine.TextCore.LowLevel;
 
 public class TextGeneration : MonoBehaviour {
 
@@ -25,6 +26,9 @@ public class TextGeneration : MonoBehaviour {
     public float Spacing = 1.0f;
     public Material Material;
 
+    [Header("Bounding Box")]
+    public Vector2 Dimensions;
+
     List<VertexData> vertexInfo;
     List<uint> indices;
     Dictionary<uint, Glyph> glyphLookUp;
@@ -32,10 +36,12 @@ public class TextGeneration : MonoBehaviour {
     Mesh mesh;
     string _internal;
 
+    FaceInfo faceInfo;
+
     void Start() {
         block = new MaterialPropertyBlock();
 
-        glyphLookUp = FontAsset.glyphLookupTable;
+        // glyphLookUp = FontAsset.glyphLookupTable;
         // block.SetColor(ShaderIDConstants.Color, Color.green);
 
         // Material = Canvas.GetDefaultCanvasMaterial();
@@ -44,10 +50,68 @@ public class TextGeneration : MonoBehaviour {
         vertexInfo = new List<VertexData>();
         indices = new List<uint>();
 
+        FontEngine.InitializeFontEngine();
+
+        FontEngine.LoadFontFace(FontToUse, 90);
+        faceInfo = FontEngine.GetFaceInfo();
+
         // FontToUse.RequestCharactersInTexture(Text, 0, FontStyle.Italic | FontStyle.Normal | FontStyle.Bold | FontStyle.BoldAndItalic);
         FontToUse.RequestCharactersInTexture(Text);
+
+        FontEngine.DestroyFontEngine();
     }
 
+    void OnDraw() {
+        var extents = Dimensions / 2;
+        var origin = new Vector2(Screen.width, Screen.height) / 2;
+
+        var bl = -extents + origin;
+        var tl = new Vector2(-extents.x, extents.y) + origin;
+        var tr = extents + origin;
+        var br = new Vector2(extents.x, -extents.y) + origin;
+
+        Debug.DrawLine(bl, tl);
+        Debug.DrawLine(tl, tr);
+        Debug.DrawLine(tr, br);
+        Debug.DrawLine(bl, br);
+
+        var ascentLineHeightY = tl.y - faceInfo.ascentLine;
+        var aL = new Vector2(tl.x, ascentLineHeightY);
+        var aR = new Vector2(tr.x, ascentLineHeightY);
+
+        Debug.DrawLine(aL, aR, Color.cyan);
+
+        if (mesh == null) {
+            mesh = new Mesh();
+        }
+
+        if (vertexInfo == null) {
+            vertexInfo = new List<VertexData>();
+        }
+
+        if (indices == null) {
+            indices = new List<uint>();
+        }
+
+        if (Text != _internal) {
+            mesh.Clear();
+            vertexInfo.Clear();
+            indices.Clear();
+            RenderTextQuads(aL.x, aL.y, 2);
+            _internal = Text;
+            Debug.Log("Build");
+        }
+
+        var m = Matrix4x4.TRS(default, Quaternion.identity, Vector3.one);
+        Feature.Pass.InstructionQueue.Enqueue((mesh, Material, m, block));
+    }
+
+    void Update() 
+    {
+        OnDraw();
+    }
+
+    /*
     void Update() {
         if (Text.Length == 0) {
             mesh.Clear();
@@ -65,6 +129,7 @@ public class TextGeneration : MonoBehaviour {
         var m = Matrix4x4.TRS(new Vector3(0, 0, 0), Quaternion.identity, Vector3.one);
         Feature.Pass.InstructionQueue.Enqueue((mesh, Material, m, block));
     }
+    */
 
     void RenderTextQuads(float x, float y, float scale)
     {
@@ -111,7 +176,7 @@ public class TextGeneration : MonoBehaviour {
 
             var baseIndex = (uint)vertexInfo.Count - 4;
 
-            indices.AddRange(new uint[] { 
+            indices.AddRange(new uint[] {
                 baseIndex, baseIndex + 1, baseIndex + 2,
                 baseIndex, baseIndex + 2, baseIndex + 3
             });
@@ -119,7 +184,7 @@ public class TextGeneration : MonoBehaviour {
             x += (glyph.Advance() * Spacing) * scale;
         }
 
-        mesh.SetVertexBufferParams(vertexInfo.Count, 
+        mesh.SetVertexBufferParams(vertexInfo.Count,
             new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float32, 3),
             new VertexAttributeDescriptor(VertexAttribute.Normal, VertexAttributeFormat.Float32, 3),
             new VertexAttributeDescriptor(VertexAttribute.TexCoord0, VertexAttributeFormat.Float32, 2));

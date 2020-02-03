@@ -1,67 +1,71 @@
+using System.Runtime.CompilerServices;
 using Unity.Mathematics;
-using Unity.Entities;
-using Unity.Collections;
-using UnityEngine;
+using UGUIDots.Transforms;
+using TMPro;
 
 namespace UGUIDots.Render {
 
-    public static class TextMeshGenerationUtil {
+    public static class TextUtil {
 
-        public static void BuildTextMesh(ref DynamicBuffer<MeshVertexData> vertices,
-            ref DynamicBuffer<TriangleIndexElement> indices, in NativeArray<CharElement> text,
-            in NativeArray<GlyphElement> glyphs, float2 startPos, float2 maxDimensions, float scale, 
-            float spacing = 1f) {
+        // TODO: Calculate lines
 
-            for (int i = 0; i < text.Length; i++) {
-                var c = text[i].Value;
+        /// <summary>
+        /// Returns the relative vertical alignment of the text.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float GetVerticalAlignment(
+            in FontFaceInfo fontFace,
+            in TextOptions options,
+            in float2 extents,
+            float2 parentScale) {
 
-                if (glyphs.GetGlyphOf(in c, out var glyph)) {
-                    var baseIndex = (ushort)vertices.Length;
-                   
-                    var xPos = startPos.x + glyph.Bearings.x * scale;
-                    var yPos = startPos.y - (glyph.Size.y - glyph.Bearings.y) * scale;
+            var fontScale = options.Size > 0 ? (float)options.Size / fontFace.PointSize : 1f;
+            var alignment = options.Alignment;
 
-                    var width  = glyph.Size.x * scale;
-                    var height = glyph.Size.y * scale;
-                    var right  = new float3(1, 0, 0);
-
-                    vertices.Add(new MeshVertexData {
-                        Position = new float2(xPos, yPos),
-                        Normal   = right,
-                        UVs      = glyph.UVBottomLeft()
-                    });
-                    vertices.Add(new MeshVertexData {
-                        Position = new float2(xPos, yPos + height),
-                        Normal   = right,
-                        UVs      = glyph.UVTopLeft()
-                    });
-                    vertices.Add(new MeshVertexData {
-                        Position = new float2(xPos + width, yPos + height),
-                        Normal   = right,
-                        UVs      = glyph.UVTopRight()
-                    });
-                    vertices.Add(new MeshVertexData {
-                        Position = new float2(xPos + width, yPos),
-                        Normal   = right,
-                        UVs      = glyph.UVBottomRight()
-                    });
-
-                    var bl = baseIndex;
-                    var tl = (ushort)(baseIndex + 1);
-                    var tr = (ushort)(baseIndex + 2);
-                    var br = (ushort)(baseIndex + 3);
-
-                    indices.Add(new TriangleIndexElement { Value = bl });
-                    indices.Add(new TriangleIndexElement { Value = tl });
-                    indices.Add(new TriangleIndexElement { Value = tr });
-
-                    indices.Add(new TriangleIndexElement { Value = bl });
-                    indices.Add(new TriangleIndexElement { Value = tr });
-                    indices.Add(new TriangleIndexElement { Value = br });
-
-                    startPos += new float2((glyph.Advance * spacing) * scale, 0);
-                }
+            switch (alignment) {
+                case var _ when (alignment & AnchoredState.TopRow) > 0: {
+                        var ascentLine = fontFace.AscentLine * fontScale;
+                        return extents.y - ascentLine;
+                    }
+                case var _ when (alignment & AnchoredState.MiddleRow) > 0: {
+                        var avgLineHeight = (fontFace.LineHeight * fontScale) / 2 + (fontFace.DescentLine * fontScale);
+                        return -avgLineHeight;
+                    }
+                case var _ when (alignment & AnchoredState.BottomRow) > 0: {
+                        var descent = fontFace.DescentLine * fontScale;
+                        return -extents.y - descent;
+                    }
+                default:
+                    throw new System.ArgumentException("Invalid anchor, please use a valid TextAnchor");
             }
+        }
+
+        /// <summary>
+        /// Determines the horizontal alignment of the text.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float GetHorizontalAlignment(
+            in FontFaceInfo fontFace,
+            in TextOptions options,
+            in float2 extents) {
+
+            var alignment = options.Alignment;
+
+            switch (alignment) {
+                case var _ when (alignment & AnchoredState.LeftColumn) > 0:
+                    return -extents.x;
+                default:
+                    throw new System.ArgumentException("Invalid horizontal alignment, please use a valid TextAnchor!");
+            }
+        }
+
+        /// <summary>
+        /// Returns the associative padding between different styles.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float SelectStylePadding(in TextOptions options, in FontFaceInfo faceInfo) {
+            var isBold = options.Style == FontStyles.Bold;
+            return 1.25f + math.select(faceInfo.NormalStyle.x, faceInfo.BoldStyle.x, isBold) / 4f;
         }
     }
 }
