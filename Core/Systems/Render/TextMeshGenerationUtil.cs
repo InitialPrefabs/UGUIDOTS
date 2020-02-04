@@ -3,22 +3,54 @@ using Unity.Mathematics;
 using UGUIDots.Transforms;
 using TMPro;
 using Unity.Collections;
+using UnityEngine;
 
 namespace UGUIDots.Render {
 
     public static class TextUtil {
 
+        // TODO :Check to see if this is accurate?
+        private static void CalculateTextSliceWidth(
+            in NativeArray<CharElement> text, 
+            float advance,
+            int endIndex,
+            float currentWidth,
+            out float width,
+            out int span) {
+
+
+            Debug.Log($"<color=green>First char: {text[endIndex].Value} Idx: {endIndex}</color>");
+            width = 0f;
+
+            // Start looking at char elements before the 
+            for (int i = endIndex; i >= 0; i--) {
+                var c = text[i].Value;
+                width += advance;
+
+                if (c == ' ' || c == '\n') {
+                    Debug.Log($"<color=yellow> Found space/new line at: {i}, Span: {endIndex - i}</color>");
+                    span = endIndex - i;
+                    return;
+                }
+            }
+
+            span = 0;
+        }
+
         public struct LineInfo {
-            public float Width;
-            public int Start, End;
+            public float LineWidth;
+            public float WordWidth;
+            public int WordCount;
+
+            public int2 Span;
 
             public override string ToString() {
-                return $"Width: {Width}, Start Index: {Start}, End Index: {End}";
+                return base.ToString();
             }
         }
 
         // TODO: Calculate lines
-        public static NativeList<LineInfo> GetLineInfo(
+        public static void GetLineInfo(
             in NativeArray<CharElement> text,
             in NativeArray<GlyphElement> glyphs,
             Dimensions dimensions,
@@ -27,35 +59,16 @@ namespace UGUIDots.Render {
             out NativeHashMap<char, GlyphElement> glyphMappings) {
 
             glyphMappings = new NativeHashMap<char, GlyphElement>(text.Length, Allocator.Temp);
-            var lineInfos = new NativeList<LineInfo>(Allocator.Temp);
 
-            var lineWidth = 0f;
-            var charCount = 0;
             for (int i = 0; i < text.Length; i++) {
                 var c = text[i].Value;
 
-                if (!glyphs.TryGetGlyph(in c, out var glyph)) { continue; }
-                glyphMappings.TryAdd(c, glyph);
-            
-                var xOffset    = (glyph.Bearings.x - stylePadding.x) * fontScale;
-                var glyphWidth = glyph.Size.x + stylePadding.x * 2 * fontScale;
-                var advance    = glyph.Advance * fontScale * stylePadding.y;
-
-                if (lineWidth < dimensions.Width()) {
-                    lineWidth += (xOffset + glyphWidth + advance);
-                    charCount++;
-                } else {
-                    lineInfos.Add(new LineInfo {
-                        Width  = lineWidth,
-                        Start  = i - charCount,
-                        End    = i
-                    });
-
-                    charCount = 0;
-                    lineWidth = 0;
+                if (!glyphs.TryGetGlyph(in c, out var glyph)) {
+                    continue;
                 }
+
+                glyphMappings.TryAdd(c, glyph);
             }
-            return lineInfos;
         }
 
         /// <summary>

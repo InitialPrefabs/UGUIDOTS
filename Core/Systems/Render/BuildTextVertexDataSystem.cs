@@ -66,7 +66,7 @@ namespace UGUIDots.Render.Systems {
                     var ltw        = ltws[i];
 
                     vertices.Clear();
-                    indices.Clear();
+                    indices .Clear();
 
                     var glyphTableExists  = GlyphMap.TryGetValue(fontID, out var glyphEntity);
                     var glyphBufferExists = GlyphData.Exists(glyphEntity);
@@ -75,7 +75,6 @@ namespace UGUIDots.Render.Systems {
                     if (!(glyphTableExists && glyphBufferExists && fontFaceExists)) {
                         continue; 
                     }
-
 
                     var fontFace  = FontFaces[glyphEntity];
                     var fontScale = textOption.Size / (float)fontFace.PointSize;
@@ -96,25 +95,23 @@ namespace UGUIDots.Render.Systems {
 
                     var styleSpaceMultiplier = 1f + (isBold ? fontFace.BoldStyle.y : fontFace.NormalStyle.y) * 0.01f;
 
-                    { // Text line info debugging
-                        var lines = TextUtil.GetLineInfo(
-                            in text, in glyphData, dimensions, fontScale, 
-                            new float2(stylePadding, styleSpaceMultiplier), 
-                            out var glyphMappings);
+                    TextUtil.GetLineInfo(
+                        in text, in glyphData, dimensions, fontScale, 
+                        new float2(stylePadding, styleSpaceMultiplier), 
+                        out var glyphMappings);
 
-                        Debug.Log($"Line Length: {lines.Length}");
-
-                        for (int m = 0; m < lines.Length; m++) {
-                            Debug.Log($"{lines[m].ToString()}");
-                        }
-
-                        glyphMappings.Dispose();
+                    /*
+                    foreach (var item in lines) {
+                        Debug.Log(item.ToString());   
                     }
+
+                    Debug.Log($"Lines: {lines.Length}");
+                    */
 
                     for (int k = 0; k < text.Length; k++) {
                         var c = text[k].Value;
 
-                        if (!glyphData.TryGetGlyph(in c, out var glyph)) {
+                        if (!glyphMappings.TryGetValue(c, out var glyph)) {
                             continue;
                         }
 
@@ -174,6 +171,8 @@ namespace UGUIDots.Render.Systems {
 
                         start += new float2(glyph.Advance * fontScale * styleSpaceMultiplier, 0);
                     }
+
+                    glyphMappings.Dispose();
 
                     var textEntity = entities[i];
                     CmdBuffer.RemoveComponent<BuildTextTag>(textEntity.Index, textEntity);
