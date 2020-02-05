@@ -9,56 +9,32 @@ namespace UGUIDots.Render {
 
     public static class TextUtil {
 
-        // TODO :Check to see if this is accurate?
-        private static void CalculateTextSliceWidth(
-            in NativeArray<CharElement> text, 
-            float advance,
-            int endIndex,
-            float currentWidth,
-            out float width,
-            out int span) {
-
-
-            Debug.Log($"<color=green>First char: {text[endIndex].Value} Idx: {endIndex}</color>");
-            width = 0f;
-
-            // Start looking at char elements before the 
-            for (int i = endIndex; i >= 0; i--) {
-                var c = text[i].Value;
-                width += advance;
-
-                if (c == ' ' || c == '\n') {
-                    Debug.Log($"<color=yellow> Found space/new line at: {i}, Span: {endIndex - i}</color>");
-                    span = endIndex - i;
-                    return;
-                }
-            }
-
-            span = 0;
+        struct LineDiagnostics {
+            public float LineWidth;
+            public float WordWidth;
+            public int LineCharCount;
+            public int WordCharCount;
+            public int WordCount;
+            public int CharacterIndex;
         }
 
         public struct LineInfo {
             public float LineWidth;
-            public float WordWidth;
-            public int WordCount;
-
-            public int2 Span;
+            public int StartIndex;
 
             public override string ToString() {
-                return base.ToString();
+                return $"LineWidth: {LineWidth}, StartIndex: {StartIndex}";
             }
         }
 
-        // TODO: Calculate lines
-        public static void GetLineInfo(
+        public static void CountLines(
             in NativeArray<CharElement> text,
             in NativeArray<GlyphElement> glyphs,
             Dimensions dimensions,
-            float fontScale,
-            float2 stylePadding,
-            out NativeHashMap<char, GlyphElement> glyphMappings) {
+            float padding,
+            ref NativeList<LineInfo> lines) {
 
-            glyphMappings = new NativeHashMap<char, GlyphElement>(text.Length, Allocator.Temp);
+            var diagnostics = new LineDiagnostics { };
 
             for (int i = 0; i < text.Length; i++) {
                 var c = text[i].Value;
@@ -67,8 +43,53 @@ namespace UGUIDots.Render {
                     continue;
                 }
 
-                glyphMappings.TryAdd(c, glyph);
+                // TODO: Add support for \n
+                if (c == ' ') {
+                    diagnostics.WordWidth      = 0;
+                    diagnostics.WordCharCount  = -1;
+
+                    // We hit a space so there's a new word coming up supposedly
+                    diagnostics.WordCount++;
+                }
+
+                var advance = glyph.Advance * padding;
+
+                if (diagnostics.LineWidth < dimensions.Width()) {
+                    diagnostics.WordCharCount++;
+                    diagnostics.LineCharCount++;
+                    diagnostics.LineWidth += advance;
+                    diagnostics.WordWidth += advance;
+
+                    if (diagnostics.LineWidth > dimensions.Width()) {
+                        if (diagnostics.WordCount != 0) {
+                            // We know we have multiple words already...
+                            // TODO: Figure this out
+                        } else {
+                            // We know that its potentially a giant blob of text so we need to 
+                            // split the text - same way as how TMP does it
+                            
+                            lines.Add(new LineInfo {
+                                LineWidth  = diagnostics.LineWidth,
+                                StartIndex = diagnostics.CharacterIndex
+                            });
+
+                            // Reset the widths and character counts of the words
+                            diagnostics.LineCharCount = diagnostics.WordCharCount = 0;
+                            diagnostics.LineWidth     = diagnostics.WordWidth = 0f;
+
+                            // Stoe the last known character index
+                            diagnostics.CharacterIndex = i;
+                        }
+                    }
+                    continue;
+                }
             }
+
+            // Add the last line
+            lines.Add(new LineInfo  {
+                LineWidth  = diagnostics.LineWidth,
+                StartIndex = diagnostics.CharacterIndex
+            });
         }
 
         /// <summary>

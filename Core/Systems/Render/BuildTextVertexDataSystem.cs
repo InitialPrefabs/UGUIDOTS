@@ -94,28 +94,38 @@ namespace UGUIDots.Render.Systems {
                     var isBold = textOption.Style == FontStyles.Bold;
 
                     var styleSpaceMultiplier = 1f + (isBold ? fontFace.BoldStyle.y : fontFace.NormalStyle.y) * 0.01f;
+                    var padding = fontScale * styleSpaceMultiplier;
+                    var lines = new NativeList<TextUtil.LineInfo>(Allocator.Temp);
 
-                    TextUtil.GetLineInfo(
-                        in text, in glyphData, dimensions, fontScale, 
-                        new float2(stylePadding, styleSpaceMultiplier), 
-                        out var glyphMappings);
+                    TextUtil.CountLines(in text, in glyphData, dimensions, padding, ref lines);
 
-                    /*
-                    foreach (var item in lines) {
-                        Debug.Log(item.ToString());   
+                    var boundingHeight = lines.Length * fontFace.LineHeight;
+
+                    Debug.Log($"Number of lines: {lines.Length}");
+                    foreach (var line in lines) {
+                        Debug.Log(line.ToString());
                     }
 
-                    Debug.Log($"Lines: {lines.Length}");
-                    */
-
-                    for (int k = 0; k < text.Length; k++) {
+                    for (int k = 0, row = 0; k < text.Length; k++) {
                         var c = text[k].Value;
 
-                        if (!glyphMappings.TryGetValue(c, out var glyph)) {
+                        if (!glyphData.TryGetGlyph(c, out var glyph)) {
                             continue;
                         }
 
                         var baseIndex = (ushort)vertices.Length;
+
+                        Debug.Log($"Row: {row}, Lines: {lines.Length}");
+                        if (row < lines.Length && k == lines[row].StartIndex) {
+                            var adjustedHeight = fontFace.LineHeight * fontScale * (row > 0 ? 1f : 0f);
+                            Debug.Log($"Adjusted Height: {adjustedHeight}");
+
+                            // TODO: Figure out the the y offset depending on the alignment
+                            // TODO: This only handles certain alignments...
+                            start.y -= adjustedHeight;
+                            start.x  = TextUtil.GetHorizontalAlignment(in fontFace, in textOption, in extents);
+                            row++;
+                        }
 
                         var xPos = start.x + (glyph.Bearings.x - stylePadding) * fontScale;
                         var yPos = start.y - (glyph.Size.y - glyph.Bearings.y - stylePadding) * fontScale;
@@ -169,10 +179,8 @@ namespace UGUIDots.Render.Systems {
                         indices.Add(new TriangleIndexElement { Value = tr });
                         indices.Add(new TriangleIndexElement { Value = br });
 
-                        start += new float2(glyph.Advance * fontScale * styleSpaceMultiplier, 0);
+                        start += new float2(glyph.Advance * padding, 0);
                     }
-
-                    glyphMappings.Dispose();
 
                     var textEntity = entities[i];
                     CmdBuffer.RemoveComponent<BuildTextTag>(textEntity.Index, textEntity);
