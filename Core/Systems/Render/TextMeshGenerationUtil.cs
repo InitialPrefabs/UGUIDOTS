@@ -129,7 +129,8 @@ namespace UGUIDots.Render {
             in float fontScale,
             in AnchoredState alignment,
             in float2 extents,
-            in float textBlockHeight) {
+            in float textBlockHeight,
+            in int lines) {
 
             switch (alignment) {
                 case var _ when (alignment & AnchoredState.TopRow) > 0: {
@@ -138,7 +139,7 @@ namespace UGUIDots.Render {
                     }
                 case var _ when (alignment & AnchoredState.MiddleRow) > 0: {
                         var avgLineHeight = (lineHeights.x * fontScale) * 0.5f + 
-                            (lineHeights.z * fontScale) + textBlockHeight * 0.5f;
+                            (lineHeights.z * fontScale) + (textBlockHeight * math.select(0f, 0.5f, lines > 1));
                         return -avgLineHeight;
                     }
                 case var _ when (alignment & AnchoredState.BottomRow) > 0: {

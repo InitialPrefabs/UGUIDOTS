@@ -6,7 +6,6 @@ using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Transforms;
-using UnityEngine;
 
 namespace UGUIDots.Render.Systems {
 
@@ -99,11 +98,7 @@ namespace UGUIDots.Render.Systems {
                     var start = new float2(
                         TextUtil.GetHorizontalAlignment(textOption.Alignment, extents, lines[0].LineWidth),
                         TextUtil.GetVerticalAlignment(heights, fontScale, textOption.Alignment, 
-                            in extents, in linesHeight));
-
-                    foreach (var line in lines) {
-                        Debug.Log(line.ToString());
-                    }
+                            in extents, in linesHeight, lines.Length));
 
                     for (int k = 0, row = 0; k < text.Length; k++) {
                         var c = text[k].Value;
@@ -112,7 +107,7 @@ namespace UGUIDots.Render.Systems {
                             continue;
                         }
 
-                        var baseIndex = (ushort)vertices.Length;
+                        var bl = (ushort)vertices.Length;
 
                         if (row < lines.Length && k == lines[row].StartIndex) {
                             var height = fontFace.LineHeight * fontScale * (row > 0 ? 1f : 0f);
@@ -163,10 +158,9 @@ namespace UGUIDots.Render.Systems {
                             UV2      = uv2
                         });
 
-                        var bl = baseIndex;
-                        var tl = (ushort)(baseIndex + 1);
-                        var tr = (ushort)(baseIndex + 2);
-                        var br = (ushort)(baseIndex + 3);
+                        var tl = (ushort)(bl + 1);
+                        var tr = (ushort)(bl + 2);
+                        var br = (ushort)(bl + 3);
 
                         indices.Add(new TriangleIndexElement { Value = bl });
                         indices.Add(new TriangleIndexElement { Value = tl });
