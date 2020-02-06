@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.0.4 - 2020-02-06
+### Added
+* Supports text wrapping for multiline texts
+
 ## 0.0.3 - 2020-02-03
 ### Added
 * Adds support for TextMeshPro
