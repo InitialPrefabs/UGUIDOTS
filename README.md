@@ -67,3 +67,10 @@ Grab these from Unity's package manager.
 ## Limitations
 Development is still underway - so not all of the features Unity has by default is supported. Similarly - there are certain
 cases that are not accounted for, like sub canvases as I barely use features like that.
+
+## Credits
+Some thanks to a few folks who've helped me figure out things along the way
+
+* Valentina S.
+* Arthur D.
+* Mason R.

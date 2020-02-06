@@ -64,18 +64,36 @@ namespace UGUIDots.Render {
                         if (diagnostics.WordCount != 0) {
                             // We know we have multiple words already...
                             // TODO: Figure this out
+                            lines.Add(new LineInfo {
+                                LineWidth = diagnostics.LineWidth,
+                                StartIndex = diagnostics.CharacterIndex
+                            });
+
+                            // Reset the character index to the current word we're scanning
+                            diagnostics.CharacterIndex = i - diagnostics.WordCharCount + 1;
+                            // Shift i to the current word because this word should go on the next line
+                            i = i - diagnostics.WordCharCount + 1;
+
+                            // We've effectively hit a new line and completed the previous word that 
+                            // could fit on that line, also reset the word's width/line since we are scanning
+                            // a new word on a new line.
+                            diagnostics.WordCount     = 0;
+                            diagnostics.WordCharCount = 0;
+                            diagnostics.LineWidth     = diagnostics.WordWidth = 0f;
+
                         } else {
                             // We know that its potentially a giant blob of text so we need to 
                             // split the text - same way as how TMP does it
                             
                             lines.Add(new LineInfo {
-                                LineWidth  = diagnostics.LineWidth,
+                                LineWidth  = diagnostics.LineWidth - advance,
                                 StartIndex = diagnostics.CharacterIndex
                             });
 
                             // Reset the widths and character counts of the words
                             diagnostics.LineCharCount = diagnostics.WordCharCount = 0;
-                            diagnostics.LineWidth     = diagnostics.WordWidth = 0f;
+                            diagnostics.LineWidth     = advance;
+                            diagnostics.WordWidth     = 0f;
 
                             // Stoe the last known character index
                             diagnostics.CharacterIndex = i;
@@ -83,6 +101,15 @@ namespace UGUIDots.Render {
                     }
                     continue;
                 }
+                lines.Add(new LineInfo {
+                    LineWidth  = diagnostics.LineWidth,
+                    StartIndex = diagnostics.CharacterIndex
+                });
+
+                diagnostics.CharacterIndex = i;
+                diagnostics.LineWidth      = diagnostics.WordWidth = 0;
+                diagnostics.WordCount      = 0;
+                diagnostics.WordCharCount  = 0;
             }
 
             // Add the last line
@@ -95,27 +122,27 @@ namespace UGUIDots.Render {
         /// <summary>
         /// Returns the relative vertical alignment of the text.
         /// </summary>
+        /// <param name="lineHeights">Stores the full, ascent, and descent line heights.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float GetVerticalAlignment(
-            in FontFaceInfo fontFace,
-            in TextOptions options,
+            in float3 lineHeights,
+            in float fontScale,
+            in AnchoredState alignment,
             in float2 extents,
-            float2 parentScale) {
-
-            var fontScale = options.Size > 0 ? (float)options.Size / fontFace.PointSize : 1f;
-            var alignment = options.Alignment;
+            in float textBlockHeight) {
 
             switch (alignment) {
                 case var _ when (alignment & AnchoredState.TopRow) > 0: {
-                        var ascentLine = fontFace.AscentLine * fontScale;
+                        var ascentLine = lineHeights.y * fontScale;
                         return extents.y - ascentLine;
                     }
                 case var _ when (alignment & AnchoredState.MiddleRow) > 0: {
-                        var avgLineHeight = (fontFace.LineHeight * fontScale) / 2 + (fontFace.DescentLine * fontScale);
+                        var avgLineHeight = (lineHeights.x * fontScale) * 0.5f + 
+                            (lineHeights.z * fontScale) + textBlockHeight * 0.5f;
                         return -avgLineHeight;
                     }
                 case var _ when (alignment & AnchoredState.BottomRow) > 0: {
-                        var descent = fontFace.DescentLine * fontScale;
+                        var descent = lineHeights.z * fontScale;
                         return -extents.y - descent;
                     }
                 default:
@@ -128,15 +155,17 @@ namespace UGUIDots.Render {
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float GetHorizontalAlignment(
-            in FontFaceInfo fontFace,
-            in TextOptions options,
-            in float2 extents) {
-
-            var alignment = options.Alignment;
+            in AnchoredState alignment,
+            in float2 extents,
+            in float lineWidth) {
 
             switch (alignment) {
                 case var _ when (alignment & AnchoredState.LeftColumn) > 0:
                     return -extents.x;
+                case var _ when (alignment & AnchoredState.MiddleColumn) > 0:
+                    return -lineWidth / 2;
+                case var _ when (alignment & AnchoredState.RightColumn) > 0:
+                    return extents.x - lineWidth / 2;
                 default:
                     throw new System.ArgumentException("Invalid horizontal alignment, please use a valid TextAnchor!");
             }
