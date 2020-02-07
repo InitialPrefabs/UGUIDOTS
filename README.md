@@ -17,7 +17,7 @@ capabilities for both mobile and desktops. That said supported platforms are pri
 WebGL may be a hit or miss.
 
 ## Wiki
-The [wiki](Wiki/TableOfContents.md) is currently being worked on and contains basic information about Image/Text pipelines.
+The [wiki](Wiki/Home.md) is currently being worked on and contains basic information about Image/Text pipelines.
 
 ## Changelog
 General purpose change log can be found [here](CHANGELOG.md).

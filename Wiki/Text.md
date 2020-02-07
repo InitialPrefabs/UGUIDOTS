@@ -12,40 +12,38 @@ TextMeshProUGUIs are converted in several stages - as there are external compone
 * TMPTextConverionSystem
 
 ## FontAssetDeclarationSystem
-The `FontAssetDeclarationSystem` declares the FontAsset scriptable object dependency that all `TextMeshProUGUI`
-components needs to be represented as an entity.
+The `FontAssetDeclarationSystem` declares that the TMP FontAsset's ScriptableObject
+dependency that all `TextMeshProUGUI` components needs to be represented as an entity.
 
 ## FontAssetConversionSystem
-This system, grabs all of the embedded FontAssets and adds the following components to the linked FontAsset
-entity.
+This system, grabs all of the embedded FontAssets from `TextMeshProUGUI` and adds the
+following components to the FontAsset entity.
 
-* FontID
- * The unique instance ID for the FontAsset, used for lookup.
-* GlyphElement Buffer
- * Stores all characters, glyph data, and uvs from the FontAsset into the buffer
+| Component | Description |
+|:---------:|:-----------:|
+| FontID    | Stores the unique instance ID for font asset - this is used for look up |
+| GlyphElement | Stores the character's associated unicode, glyph metrics, raw uvs needed to display the font |
+| FontFaceInfo | Stores Unity's FaceInfo data from the FontAsset |
 
 ## TMPTextConversionSystem
 Grabs all `TextMeshProUGUI`s and adds the following components to the linked entity:
 
-* Dimensions
-* AppliedColor
-* TextFontID
-* TextOptions
-* Material
-* CharElement Buffer
-* MeshVertexData Buffer
-* TriangleIndexElement Buffer
-
-The `TextFontID` is the unique identifier that maps to the font asset so that generated text can read the correct
-glyph elements for the correct quads.
-
-`TextOptions` store alignment, style, and point size of each individual text component.
+| Component | Description |
+|:---------:|:-----------:|
+| Dimensions | The rect size for displaying the text |
+| TextFontID | The mapping required to link to the FontID |
+| TextOptions | The font style, size, and alignment |
+| Material | The shader properties/bitmap needed to render the text |
+| CharElement | Stores all characters of a string |
+| MeshVertexData | Vertex information needed to make the mesh |
+| TriangleIndexElement | Mesh index information needed to store |
 
 ### Building the Actual Mesh
-All letters of a mesh are built to the same vertex buffer, this batches all potential meshes such that there is
-only 1 issued draw calls. Generally, each letter's glyph is retrieved from the FontAsset entity, and the glyph
-metrics are applied to build the quad that will display. This takes into account font scaling so that larger 
-point sizes match the editor time representation.
+All letters of a mesh are built to the same vertex buffer, this batches all potential meshes such that there is only 1 issued draw calls. Generally, each letter's glyph is
+retrieved from the FontAsset entity, and the glyph metrics are applied to build the
+quad that will display. This takes into account font scaling so that larger point
+sizes match the editor time representation.
 
-For a more detailed outlook of building text individually and rendering, take a look at the
-[OpenGL tutorial](https://learnopengl.com/In-Practice/Text-Rendering), which explains it quite nicely.
+For a more detailed outlook of building text individually and rendering, take a look
+at the [OpenGL tutorial](https://learnopengl.com/In-Practice/Text-Rendering), which
+affects the calculation to explains it quite nicely.
