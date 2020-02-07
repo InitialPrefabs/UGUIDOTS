@@ -1,0 +1,14 @@
+{
+  "name":        "com.initialprefabs.uguidots",
+  "author":      "Porrith Suong / initialPrefabs",
+  "displayName": "UGUIDots",
+  "version":     "0.0.4",
+  "unity":       "2019.3",
+  "description": "Low level library to augment Unity's UI and make it DOTS compliant",
+  "dependencies" : {
+    "com.unity.entities" : "0.5.1-preview.11",
+    "com.unity.collections": "0.5.1-preview.11",
+    "com.unity.jobs": "0.2.4-preview.11",
+    "com.unity.burst": "1.1.12"
+  }
+}
