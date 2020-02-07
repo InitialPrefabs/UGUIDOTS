@@ -65,7 +65,9 @@ namespace UGUIDots.Render.Systems {
                     var ltw        = ltws[i];
 
                     vertices.Clear();
-                    indices.Clear();
+                    indices .Clear();
+
+                    var canvasScale = ltw.AverageScale();
 
                     var glyphTableExists  = GlyphMap.TryGetValue(fontID, out var glyphEntity);
                     var glyphBufferExists = GlyphData.Exists(glyphEntity);
@@ -76,32 +78,46 @@ namespace UGUIDots.Render.Systems {
                     }
 
                     var fontFace  = FontFaces[glyphEntity];
-                    var fontScale = textOption.Size / (float)fontFace.PointSize;
-
-                    var glyphData   = GlyphData[glyphEntity].AsNativeArray();
-                    var canvasScale = ltw.Scale().xy;
-
-                    var extents = dimensions.Extents();
-
-                    var start = new float2(
-                        TextUtil.GetHorizontalAlignment(in fontFace, in textOption, in extents),
-                        TextUtil.GetVerticalAlignment(in fontFace, in textOption, in extents, canvasScale));
+                    var fontScale = textOption.Size > 0 ? (float)textOption.Size / fontFace.PointSize : 1f;
+                    var glyphData = GlyphData[glyphEntity].AsNativeArray();
+                    var extents   = dimensions.Extents();
 
                     var stylePadding = TextUtil.SelectStylePadding(in textOption, in fontFace);
-
-                    var parentScale = textOption.Size * new float2(1) / fontFace.PointSize;
-                    var isBold = textOption.Style == FontStyles.Bold;
+                    var parentScale  = textOption.Size * new float2(1) / fontFace.PointSize;
+                    var isBold       = textOption.Style == FontStyles.Bold;
 
                     var styleSpaceMultiplier = 1f + (isBold ? fontFace.BoldStyle.y : fontFace.NormalStyle.y) * 0.01f;
+                    var padding = fontScale * styleSpaceMultiplier;
+                    var lines = new NativeList<TextUtil.LineInfo>(Allocator.Temp);
 
-                    for (int k = 0; k < text.Length; k++) {
+                    TextUtil.CountLines(in text, in glyphData, dimensions, padding, ref lines);
+
+                    var linesHeight = lines.Length * fontFace.LineHeight * fontScale;
+                    var heights     = new float3(fontFace.LineHeight, fontFace.AscentLine, fontFace.DescentLine);
+
+                    var start = new float2(
+                        TextUtil.GetHorizontalAlignment(textOption.Alignment, extents, lines[0].LineWidth),
+                        TextUtil.GetVerticalAlignment(heights, fontScale, textOption.Alignment, 
+                            in extents, in linesHeight, lines.Length));
+
+                    for (int k = 0, row = 0; k < text.Length; k++) {
                         var c = text[k].Value;
 
-                        if (!glyphData.TryGetGlyph(c, textOption.Style, out var glyph)) {
+                        if (!glyphData.TryGetGlyph(c, out var glyph)) {
                             continue;
                         }
 
-                        var baseIndex = (ushort)vertices.Length;
+                        var bl = (ushort)vertices.Length;
+
+                        if (row < lines.Length && k == lines[row].StartIndex) {
+                            var height = fontFace.LineHeight * fontScale * (row > 0 ? 1f : 0f);
+
+                            start.y -= height;
+                            start.x  = TextUtil.GetHorizontalAlignment(textOption.Alignment, 
+                                    extents, lines[row].LineWidth);
+
+                            row++;
+                        }
 
                         var xPos = start.x + (glyph.Bearings.x - stylePadding) * fontScale;
                         var yPos = start.y - (glyph.Size.y - glyph.Bearings.y - stylePadding) * fontScale;
@@ -142,10 +158,9 @@ namespace UGUIDots.Render.Systems {
                             UV2      = uv2
                         });
 
-                        var bl = baseIndex;
-                        var tl = (ushort)(baseIndex + 1);
-                        var tr = (ushort)(baseIndex + 2);
-                        var br = (ushort)(baseIndex + 3);
+                        var tl = (ushort)(bl + 1);
+                        var tr = (ushort)(bl + 2);
+                        var br = (ushort)(bl + 3);
 
                         indices.Add(new TriangleIndexElement { Value = bl });
                         indices.Add(new TriangleIndexElement { Value = tl });
@@ -155,12 +170,14 @@ namespace UGUIDots.Render.Systems {
                         indices.Add(new TriangleIndexElement { Value = tr });
                         indices.Add(new TriangleIndexElement { Value = br });
 
-                        start += new float2(glyph.Advance * fontScale * styleSpaceMultiplier, 0);
+                        start += new float2(glyph.Advance * padding, 0);
                     }
 
+                    lines.Dispose();
                     var textEntity = entities[i];
                     CmdBuffer.RemoveComponent<BuildTextTag>(textEntity.Index, textEntity);
                 }
+
             }
         }
 

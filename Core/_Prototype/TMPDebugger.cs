@@ -84,9 +84,9 @@ namespace UGUIDots {
                     var glyph = fontAsset.characterLookupTable[(uint)c];
 
                     var glyphRect = glyph.glyph.glyphRect;
-                    var metrics = glyph.glyph.metrics;
+                    var metrics   = glyph.glyph.metrics;
 
-                    float width = glyphRect.width;
+                    float width  = glyphRect.width;
                     float height = glyphRect.height;
 
                     var bearingUpL = localToWorld.MultiplyPoint3x4(new Vector2(localTL.x, start.y - (height - metrics.horizontalBearingY) * fontScale * scale.y));
@@ -100,7 +100,7 @@ namespace UGUIDots {
                     var xPos = start.x + (metrics.horizontalBearingX) * fontScale;
                     var yPos = start.y - ((height - metrics.horizontalBearingY) * fontScale);
 
-                    width *= fontScale;
+                    width  *= fontScale;
                     height *= fontScale;
 
                     var bl = localToWorld.MultiplyPoint3x4(new Vector2(xPos, yPos));
