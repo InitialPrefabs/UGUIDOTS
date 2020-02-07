@@ -1,20 +1,20 @@
 # UGUIDots
 
-Current project of transforming the default UGUI into a DOTS compliant implementation. Please keep in mind that I am
-actively developing it - so _violent_ changes might occur to the structure of the repo.
+UGUIDots is a Data Oriented Tech Stack library aimed to bridge the gap in between
+[Unity's WYSIWYG UI](https://docs.unity3d.com/Packages/com.unity.ugui@1.0/manual/index.html) and
+the [Entity Component System](https://docs.unity3d.com/Packages/com.unity.entities@0.1/manual/index.html). This is a **low level library** which augments on top of Unity's UI and does not serve as a
+replacement - so the workflow of authoring UI designs in games largely remains the same.
 
 ## Why do this?
-A DOTS compliant UI is still underway (which will be based off of UIElements). Until then, I need a UI solution,
-that most designers can get familiar with - without building custom tooling. Similarly - one that has the performance
-capabilities for both mobile and desktops. That said supported platforms are primarily for:
+A DOTS compliant UI is still underway (which will be based off of UIElements). Until then, I need a UI solution, that most designers can get familiar with - without building too many custom tooling.
+Similarly - one that has the performance capabilities for both mobile and desktops. That said
+supported platforms are primarily for:
 
 * Android
 * iOS
 * Linux 64 bit
 * macOS
 * Windows 64 bit
-
-WebGL may be a hit or miss.
 
 ## Wiki
 The [wiki](Wiki/Home.md) is currently being worked on and contains basic information about Image/Text pipelines.
@@ -38,7 +38,7 @@ Support for the following will come over time - depends on the needs for my own 
 * [ ] Input fields
 * [ ] Subscene caching
 * [ ] Convert reference types to use pointers to avoid chunk splitting (?)
-* [ ] Support manual image / text batching of static fields
+* [ ] Support manual image / text batching of static UI elements (static analysis)
 
 ## QuickStart
 
@@ -58,10 +58,10 @@ Open RectTransformConversionTest.unity to see how scenes are set up.
 
 Grab these from Unity's package manager.
 
-* Burst 1.1.2
-* Entities 0.4.0-preview-10
-* Jobs 0.2.2-preview-6
-* Collections 0.4.0-preview-6
+* Burst 1.2.1
+* Entities 0.5.1-preview-11
+* Jobs 0.2.2-preview-11
+* Collections 0.5.1-preview-11
 * UGUI 1.0.0
 
 ## Limitations
