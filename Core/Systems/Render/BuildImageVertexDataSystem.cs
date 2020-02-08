@@ -75,9 +75,9 @@ namespace UGUIDots.Render.Systems {
                     var spriteH = dimension.Height();
 
                     var pixelAdjustments = new float4(
-                        padding.x / spriteW,
+                        (padding.x * spriteScale.x) / spriteW,
                         (padding.y * spriteScale.y) / spriteH,
-                        (spriteW - padding.z) / spriteW,
+                        (spriteW - padding.z * spriteScale.x) / spriteW,
                         (spriteH - padding.w * spriteScale.y) / spriteH
                     );
 

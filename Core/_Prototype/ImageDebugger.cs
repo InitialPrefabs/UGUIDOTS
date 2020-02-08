@@ -41,10 +41,11 @@ namespace UGUIDots {
 
                 var padding = DataUtility.GetPadding(image.sprite);
 
+                Debug.Log(scale.x);
                 var adjustedV = new Vector4(
-                    padding.x / spriteW,
+                    (padding.x * scale.x) / spriteW,
                     (padding.y * scale.y) / spriteH,
-                    (spriteW - padding.z) / spriteW,
+                    (spriteW - padding.z * scale.x) / spriteW,
                     (spriteH - padding.w * scale.y) / spriteH
                 );
 
