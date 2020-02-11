@@ -18,15 +18,4 @@ namespace UGUIDots.Render {
             return hash;
         }
     }
-
-    public class RenderCommandProxy : MonoBehaviour, IConvertGameObjectToEntity {
-
-        public OrthographicRenderFeature RenderFeature;
-
-        public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem) {
-            dstManager.AddSharedComponentData(entity, new RenderCommand {
-                RenderFeature = RenderFeature
-            });
-        }
-    }
 }

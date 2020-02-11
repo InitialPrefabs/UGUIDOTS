@@ -1,6 +1,7 @@
 {
     "name": "UGUIDots.Core",
     "references": [
+        "GUID:3430abf52b53b5c4ba9083ed24e0e54b",
         "GUID:2665a8d13d1b3f18800f46e256720795",
         "GUID:734d92eba21c94caba915361bd5ac177",
         "GUID:8819f35a0fc84499b990e90a4ca1911f",

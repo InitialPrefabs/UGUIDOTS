@@ -98,7 +98,7 @@ LightmapSettings:
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
   m_LightingDataAsset: {fileID: 0}
-  m_UseShadowmask: 1
+  m_UseShadowmask: 0
 --- !u!196 &4
 NavMeshSettings:
   serializedVersion: 2
@@ -464,6 +464,7 @@ GameObject:
   - component: {fileID: 386341597}
   - component: {fileID: 386341596}
   - component: {fileID: 386341595}
+  - component: {fileID: 386341600}
   m_Layer: 5
   m_Name: Canvas Layer 0
   m_TagString: Untagged
@@ -565,6 +566,24 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!114 &386341600
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 386341594}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fb66bb67f0b3b5c43b067b6b196daeb0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Batches:
+  - Elements:
+    - {fileID: 501514284}
+    - {fileID: 1564127017}
+  - Elements:
+    - {fileID: 1394915335}
 --- !u!1 &399500887
 GameObject:
   m_ObjectHideFlags: 0
@@ -931,7 +950,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 83a8d7dc33d5c407cacabf160c73424b, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 1b4d5e8077d9db54e86ac06d15169f45, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -1003,7 +1022,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 518708814}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 457b43c12531c6945b6073084b9af179, type: 3}
+  m_Script: {fileID: 11500000, guid: bcff906e6b00b954795a34475331fca6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   RenderFeature: {fileID: -1372306941258236212, guid: 95c9b70d328f84047a847a2d7d71a924,
@@ -2257,7 +2276,6 @@ MonoBehaviour:
   m_RequiresDepthTextureOption: 2
   m_RequiresOpaqueTextureOption: 2
   m_CameraType: 0
-  m_CameraOutput: 0
   m_Cameras: []
   m_RendererIndex: -1
   m_VolumeLayerMask:
@@ -2269,6 +2287,7 @@ MonoBehaviour:
   m_AntialiasingQuality: 2
   m_StopNaN: 0
   m_Dithering: 0
+  m_ClearDepth: 1
   m_RequiresDepthTexture: 0
   m_RequiresColorTexture: 0
   m_Version: 2
