@@ -1,3 +1,4 @@
+using UGUIDots.Collections.Runtime;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Transforms;
@@ -5,7 +6,6 @@ using UnityEngine;
 
 namespace UGUIDots.Render.Systems {
 
-    // TODO: Implement this
     [UpdateInGroup(typeof(MeshRenderGroup))]
     public class HybridMeshRenderSystem : JobComponentSystem {
 

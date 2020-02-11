@@ -1,21 +1,21 @@
-﻿using Unity.Entities;
+﻿using UGUIDots.Collections.Runtime;
+using Unity.Entities;
 
-namespace UGUIDots {
+namespace UGUIDots.Conversions {
 
-    // TODO: Avoid using Resources - not currently the best way
     [UpdateInGroup(typeof(GameObjectDeclareReferencedObjectsGroup))]
     public class TextureBinDeclarationSystem : GameObjectConversionSystem {
         protected override void OnUpdate() {
-            if (TextureBin.TryLoadTextureBin("TextureBin", out TextureBin textureBin)) {
-                DeclareReferencedAsset(textureBin);
+            if (TextureBin.TryLoadBin("TextureBin", out var textureBin)) {
+                DeclareReferencedAsset(textureBin as TextureBin);
             }
         }
     }
 
     public class TextureBinConversionSystem : GameObjectConversionSystem {
         protected override void OnUpdate() {
-            if (TextureBin.TryLoadTextureBin("TextureBin", out TextureBin textureBin)) {
-                var binEntity = GetPrimaryEntity(textureBin);
+            if (TextureBin.TryLoadBin("TextureBin", out var textureBin)) {
+                var binEntity = GetPrimaryEntity(textureBin as TextureBin);
 
                 if (!DstEntityManager.HasComponent<TextureBin>(binEntity)) {
                     DstEntityManager.AddComponentObject(binEntity, textureBin);

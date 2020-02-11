@@ -1,3 +1,4 @@
+using UGUIDots.Collections.Runtime;
 using UGUIDots.Render;
 using Unity.Mathematics;
 using UnityEngine;
@@ -13,7 +14,10 @@ namespace UGUIDots.Conversions.Systems {
 
         protected override void OnUpdate() {
             Entities.ForEach((Image image) => {
-                TextureBin.TryLoadTextureBin("TextureBin", out TextureBin textureBin);
+                // TODO: Find a way to handle loading bins that hold textures and materials instead of using
+                // Resources.Load
+                TextureBin.TryLoadBin("TextureBin", out Bin<Texture> textureBin);
+                MaterialBin.TryLoadBin("MaterialBin", out var materialBin);
 
                 var texture    = image.sprite != null ? image.sprite.texture : Texture2D.whiteTexture;
                 var imageIndex = textureBin.Add(texture);
@@ -21,9 +25,6 @@ namespace UGUIDots.Conversions.Systems {
                 var entity   = GetPrimaryEntity(image);
                 var material = image.material != null ? image.material : Canvas.GetDefaultCanvasMaterial();
                 DstEntityManager.AddComponentObject(entity, material);
-
-                // TODO: Internally this would need a look up table...
-                // DstEntityManager.AddSharedComponentData(entity, new MaterialID { Value = material.GetInstanceID() });
 
                 var rectSize = image.rectTransform.Int2Size();
 
