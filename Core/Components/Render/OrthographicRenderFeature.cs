@@ -36,11 +36,14 @@ namespace UGUIDots.Render {
                 cmd.SetViewProjectionMatrices(view, proj);
 
                 while (InstructionQueue.Count > 0) {
-                    var tuple = InstructionQueue.Dequeue();
-                    var mesh = tuple.Item1;
+                    var tuple    = InstructionQueue.Dequeue();
+                    var mesh     = tuple.Item1;
+                    var material = tuple.Item2;
+                    var m        = tuple.Item3;
+                    var block    = tuple.Item4;
 
                     for (int i = 0; i < mesh.subMeshCount; i++) {
-                        cmd.DrawMesh(mesh, tuple.Item3, tuple.Item2, i, 0, tuple.Item4);
+                        cmd.DrawMesh(mesh, m, material, i, -i, block);
                     }
                 }
             }

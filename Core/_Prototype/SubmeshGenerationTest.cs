@@ -7,8 +7,8 @@ using UnityEngine.Rendering;
 public class SubmeshGenerationTest : MonoBehaviour {
 
     public OrthographicRenderFeature RenderFeature;
-    public Vector2    Size;
-    public Material[] Mats;
+    public Vector2                   Size;
+    public Material[]                Mats;
 
     List<MeshVertexData>       vertices = new List<MeshVertexData>();
     List<TriangleIndexElement> indices  = new List<TriangleIndexElement>();
@@ -17,11 +17,11 @@ public class SubmeshGenerationTest : MonoBehaviour {
     Mesh                  mesh;
 
     void OnDrawGizmos() {
+
         vertices.Clear();
-        indices.Clear();
+        indices .Clear();
 
         if (RenderFeature == null) {
-            Debug.Log("Short circuit");
             return;
         }
 
@@ -180,14 +180,24 @@ public class SubmeshGenerationTest : MonoBehaviour {
         mesh.SetIndexBufferParams(indices.Count, IndexFormat.UInt16);
         mesh.SetIndexBufferData(indices, 0, 0, indices.Count);
 
-        Debug.Log($"1st Span: 0, {indices.Count - 6}, 2nd Span: {indices.Count - 6 + 1}, {indices.Count}");
         mesh.subMeshCount = 2;
         mesh.SetSubMesh(0, new SubMeshDescriptor(0, indices.Count - 6, MeshTopology.Triangles));
-        mesh.SetSubMesh(1, new SubMeshDescriptor(indices.Count - 6, indices.Count - 1, MeshTopology.Triangles));
+
+        mesh.SetSubMesh(1, new SubMeshDescriptor {
+            baseVertex  = 0,
+            bounds      = default,
+            firstVertex = vertices.Count - 4,
+            indexCount  = 6,
+            indexStart  = indices.Count - 6,
+            topology    = MeshTopology.Triangles,
+            vertexCount = 4
+        });
         mesh.UploadMeshData(false);
 
-        var m = Matrix4x4.TRS(new Vector3(Screen.width / 2f, Screen.height /2f, 0), 
-            Quaternion.identity, Vector3.one);
-        RenderFeature.Pass.InstructionQueue.Enqueue((mesh, Mats[0], m, block));
+        var m = Matrix4x4.TRS(new Vector3(Screen.width / 2f, Screen.height / 2f, 0), Quaternion.identity, Vector3.one);
+
+        for (int i = 0; i < mesh.subMeshCount; i++) {
+            RenderFeature.Pass.InstructionQueue.Enqueue((mesh, Mats[i], m, block));
+        }
     }
 }
