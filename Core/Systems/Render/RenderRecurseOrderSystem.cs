@@ -8,7 +8,7 @@ namespace UGUIDots.Render.Systems {
     /// <summary>
     /// Constructs the batches required to do rendering.
     /// </summary>
-    [UpdateInGroup(typeof(MeshBatchingGroup))]
+    [UpdateInGroup(typeof(MeshBuildGroup))]
     [UpdateAfter(typeof(BuildImageVertexDataSystem))]
     public class RenderRecurseOrderSystem : ComponentSystem {
 

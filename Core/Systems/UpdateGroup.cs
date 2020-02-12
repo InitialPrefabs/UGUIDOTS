@@ -7,9 +7,12 @@ namespace UGUIDots {
     public class UGUITransformSystemGroup : ComponentSystemGroup { }
 
     [UpdateInGroup(typeof(PresentationSystemGroup)), UpdateAfter(typeof(UITransformUpdateGroup))]
-    public class MeshBatchingGroup : ComponentSystemGroup { }
+    public class MeshBuildGroup : ComponentSystemGroup { }
 
-    [UpdateInGroup(typeof(PresentationSystemGroup)), UpdateAfter(typeof(MeshBatchingGroup))]
+    [UpdateInGroup(typeof(PresentationSystemGroup)), UpdateAfter(typeof(MeshBuildGroup))]
+    public class MeshBatchGroup : ComponentSystemGroup { }
+
+    [UpdateInGroup(typeof(PresentationSystemGroup)), UpdateAfter(typeof(MeshRenderGroup))]
     public class MeshRenderGroup : ComponentSystemGroup { }
 
     [UpdateInGroup(typeof(PresentationSystemGroup))]

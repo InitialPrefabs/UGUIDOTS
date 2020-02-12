@@ -9,7 +9,7 @@ using Unity.Transforms;
 
 namespace UGUIDots.Render.Systems {
 
-    [UpdateInGroup(typeof(MeshBatchingGroup))]
+    [UpdateInGroup(typeof(MeshBuildGroup))]
     public class BuildTextVertexDataSystem : JobComponentSystem {
 
         [BurstCompile]

@@ -66,7 +66,7 @@ namespace UGUIDots.Render.Systems {
                 var renders = renderBuffers[pair.Root];
 
                 for (int k = 0; k < renders.Length; k++) {
-                    var entity = renders[k].Value;
+                    var entity  = renders[k].Value;
                     var meshIdx = meshIndices[entity].Value;
                     var hasMesh = meshCacheSystem.TryGetMeshPropertyAt(meshIdx, out var meshPropertyPair);
 

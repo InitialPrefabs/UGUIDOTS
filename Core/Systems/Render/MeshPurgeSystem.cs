@@ -2,7 +2,7 @@ using Unity.Entities;
 
 namespace UGUIDots.Render.Systems {
 
-    [UpdateInGroup(typeof(MeshBatchingGroup))]
+    [UpdateInGroup(typeof(MeshBuildGroup))]
     [UpdateBefore(typeof(MeshCacheSystem))]
     public class MeshPurgeSystem : ComponentSystem {
 

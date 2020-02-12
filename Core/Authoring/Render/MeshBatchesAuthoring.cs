@@ -23,9 +23,9 @@ namespace UGUIDots.Render.Authoring {
             var startIndex = 0;
             for (int i = 0; i < Batches.Length; i++) {
                 // Store the offset first and how many elements are in the batch
-                var elements = Batches[i].Elements;
-                spans[i] = new int2(startIndex, elements.Length);
-                startIndex += elements.Length;
+                var elements  = Batches[i].Elements;
+                spans[i]      = new int2(startIndex, elements.Length);
+                startIndex   += elements.Length;
 
                 foreach (var element in elements) {
                     var extraEntity = conversionSystem.GetPrimaryEntity(element);

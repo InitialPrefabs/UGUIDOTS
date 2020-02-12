@@ -8,7 +8,7 @@ namespace UGUIDots.Render.Systems {
 
     // I'm not entirely convinced this achitecture would work, it does not include batching of meshes which would be
     // important to reduce the # of issued draw calls to the GPU...
-    [UpdateInGroup(typeof(MeshBatchingGroup))]
+    [UpdateInGroup(typeof(MeshBuildGroup))]
     [UpdateAfter(typeof(BuildImageVertexDataSystem))]
     public class MeshCacheSystem : ComponentSystem {
 

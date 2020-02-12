@@ -7,7 +7,7 @@ using Unity.Profiling;
 
 namespace UGUIDots.Render.Systems {
 
-    [UpdateInGroup(typeof(MeshBatchingGroup))]
+    [UpdateInGroup(typeof(MeshBuildGroup))]
     public class BuildImageVertexDataSystem : JobComponentSystem {
 
         [BurstCompile]

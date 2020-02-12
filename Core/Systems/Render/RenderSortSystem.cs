@@ -4,7 +4,7 @@ using Unity.Entities;
 
 namespace UGUIDots.Render.Systems {
 
-    [UpdateInGroup(typeof(MeshBatchingGroup))]
+    [UpdateInGroup(typeof(MeshBuildGroup))]
     [UpdateAfter(typeof(RenderRecurseOrderSystem))]
     public class RenderSortSystem : ComponentSystem {
 
