@@ -5,6 +5,11 @@ using UnityEngine.Rendering;
 
 namespace UGUIDots.Render {
 
+    public struct MeshSpan : IComponentData {
+        public int2 VertexSpan;
+        public int2 IndexSpan;
+    }
+
     [StructLayout(LayoutKind.Sequential)]
     public struct MeshVertexData : IBufferElementData {
         public float3 Position;

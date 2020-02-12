@@ -6,6 +6,8 @@ namespace UGUIDots.Render.Systems {
 
     [UpdateInGroup(typeof(MeshBuildGroup))]
     [UpdateAfter(typeof(RenderRecurseOrderSystem))]
+    [DisableAutoCreation]
+    [System.Obsolete]
     public class RenderSortSystem : ComponentSystem {
 
         public struct RenderPair : IComparer<RenderPair>, IEquatable<RenderPair> {

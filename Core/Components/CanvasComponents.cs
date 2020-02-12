@@ -20,6 +20,7 @@ namespace UGUIDots {
         public float Value;
     }
 
+    // TODO: Make this into an IComponentData instead
     /// <summary>
     /// Determines the priority of which chunk should be rendered first and so forth.
     /// </summary>

@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using UGUIDots.Transforms;
 using Unity.Entities;
 using UnityEngine;
@@ -9,8 +8,6 @@ namespace UGUIDots.Conversions.Systems {
 
     [UpdateAfter(typeof(RectTransformConversionSystem))]
     public class CanvasConversionSystem : GameObjectConversionSystem {
-
-        private List<int> sortOrders = new List<int>();
 
         protected override void OnUpdate() {
             Entities.ForEach((Canvas canvas) => {
@@ -27,12 +24,11 @@ namespace UGUIDots.Conversions.Systems {
                 var canvasScaler = canvas.GetComponent<CanvasScaler>();
 
                 DstEntityManager.RemoveComponent<Anchor>(entity);
-                DstEntityManager.AddSharedComponentData(entity, new CanvasSortOrder { Value = canvas.sortingOrder });
-                DstEntityManager.AddComponentData(entity, new DirtyTag { });
-
-                if (!sortOrders.Contains(canvas.sortingOrder)) {
-                    sortOrders.Add(canvas.sortingOrder);
-                }
+                DstEntityManager.AddSharedComponentData(entity, new CanvasSortOrder { 
+                    Value = canvas.sortingOrder 
+                });
+                // TODO: Renable this
+                // DstEntityManager.AddComponentData(entity, new DirtyTag { });
 
                 switch (canvasScaler.uiScaleMode) {
                     case CanvasScaler.ScaleMode.ScaleWithScreenSize:

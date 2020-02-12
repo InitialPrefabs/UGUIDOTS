@@ -10,6 +10,8 @@ namespace UGUIDots.Render.Systems {
     /// </summary>
     [UpdateInGroup(typeof(MeshBuildGroup))]
     [UpdateAfter(typeof(BuildImageVertexDataSystem))]
+    [DisableAutoCreation]
+    [System.Obsolete]
     public class RenderRecurseOrderSystem : ComponentSystem {
 
         private EntityArchetype renderBatchArchetype;
