@@ -21,18 +21,36 @@ namespace UGUIDots.Render.Systems {
             [ReadOnly]
             public ArchetypeChunkComponentType<MeshBatches> MeshBatchType;
 
+            [ReadOnly]
+            public ArchetypeChunkEntityType EntityType;
+
             public EntityCommandBuffer.Concurrent CommandBuffer;
 
             public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex) {
-                var batches = chunk.GetNativeArray(MeshBatchType);
+                var batches        = chunk.GetNativeArray(MeshBatchType);
+                var canvasEntities = chunk.GetNativeArray(EntityType);
 
                 for (int i = 0; i < chunk.Count; i++) {
+                    var canvas   = canvasEntities[i];
                     var batch    = batches[i];
                     var entities = batch.Elements;
                     var spans    = batch.Spans;
 
                     var vertices = new NativeList<MeshVertexData>(Allocator.Temp);
                     var indices = new NativeList<TriangleIndexElement>(Allocator.Temp);
+
+                    // Fill up the vertice and indices
+                    LoopMeshBatch(ref entities, ref spans, ref vertices, ref indices);
+
+                    CommandBuffer.AddComponent<BatchedCanvasRenderingData>(canvas.Index, canvas);
+                    CommandBuffer.SetComponent(canvas.Index, canvas, new BatchedCanvasRenderingData {
+                        Vertices = UnsafeArray<MeshVertexData>.FromNativeList(ref vertices, Allocator.Persistent),
+                        Indices  = UnsafeArray<TriangleIndexElement>.FromNativeList(ref indices, 
+                            Allocator.Persistent)
+                    });
+
+                    vertices.Dispose();
+                    indices.Dispose();
                 }
             }
 
@@ -78,18 +96,37 @@ namespace UGUIDots.Render.Systems {
             }
         }
 
-        private EntityQuery unbuiltMeshQuery;
+        private EntityQuery unbatchedCanvasGroup;
+        private EntityCommandBufferSystem cmdBufferSystem;
 
         protected override void OnCreate() {
-            unbuiltMeshQuery = GetEntityQuery(new EntityQueryDesc {
-                All  = new [] { ComponentType.ReadWrite<CanvasRenderer>() },
-                None = new [] { ComponentType.ReadOnly<Mesh>() }
+            cmdBufferSystem = World.GetOrCreateSystem<EntityCommandBufferSystem>();
+
+            unbatchedCanvasGroup = GetEntityQuery(new EntityQueryDesc {
+                All  = new [] { ComponentType.ReadOnly<MeshBatches>() },
+                None = new [] { ComponentType.ReadWrite<BatchedCanvasRenderingData>() }
             });
         }
 
         protected override JobHandle OnUpdate(JobHandle inputDeps) {
+            var vertices = GetBufferFromEntity<MeshVertexData>(true);
+            var indices  = GetBufferFromEntity<TriangleIndexElement>(true);
+
             var meshBatchType = GetArchetypeChunkComponentType<MeshBatches>(true);
-            return inputDeps;
+            var entityType    = GetArchetypeChunkEntityType();
+
+            var cmdBuffer = cmdBufferSystem.CreateCommandBuffer().ToConcurrent();
+
+            var deps = new BuildBatchSystem {
+                MeshVertexData = vertices,
+                Triangles      = indices,
+                MeshBatchType  = meshBatchType,
+                EntityType     = entityType,
+                CommandBuffer  = cmdBuffer
+            }.Schedule(unbatchedCanvasGroup, inputDeps);
+
+            cmdBufferSystem.AddJobHandleForProducer(deps);
+            return deps;
         }
     }
 }

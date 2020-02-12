@@ -12,7 +12,7 @@ namespace UGUIDots {
     [UpdateInGroup(typeof(PresentationSystemGroup)), UpdateAfter(typeof(MeshBuildGroup))]
     public class MeshBatchGroup : ComponentSystemGroup { }
 
-    [UpdateInGroup(typeof(PresentationSystemGroup)), UpdateAfter(typeof(MeshRenderGroup))]
+    [UpdateInGroup(typeof(PresentationSystemGroup)), UpdateAfter(typeof(MeshBatchGroup))]
     public class MeshRenderGroup : ComponentSystemGroup { }
 
     [UpdateInGroup(typeof(PresentationSystemGroup))]

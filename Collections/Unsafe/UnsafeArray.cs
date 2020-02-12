@@ -49,6 +49,11 @@ namespace UGUIDots.Collections.Unsafe {
             return ((int)_Ptr * 397) ^ Length;
         }
 
+        public T this[int i] {
+            get => AsRef(i);
+            set => AsRef(i) = value;
+        }
+
         public static bool operator ==(in UnsafeArray<T> lhs, in UnsafeArray<T> rhs) {
             return lhs.Equals(rhs);
         }
@@ -57,13 +62,18 @@ namespace UGUIDots.Collections.Unsafe {
             return !lhs.Equals(rhs);
         }
 
-        public T this[int i] {
-            get {
-                return AsRef(i);
-            }
-            set {
-                AsRef(i) = value;
-            }
+        public static UnsafeArray<T> FromNativeArray(ref NativeArray<T> source, Allocator allocator) {
+            var size = source.Length;
+            var unsafeData = new UnsafeArray<T>(size, allocator);
+            UnsafeUtility.MemCpy(unsafeData._Ptr, source.GetUnsafePtr(), size * UnsafeUtility.SizeOf<T>());
+            return unsafeData;
+        }
+
+        public static UnsafeArray<T> FromNativeList(ref NativeList<T> source, Allocator allocator) {
+            var size = source.Length;
+            var unsafeData = new UnsafeArray<T>(size, allocator);
+            UnsafeUtility.MemCpy(unsafeData._Ptr, source.GetUnsafePtr(), size * UnsafeUtility.SizeOf<T>());
+            return unsafeData;
         }
     }
 }

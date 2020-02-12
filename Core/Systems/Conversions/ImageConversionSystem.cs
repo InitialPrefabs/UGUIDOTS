@@ -1,3 +1,4 @@
+using System;
 using UGUIDots.Collections.Runtime;
 using UGUIDots.Render;
 using Unity.Mathematics;
@@ -16,19 +17,26 @@ namespace UGUIDots.Conversions.Systems {
             Entities.ForEach((Image image) => {
                 // TODO: Find a way to handle loading bins that hold textures and materials instead of using
                 // Resources.Load
-                TextureBin.TryLoadBin("TextureBin", out Bin<Texture> textureBin);
-                MaterialBin.TryLoadBin("MaterialBin", out var materialBin);
+                var textureLoad  = TextureBin.TryLoadBin("TextureBin", out Bin<Texture> textureBin);
+                var materialLoad = MaterialBin.TryLoadBin("MaterialBin", out var materialBin);
+#if UNITY_EDITOR
+                if (!textureLoad) {
+                    throw new InvalidOperationException("TextureBin is not located in: Assets/Resources");
+                }
+                if (!materialLoad) {
+                    throw new InvalidOperationException("MaterialBin is not located in: Assets/Resources");
+                }
+#endif
+                var texture  = image.sprite != null ? image.sprite.texture : Texture2D.whiteTexture;
+                var imageKey = textureBin.Add(texture);
 
-                var texture    = image.sprite != null ? image.sprite.texture : Texture2D.whiteTexture;
-                var imageIndex = textureBin.Add(texture);
+                var material    = image.material != null ? image.material : Canvas.GetDefaultCanvasMaterial();
+                var materialKey = materialBin.Add(material);
 
                 var entity   = GetPrimaryEntity(image);
-                var material = image.material != null ? image.material : Canvas.GetDefaultCanvasMaterial();
-                DstEntityManager.AddComponentObject(entity, material);
-
                 var rectSize = image.rectTransform.Int2Size();
 
-                DstEntityManager.AddComponentData(entity, new TextureKey   { Value = imageIndex });
+                DstEntityManager.AddComponentData(entity, new TextureKey   { Value = imageKey });
                 DstEntityManager.AddComponentData(entity, new AppliedColor { Value = image.color });
                 DstEntityManager.AddComponentData(entity, new Dimensions   { Value = rectSize });
 
