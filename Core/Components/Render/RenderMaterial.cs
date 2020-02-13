@@ -19,14 +19,13 @@ namespace UGUIDots.Render {
         }
     }
 
-    // TODO: Maybe an ISCD might not be the best idea b/c it splits chunks - ISCD might be much better
     /// <summary>
-    /// Stores the material ID that the image uses.
+    /// Stores the material index determiend by the MaterialBin that the image uses.
     /// </summary>
-    public struct MaterialID : ISharedComponentData, IEquatable<MaterialID> {
+    public struct MaterialKey : IComponentData, IEquatable<MaterialKey> {
         public int Value;
 
-        public bool Equals(MaterialID other) {
+        public bool Equals(MaterialKey other) {
             return other.Value == Value;
         }
 

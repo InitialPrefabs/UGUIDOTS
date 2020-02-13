@@ -4,6 +4,8 @@ namespace UGUIDots.Render.Systems {
 
     [UpdateInGroup(typeof(MeshBuildGroup))]
     [UpdateBefore(typeof(MeshCacheSystem))]
+    [DisableAutoCreation]
+    [System.Obsolete]
     public class MeshPurgeSystem : ComponentSystem {
 
         private EntityQuery purgedQuery;

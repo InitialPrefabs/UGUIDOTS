@@ -1,4 +1,6 @@
 using System;
+using UGUIDots.Render;
+using UGUIDots.Render.Authoring;
 using UGUIDots.Transforms;
 using Unity.Entities;
 using UnityEngine;
@@ -27,8 +29,12 @@ namespace UGUIDots.Conversions.Systems {
                 DstEntityManager.AddSharedComponentData(entity, new CanvasSortOrder { 
                     Value = canvas.sortingOrder 
                 });
-                // TODO: Renable this
-                // DstEntityManager.AddComponentData(entity, new DirtyTag { });
+
+                DstEntityManager.AddComponentData(entity, new DirtyTag { });
+
+                if (canvas.TryGetComponent<MeshBatchesAuthoring>(out var batches)) {
+                    DstEntityManager.AddComponentData(entity, new MeshBatches { });
+                }
 
                 switch (canvasScaler.uiScaleMode) {
                     case CanvasScaler.ScaleMode.ScaleWithScreenSize:

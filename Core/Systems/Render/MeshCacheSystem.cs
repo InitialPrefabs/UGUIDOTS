@@ -10,6 +10,8 @@ namespace UGUIDots.Render.Systems {
     // important to reduce the # of issued draw calls to the GPU...
     [UpdateInGroup(typeof(MeshBuildGroup))]
     [UpdateAfter(typeof(BuildImageVertexDataSystem))]
+    [DisableAutoCreation]
+    [System.Obsolete]
     public class MeshCacheSystem : ComponentSystem {
 
         public struct MeshPropertyPair : IEquatable<MeshPropertyPair> {
