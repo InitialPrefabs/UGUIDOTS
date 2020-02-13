@@ -1,6 +1,4 @@
 using System;
-using UGUIDots.Collections.Unsafe;
-using UGUIDots.Render;
 using Unity.Entities;
 using Unity.Mathematics;
 
@@ -34,24 +32,6 @@ namespace UGUIDots {
 
         public bool Equals(CanvasSortOrder other) {
             return other.Value == Value;
-        }
-    }
-
-    /// <summary>
-    /// Stores all the batched elements that need to be rendered.
-    /// </summary>
-    public struct BatchedCanvasRenderingData : ISystemStateComponentData, IDisposable {
-        public UnsafeArray<MeshVertexData>       Vertices;
-        public UnsafeArray<TriangleIndexElement> Indices;
-
-        public void Dispose() {
-            if (Vertices.IsCreated) {
-                Vertices.Dispose();
-            }
-
-            if (Indices.IsCreated) {
-                Indices.Dispose();
-            }
         }
     }
 

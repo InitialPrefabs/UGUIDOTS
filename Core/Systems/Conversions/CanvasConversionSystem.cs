@@ -26,15 +26,12 @@ namespace UGUIDots.Conversions.Systems {
                 var canvasScaler = canvas.GetComponent<CanvasScaler>();
 
                 DstEntityManager.RemoveComponent<Anchor>(entity);
-                DstEntityManager.AddSharedComponentData(entity, new CanvasSortOrder { 
-                    Value = canvas.sortingOrder 
-                });
-
                 DstEntityManager.AddComponentData(entity, new DirtyTag { });
+                DstEntityManager.AddSharedComponentData(entity, new CanvasSortOrder { Value = canvas.sortingOrder });
 
-                if (canvas.TryGetComponent<MeshBatchesAuthoring>(out var batches)) {
-                    DstEntityManager.AddComponentData(entity, new MeshBatches { });
-                }
+                // Add the root mesh renderering data to the canvas as the root primary renderer
+                DstEntityManager.AddBuffer<MeshVertexData>(entity);
+                DstEntityManager.AddBuffer<TriangleIndexElement>(entity);
 
                 switch (canvasScaler.uiScaleMode) {
                     case CanvasScaler.ScaleMode.ScaleWithScreenSize:

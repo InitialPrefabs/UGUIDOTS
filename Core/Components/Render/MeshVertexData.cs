@@ -5,14 +5,6 @@ using UnityEngine.Rendering;
 
 namespace UGUIDots.Render {
 
-    /// <summary>
-    /// Stores the slices of the vertices and indices that are used to store the meshes.
-    /// </summary>
-    public struct MeshSpan : IComponentData {
-        public int2 VertexSpan;
-        public int2 IndexSpan;
-    }
-
     [StructLayout(LayoutKind.Sequential)]
     public struct MeshVertexData : IBufferElementData {
         public float3 Position;
