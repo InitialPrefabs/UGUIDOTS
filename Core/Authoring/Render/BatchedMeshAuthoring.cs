@@ -30,7 +30,7 @@ namespace UGUIDots.Render.Authoring {
                     renderEntities.Add(new RenderElement { Value = uiEntity });
                 }
 
-                batchSpans.Add(new int2(startIndex, startIndex + currentBatch.Length));
+                batchSpans.Add(new int2(startIndex, currentBatch.Length));
                 startIndex += currentBatch.Length;
             }
 

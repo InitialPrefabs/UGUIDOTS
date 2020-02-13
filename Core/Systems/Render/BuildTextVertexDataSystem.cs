@@ -38,7 +38,7 @@ namespace UGUIDots.Render.Systems {
             [ReadOnly] public ArchetypeChunkComponentType<LocalToWorld> LTWType;
             [ReadOnly] public ArchetypeChunkComponentType<Dimensions> DimensionType;
 
-            public ArchetypeChunkBufferType<MeshVertexData> MeshVertexDataType;
+            public ArchetypeChunkBufferType<VertexData> MeshVertexDataType;
             public ArchetypeChunkBufferType<TriangleIndexElement> TriangleIndexType;
 
             public EntityCommandBuffer.Concurrent CmdBuffer;
@@ -129,28 +129,28 @@ namespace UGUIDots.Render.Systems {
 
                         var vertexColor = color.Value.ToNormalizedFloat4();
 
-                        vertices.Add(new MeshVertexData {
+                        vertices.Add(new VertexData {
                             Position = new float3(xPos, yPos, 0),
                             Normal   = right,
                             Color    = vertexColor,
                             UV1      = uv1.c0,
                             UV2      = uv2
                         });
-                        vertices.Add(new MeshVertexData {
+                        vertices.Add(new VertexData {
                             Position = new float3(xPos, yPos + size.y, 0),
                             Normal   = right,
                             Color    = vertexColor,
                             UV1      = uv1.c1,
                             UV2      = uv2
                         });
-                        vertices.Add(new MeshVertexData {
+                        vertices.Add(new VertexData {
                             Position = new float3(xPos + size.x, yPos + size.y, 0),
                             Normal   = right,
                             Color    = vertexColor,
                             UV1      = uv1.c2,
                             UV2      = uv2
                         });
-                        vertices.Add(new MeshVertexData {
+                        vertices.Add(new VertexData {
                             Position = new float3(xPos + size.x, yPos, 0),
                             Normal   = right,
                             Color    = vertexColor,
@@ -194,7 +194,7 @@ namespace UGUIDots.Render.Systems {
 
             textQuery = GetEntityQuery(new EntityQueryDesc {
                 All = new [] {
-                    ComponentType.ReadWrite<MeshVertexData>(),
+                    ComponentType.ReadWrite<VertexData>(),
                     ComponentType.ReadWrite<TriangleIndexElement>(),
                     ComponentType.ReadOnly<CharElement>(),
                     ComponentType.ReadOnly<TextOptions>(),
@@ -225,7 +225,7 @@ namespace UGUIDots.Render.Systems {
                 ColorType          = GetArchetypeChunkComponentType<AppliedColor>(true),
                 LTWType            = GetArchetypeChunkComponentType<LocalToWorld>(true),
                 DimensionType      = GetArchetypeChunkComponentType<Dimensions>(true),
-                MeshVertexDataType = GetArchetypeChunkBufferType<MeshVertexData>(),
+                MeshVertexDataType = GetArchetypeChunkBufferType<VertexData>(),
                 TriangleIndexType  = GetArchetypeChunkBufferType<TriangleIndexElement>(),
                 CmdBuffer          = cmdBufferSystem.CreateCommandBuffer().ToConcurrent()
             }.Schedule(textQuery, glyphMapDeps);

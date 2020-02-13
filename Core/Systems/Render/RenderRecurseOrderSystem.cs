@@ -69,7 +69,7 @@ namespace UGUIDots.Render.Systems {
                 // This needs to be a bit flag instead, wonder if there's a way to quickly check if an entity belongs to
                 // this particular archetype.
                 var hasMaterial  = EntityManager.HasComponent<Material>(child);
-                var hasVertices  = EntityManager.HasComponent<MeshVertexData>(child);
+                var hasVertices  = EntityManager.HasComponent<VertexData>(child);
                 var hasIndices   = EntityManager.HasComponent<TriangleIndexElement>(child);
                 var hasTransform = EntityManager.HasComponent<LocalToWorld>(child);
                 var hasMesh      = EntityManager.HasComponent<MeshIndex>(child);

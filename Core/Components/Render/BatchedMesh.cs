@@ -20,7 +20,7 @@ namespace UGUIDots.Render {
     }
 
     /// <summary>
-    /// Stores the spans of batched entities that are being rendered.
+    /// Stores the start index of the first entity in the batch, and the number of elements in the batch.
     /// </summary>
     public struct BatchedSpanElement : IBufferElementData {
         public int2 Value;

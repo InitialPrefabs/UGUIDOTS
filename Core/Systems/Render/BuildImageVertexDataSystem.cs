@@ -33,7 +33,7 @@ namespace UGUIDots.Render.Systems {
             [ReadOnly]
             public ArchetypeChunkComponentType<DefaultSpriteResolution> SpriteResType;
 
-            public ArchetypeChunkBufferType<MeshVertexData> VertexType;
+            public ArchetypeChunkBufferType<VertexData> VertexType;
             public ArchetypeChunkBufferType<TriangleIndexElement> TriangleType;
 
             public EntityCommandBuffer.Concurrent CmdBuffer;
@@ -92,28 +92,28 @@ namespace UGUIDots.Render.Systems {
                         (bl.y + spriteH * pixelAdjustments.w) - topAdjust
                     );
 
-                    vertices.Add(new MeshVertexData {
+                    vertices.Add(new VertexData {
                         Position = new float3(v.xy, 0),
                         Normal   = right,
                         Color    = color,
                         UV1      = outer.xy,
                         UV2      = new float2(1)
                     });
-                    vertices.Add(new MeshVertexData {
+                    vertices.Add(new VertexData {
                         Position = new float3(v.xw, 0),
                         Normal   = right,
                         Color    = color,
                         UV1      = outer.xw,
                         UV2      = new float2(1)
                     });
-                    vertices.Add(new MeshVertexData {
+                    vertices.Add(new VertexData {
                         Position = new float3(v.zw, 0),
                         Normal   = right,
                         Color    = color,
                         UV1      = outer.zw,
                         UV2      = new float2(1)
                     });
-                    vertices.Add(new MeshVertexData {
+                    vertices.Add(new VertexData {
                         Position = new float3(v.zy, 0),
                         Normal   = right,
                         Color    = color,
@@ -142,7 +142,7 @@ namespace UGUIDots.Render.Systems {
         protected override void OnCreate() {
             graphicQuery = GetEntityQuery(new EntityQueryDesc {
                 All = new [] {
-                    ComponentType.ReadOnly<Dimensions>(), ComponentType.ReadWrite<MeshVertexData>(),
+                    ComponentType.ReadOnly<Dimensions>(), ComponentType.ReadWrite<VertexData>(),
                     ComponentType.ReadWrite<TriangleIndexElement>()
                 },
                 None = new [] {
@@ -158,7 +158,7 @@ namespace UGUIDots.Render.Systems {
                 BuildMeshProfiler = new ProfilerMarker("BuildImageVertexDataSystem.RebuildImgMeshJob"),
                 DimensionType     = GetArchetypeChunkComponentType<Dimensions>(true),
                 ColorType         = GetArchetypeChunkComponentType<AppliedColor>(true),
-                VertexType        = GetArchetypeChunkBufferType<MeshVertexData>(),
+                VertexType        = GetArchetypeChunkBufferType<VertexData>(),
                 TriangleType      = GetArchetypeChunkBufferType<TriangleIndexElement>(),
                 CharType          = GetArchetypeChunkBufferType<CharElement>(true),
                 SpriteDataType    = GetArchetypeChunkComponentType<SpriteData>(true),

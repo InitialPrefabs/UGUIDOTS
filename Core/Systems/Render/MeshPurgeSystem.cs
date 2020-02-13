@@ -14,7 +14,7 @@ namespace UGUIDots.Render.Systems {
         protected override void OnCreate() {
             purgedQuery = GetEntityQuery(new EntityQueryDesc {
                 None = new [] { 
-                    ComponentType.ReadOnly<Dimensions>(), ComponentType.ReadOnly<MeshVertexData>(),
+                    ComponentType.ReadOnly<Dimensions>(), ComponentType.ReadOnly<VertexData>(),
                     ComponentType.ReadOnly<TriangleIndexElement>()
                 },
                 All = new [] { 

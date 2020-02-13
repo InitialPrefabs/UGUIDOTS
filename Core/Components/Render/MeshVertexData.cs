@@ -6,7 +6,16 @@ using UnityEngine.Rendering;
 namespace UGUIDots.Render {
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct MeshVertexData : IBufferElementData {
+    public struct CanvasVertexData : IBufferElementData {
+        public float3 Position;
+        public float3 Normal;
+        public float4 Color;
+        public float2 UV1;
+        public float2 UV2;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct VertexData : IBufferElementData {
         public float3 Position;
         public float3 Normal;
         public float4 Color;
@@ -20,6 +29,13 @@ namespace UGUIDots.Render {
         public static implicit operator TriangleIndexElement(ushort value) => 
             new TriangleIndexElement { Value = value };
         public static implicit operator ushort(TriangleIndexElement value) => value.Value;
+    }
+
+    public struct CanvasIndexElement : IBufferElementData {
+        public ushort Value;
+
+        public static implicit operator CanvasIndexElement(ushort value) => new CanvasIndexElement { Value = value };
+        public static implicit operator ushort(CanvasIndexElement value) => value.Value;
     }
 
     public static class MeshVertexDataExtensions {

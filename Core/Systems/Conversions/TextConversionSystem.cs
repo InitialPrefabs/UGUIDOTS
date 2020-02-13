@@ -119,7 +119,7 @@ namespace UGUIDots.Conversions.Systems {
                     txtBuffer[i] = text[i];
                 }
 
-                var vertexBuffer = DstEntityManager.AddBuffer<MeshVertexData>(e);
+                var vertexBuffer = DstEntityManager.AddBuffer<VertexData>(e);
                 vertexBuffer.ResizeUninitialized(text.Length);
 
                 for (int i = 0; i < text.Length; i++) {

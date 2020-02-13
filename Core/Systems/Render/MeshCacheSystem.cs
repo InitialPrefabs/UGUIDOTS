@@ -36,7 +36,7 @@ namespace UGUIDots.Render.Systems {
         protected override void OnCreate() {
             unmappedMeshQuery = GetEntityQuery(new EntityQueryDesc {
                 All = new [] {
-                    ComponentType.ReadOnly<Dimensions>(), ComponentType.ReadOnly<MeshVertexData>(),
+                    ComponentType.ReadOnly<Dimensions>(), ComponentType.ReadOnly<VertexData>(),
                     ComponentType.ReadOnly<TriangleIndexElement>()
                 },
                 None = new [] {
@@ -60,7 +60,7 @@ namespace UGUIDots.Render.Systems {
         protected override void OnUpdate() {
             var charBuffers = GetBufferFromEntity<CharElement>(true);
             Entities.With(unmappedMeshQuery).ForEach(
-                (Entity e, DynamicBuffer<MeshVertexData> b0, DynamicBuffer<TriangleIndexElement> b1) => {
+                (Entity e, DynamicBuffer<VertexData> b0, DynamicBuffer<TriangleIndexElement> b1) => {
                 var vertices = b0.AsNativeArray();
                 var indices  = b1.AsNativeArray();
 

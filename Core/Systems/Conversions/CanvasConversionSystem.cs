@@ -1,6 +1,5 @@
 using System;
 using UGUIDots.Render;
-using UGUIDots.Render.Authoring;
 using UGUIDots.Transforms;
 using Unity.Entities;
 using UnityEngine;
@@ -30,8 +29,8 @@ namespace UGUIDots.Conversions.Systems {
                 DstEntityManager.AddSharedComponentData(entity, new CanvasSortOrder { Value = canvas.sortingOrder });
 
                 // Add the root mesh renderering data to the canvas as the root primary renderer
-                DstEntityManager.AddBuffer<MeshVertexData>(entity);
-                DstEntityManager.AddBuffer<TriangleIndexElement>(entity);
+                DstEntityManager.AddBuffer<CanvasVertexData>(entity);
+                DstEntityManager.AddBuffer<CanvasIndexElement>(entity);
 
                 switch (canvasScaler.uiScaleMode) {
                     case CanvasScaler.ScaleMode.ScaleWithScreenSize:

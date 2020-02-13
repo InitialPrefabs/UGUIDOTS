@@ -55,7 +55,7 @@ namespace UGUIDots.Conversions.Systems {
                 DstEntityManager.AddComponentData(entity, spriteData);
 
                 // TODO: Does not handle image slicing
-                DstEntityManager.AddBuffer<MeshVertexData>(entity).ResizeUninitialized(4);
+                DstEntityManager.AddBuffer<VertexData>(entity).ResizeUninitialized(4);
                 DstEntityManager.AddBuffer<TriangleIndexElement>(entity).ResizeUninitialized(6);
             });
         }
