@@ -8,6 +8,8 @@ using UnityEngine.UI;
 namespace UGUIDots.Conversions.Systems {
 
     [UpdateAfter(typeof(RectTransformConversionSystem))]
+    [UpdateAfter(typeof(ImageConversionSystem))]
+    [UpdateAfter(typeof(TMPTextConversionSystem))]
     public class CanvasConversionSystem : GameObjectConversionSystem {
 
         protected override void OnUpdate() {
@@ -31,6 +33,12 @@ namespace UGUIDots.Conversions.Systems {
                 // Add the root mesh renderering data to the canvas as the root primary renderer
                 DstEntityManager.AddBuffer<CanvasVertexData>(entity);
                 DstEntityManager.AddBuffer<CanvasIndexElement>(entity);
+
+                // Add a mesh to the canvas so treat it as a renderer.
+                DstEntityManager.AddComponentObject(entity, new Mesh());
+                
+                // Add a collection SubmeshMaterialIdx 
+                DstEntityManager.AddBuffer<SubmeshMaterialIdxElement>(entity);
 
                 switch (canvasScaler.uiScaleMode) {
                     case CanvasScaler.ScaleMode.ScaleWithScreenSize:

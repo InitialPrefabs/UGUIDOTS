@@ -73,61 +73,61 @@ namespace UGUIDots.Conversions.Systems {
                 }
             });
         }
+    }
 
-        /// <summary>
-        /// Converts UGUI Text components by adding a buffer to chars to the entity, the dimensions, and 
-        /// applied color for shader updates.
-        ///
-        /// Initially components are marked dirty until the vertices are built.
-        /// </summary>
-        public class TMPTextConversionSystem : GameObjectConversionSystem {
-            protected override void OnUpdate() {
-                var materialLoad = MaterialBin.TryLoadBin("MaterialBin", out var materialBin);
+    /// <summary>
+    /// Converts UGUI Text components by adding a buffer to chars to the entity, the dimensions, and 
+    /// applied color for shader updates.
+    ///
+    /// Initially components are marked dirty until the vertices are built.
+    /// </summary>
+    public class TMPTextConversionSystem : GameObjectConversionSystem {
+        protected override void OnUpdate() {
+            var materialLoad = MaterialBin.TryLoadBin("MaterialBin", out var materialBin);
 
 #if UNITY_EDITOR
-                if (!materialLoad) {
-                    throw new System.InvalidOperationException("MaterialBin does not exist at Assets/Resources!");
-                }
+            if (!materialLoad) {
+                throw new System.InvalidOperationException("MaterialBin does not exist at Assets/Resources!");
+            }
 #endif
-                Entities.ForEach((TextMeshProUGUI c0) => {
-                    var entity = GetPrimaryEntity(c0);
+            Entities.ForEach((TextMeshProUGUI c0) => {
+                var entity = GetPrimaryEntity(c0);
 
-                    DstEntityManager.AddComponentData(entity, new BuildTextTag { });
-                    DstEntityManager.AddComponentData(entity, new Dimensions   { Value = c0.rectTransform.Int2Size() });
-                    DstEntityManager.AddComponentData(entity, new AppliedColor { Value = c0.color });
-                    DstEntityManager.AddComponentData(entity, new TextFontID   { Value = c0.font.GetInstanceID() });
-                    DstEntityManager.AddComponentData(entity, new TextOptions  {
-                        Size      = (ushort)c0.fontSize,
-                        Style     = c0.fontStyle,
-                        Alignment = c0.alignment.FromTextAnchor()
-                    });
-
-                    var materialKey = materialBin.Add(c0.material);
-                    DstEntityManager.AddComponentData(entity, new MaterialKey { Value = materialKey });
-
-                    AddTextData(entity, c0.text);
+                DstEntityManager.AddComponentData(entity, new BuildTextTag { });
+                DstEntityManager.AddComponentData(entity, new Dimensions   { Value = c0.rectTransform.Int2Size() });
+                DstEntityManager.AddComponentData(entity, new AppliedColor { Value = c0.color });
+                DstEntityManager.AddComponentData(entity, new TextFontID   { Value = c0.font.GetInstanceID() });
+                DstEntityManager.AddComponentData(entity, new TextOptions  {
+                    Size      = (ushort)c0.fontSize,
+                    Style     = c0.fontStyle,
+                    Alignment = c0.alignment.FromTextAnchor()
                 });
+
+                var materialKey = materialBin.Add(c0.material);
+                DstEntityManager.AddComponentData(entity, new MaterialKey { Value = materialKey });
+
+                AddTextData(entity, c0.text);
+            });
+        }
+
+        private void AddTextData(Entity e, string text) {
+            var length = text.Length;
+
+            var txtBuffer = DstEntityManager.AddBuffer<CharElement>(e);
+            txtBuffer.ResizeUninitialized(length);
+
+            for (int i = 0; i < length; i++) {
+                txtBuffer[i] = text[i];
             }
 
-            private void AddTextData(Entity e, string text) {
-                var length = text.Length;
+            var vertexBuffer = DstEntityManager.AddBuffer<VertexData>(e);
+            vertexBuffer.ResizeUninitialized(text.Length);
 
-                var txtBuffer = DstEntityManager.AddBuffer<CharElement>(e);
-                txtBuffer.ResizeUninitialized(length);
-
-                for (int i = 0; i < length; i++) {
-                    txtBuffer[i] = text[i];
-                }
-
-                var vertexBuffer = DstEntityManager.AddBuffer<VertexData>(e);
-                vertexBuffer.ResizeUninitialized(text.Length);
-
-                for (int i = 0; i < text.Length; i++) {
-                    vertexBuffer[i] = default;
-                }
-
-                var indexBuffer = DstEntityManager.AddBuffer<TriangleIndexElement>(e);
+            for (int i = 0; i < text.Length; i++) {
+                vertexBuffer[i] = default;
             }
+
+            var indexBuffer = DstEntityManager.AddBuffer<TriangleIndexElement>(e);
         }
     }
 }

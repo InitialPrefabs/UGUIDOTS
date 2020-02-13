@@ -1,13 +1,35 @@
-﻿using UGUIDots.Collections.Unsafe;
+﻿using System.Runtime.CompilerServices;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
+using Unity.Transforms;
 
 namespace UGUIDots.Render.Systems {
 
     [UpdateInGroup(typeof(MeshBatchGroup))]
-    public class BuildCanvasBatchSystem : JobComponentSystem {
+    public class BuildCanvasVertexBatchSystem : JobComponentSystem {
+
+        private struct BuildSubmeshBufferJob : IJobForEach_BB<SubmeshMaterialIdxElement, Child> {
+
+            [ReadOnly]
+            public ComponentDataFromEntity<MaterialKey> MaterialKeys;
+
+            public void Execute(DynamicBuffer<SubmeshMaterialIdxElement> b0, DynamicBuffer<Child> b1) {
+                b0.Clear();
+
+                for (int i = 0; i < b1.Length; i++) {
+                    var child = b1[i].Value;
+
+                    if (!MaterialKeys.Exists(child)) {
+                        continue;
+                    }
+
+                    var id = MaterialKeys[child].Value;
+                    b0.Add(id);
+                }
+            }
+        }
 
         private struct BuildCanvasJob : IJobChunk {
 
@@ -58,12 +80,13 @@ namespace UGUIDots.Render.Systems {
                 }
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             void PopulateRootCanvas(in NativeArray<RenderElement> renders, in NativeArray<BatchedSpanElement> spans,
                 ref DynamicBuffer<CanvasVertexData> rootVertices, ref DynamicBuffer<CanvasIndexElement> rootIndices) {
 
                 int entityCount = 0;
-                for (int i = 0; i < spans.Length; i++) {
-                    var currentSpan = spans[i].Value;
+                for (int j = 0; j < spans.Length; j++) {
+                    var currentSpan = spans[j].Value;
 
                     for (int k = currentSpan.x; k < currentSpan.y; k++, entityCount++) {
                         var childEntity   = renders[k].Value;
@@ -85,11 +108,12 @@ namespace UGUIDots.Render.Systems {
                 }
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             void AddAdjustedIndex(int offset, ref DynamicBuffer<CanvasIndexElement> indices, 
                 in NativeArray<TriangleIndexElement> localTriangles) {
 
-                for (int i = 0; i < localTriangles.Length; i++) {
-                    indices.Add((ushort)(localTriangles[i].Value + (offset * 4)));
+                for (int x = 0; x < localTriangles.Length; x++) {
+                    indices.Add((ushort)(localTriangles[x].Value + (offset * 4)));
                 }
             }
         }
@@ -102,13 +126,19 @@ namespace UGUIDots.Render.Systems {
 
             unbatchedCanvasGroup = GetEntityQuery(new EntityQueryDesc {
                 All  = new [] { 
-                    ComponentType.ReadOnly<RenderElement>(), ComponentType.ReadOnly<DirtyTag>(),
-                    ComponentType.ReadOnly<CanvasVertexData>(), ComponentType.ReadOnly<CanvasIndexElement>()
+                    ComponentType.ReadOnly<RenderElement>(), ComponentType.ReadWrite<SubmeshMaterialIdxElement>(),
+                    ComponentType.ReadWrite<CanvasVertexData>(), ComponentType.ReadWrite<CanvasIndexElement>(),
+                    ComponentType.ReadOnly<DirtyTag>(), ComponentType.ReadOnly<BatchedSpanElement>(),
+                    ComponentType.ReadOnly<Child>(),
                 },
             });
         }
 
         protected override JobHandle OnUpdate(JobHandle inputDeps) {
+            var submeshMatJob = new BuildSubmeshBufferJob {
+                MaterialKeys = GetComponentDataFromEntity<MaterialKey>(true)
+            }.Schedule(unbatchedCanvasGroup, inputDeps);
+
             var batchDeps         = new BuildCanvasJob {
                 MeshVertices      = GetBufferFromEntity<VertexData>(true),
                 TriangleIndices   = GetBufferFromEntity<TriangleIndexElement>(true),
@@ -118,11 +148,12 @@ namespace UGUIDots.Render.Systems {
                 SpanType          = GetArchetypeChunkBufferType<BatchedSpanElement>(true),
                 EntityType        = GetArchetypeChunkEntityType(),
                 CommandBuffer     = cmdBufferSystem.CreateCommandBuffer().ToConcurrent()
-            }.Schedule(unbatchedCanvasGroup);
+            }.Schedule(unbatchedCanvasGroup, inputDeps);
 
-            cmdBufferSystem.AddJobHandleForProducer(batchDeps);
+            var finalDeps = JobHandle.CombineDependencies(submeshMatJob, batchDeps);
+            cmdBufferSystem.AddJobHandleForProducer(finalDeps);
 
-            return batchDeps;
+            return finalDeps;
         }
     }
 }

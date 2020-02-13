@@ -1,9 +1,25 @@
+using System;
 using System.Runtime.InteropServices;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine.Rendering;
 
 namespace UGUIDots.Render {
+
+    /// <summary>
+    /// Used for internal look ups.
+    /// </summary>
+    public struct MeshIndex : ISystemStateComponentData, IEquatable<MeshIndex> {
+        public int Value;
+
+        public bool Equals(MeshIndex other) {
+            return other.Value == Value;
+        }
+
+        public override int GetHashCode() {
+            return Value.GetHashCode();
+        }
+    }
 
     [StructLayout(LayoutKind.Sequential)]
     public struct CanvasVertexData : IBufferElementData {

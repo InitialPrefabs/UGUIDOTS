@@ -5,18 +5,13 @@ using UnityEngine;
 namespace UGUIDots.Render {
 
     /// <summary>
-    /// Used for internal look ups.
+    /// Adds all the materials for each level of the mesh.
     /// </summary>
-    public struct MeshIndex : ISystemStateComponentData, IEquatable<MeshIndex> {
+    public struct SubmeshMaterialIdxElement : IBufferElementData {
         public int Value;
 
-        public bool Equals(MeshIndex other) {
-            return other.Value == Value;
-        }
-
-        public override int GetHashCode() {
-            return Value.GetHashCode();
-        }
+        public static implicit operator SubmeshMaterialIdxElement(int value) => new SubmeshMaterialIdxElement { Value = value };
+        public static implicit operator int(SubmeshMaterialIdxElement value) => value.Value;
     }
 
     /// <summary>
@@ -35,6 +30,7 @@ namespace UGUIDots.Render {
     }
 
     // TODO: Deprecate this - I think adding a component object might make much more sense than an ISCD
+    [Obsolete("RenderMaterial is deprecated")]
     public struct RenderMaterial : ISharedComponentData, IEquatable<RenderMaterial> {
         public Material Value;
 
