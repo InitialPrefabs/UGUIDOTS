@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using UGUIDots.Collections.Runtime;
+using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -8,19 +10,22 @@ namespace UGUIDots.Render {
     public class OrthographicRenderPass : ScriptableRenderPass {
 
         public Queue<(Mesh, Material, Matrix4x4, MaterialPropertyBlock)> InstructionQueue { get; private set; }
+        public Queue<(NativeArray<SubmeshMaterialIdxElement>, Mesh)> RenderInstructions { get; private set; }
         private string profilerTag;
-
-        // private CommandBuffer cmd;
+        private MaterialBin materialBin;
+        private MaterialPropertyBlock _tempBlock;
 
         public OrthographicRenderPass(OrthographicRenderSettings settings) {
             profilerTag          = settings.ProfilerTag;
             base.renderPassEvent = settings.RenderPassEvt;
             InstructionQueue     = new Queue<(Mesh, Material, Matrix4x4, MaterialPropertyBlock)>();
-            // cmd                  = new CommandBuffer() { name = profilerTag };
+            RenderInstructions   = new Queue<(NativeArray<SubmeshMaterialIdxElement>, Mesh)>();
+            materialBin          = Resources.Load<MaterialBin>("MaterialBin");
+            _tempBlock           = new MaterialPropertyBlock();
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData) {
-            if (InstructionQueue.Count <= 0) {
+            if (RenderInstructions.Count <= 0) {
                 return;
             }
 
@@ -46,7 +51,19 @@ namespace UGUIDots.Render {
                         cmd.DrawMesh(mesh, m, material, i, -i, block);
                     }
                 }
+
+                while (RenderInstructions.Count > 0) {
+                    var dequed = RenderInstructions.Dequeue();
+                    var mats   = dequed.Item1;
+                    var mesh   = dequed.Item2;
+
+                    for (int i = 0; i < mesh.subMeshCount; i++) {
+                        var mat = materialBin.At(mats[i]);
+                        cmd.DrawMesh(mesh, Matrix4x4.identity, mat, i, 0, _tempBlock);
+                    }
+                }
             }
+
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }

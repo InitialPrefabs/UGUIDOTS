@@ -5,6 +5,14 @@ using Unity.Mathematics;
 namespace UGUIDots.Render {
 
     /// <summary>
+    /// Used to describe the submesh's index buffer and vertex buffer params.
+    /// </summary>
+    public struct SubmeshDescElement : IBufferElementData {
+        public int2 VertexSpan;
+        public int2 IndexSpan;
+    }
+
+    /// <summary>
     /// Stores which slice of the vertices and indices that the mesh owns.
     /// </summary>
     public struct MeshDataSpan : IComponentData {
@@ -33,11 +41,13 @@ namespace UGUIDots.Render {
     /// Tags components as effectively dirty in the render group, this may be due to adding new UI elements 
     /// or shifting children around.
     /// </summary>
+    [System.Obsolete]
     public struct UnsortedRenderTag : IComponentData { }
 
     /// <summary>
     /// Tags an entity to contain a render priority. Lower integer values mean less priority in rendering.
     /// </summary>
+    [System.Obsolete]
     public struct RenderGroupID : IComponentData, IComparable<RenderGroupID> {
         public int Value;
 

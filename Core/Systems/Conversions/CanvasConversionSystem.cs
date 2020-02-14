@@ -2,6 +2,7 @@ using System;
 using UGUIDots.Render;
 using UGUIDots.Transforms;
 using Unity.Entities;
+using Unity.Transforms;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -26,9 +27,13 @@ namespace UGUIDots.Conversions.Systems {
                 var entity       = GetPrimaryEntity(canvas);
                 var canvasScaler = canvas.GetComponent<CanvasScaler>();
 
+                // Remove unnecessary information
                 DstEntityManager.RemoveComponent<Anchor>(entity);
-                DstEntityManager.AddComponentData(entity, new DirtyTag { });
-                DstEntityManager.AddSharedComponentData(entity, new CanvasSortOrder { Value = canvas.sortingOrder });
+                DstEntityManager.RemoveComponent<Rotation>(entity);
+                DstEntityManager.RemoveComponent<Translation>(entity);
+                DstEntityManager.RemoveComponent<NonUniformScale>(entity);
+
+                // DstEntityManager.AddSharedComponentData(entity, new CanvasSortOrder { Value = canvas.sortingOrder });
 
                 // Add the root mesh renderering data to the canvas as the root primary renderer
                 DstEntityManager.AddBuffer<CanvasVertexData>(entity);
@@ -37,8 +42,12 @@ namespace UGUIDots.Conversions.Systems {
                 // Add a mesh to the canvas so treat it as a renderer.
                 DstEntityManager.AddComponentObject(entity, new Mesh());
                 
-                // Add a collection SubmeshMaterialIdx 
+                // Add a collection of the submesh information
                 DstEntityManager.AddBuffer<SubmeshMaterialIdxElement>(entity);
+                DstEntityManager.AddBuffer<SubmeshDescElement>(entity);
+
+                DstEntityManager.AddComponentData(entity, new MeshBuildTag { });
+                DstEntityManager.AddComponentData(entity, new DirtyTag { });
 
                 switch (canvasScaler.uiScaleMode) {
                     case CanvasScaler.ScaleMode.ScaleWithScreenSize:

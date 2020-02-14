@@ -8,7 +8,7 @@ using Unity.Transforms;
 namespace UGUIDots.Render.Systems {
 
     [UpdateInGroup(typeof(MeshBatchGroup))]
-    public class BuildCanvasVertexBatchSystem : JobComponentSystem {
+    public class BatchCanvasVertexSystem : JobComponentSystem {
 
         private struct BuildSubmeshBufferJob : IJobForEach_BB<SubmeshMaterialIdxElement, Child> {
 

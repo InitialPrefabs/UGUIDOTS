@@ -4,6 +4,7 @@ using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Profiling;
+using Unity.Transforms;
 
 namespace UGUIDots.Render.Systems {
 
@@ -14,6 +15,9 @@ namespace UGUIDots.Render.Systems {
         private unsafe struct RebuildImgMeshJob : IJobChunk {
 
             public ProfilerMarker BuildMeshProfiler;
+
+            [ReadOnly]
+            public ArchetypeChunkComponentType<LocalToWorld> LTWType;
 
             [ReadOnly]
             public ArchetypeChunkComponentType<Dimensions> DimensionType;
@@ -48,6 +52,7 @@ namespace UGUIDots.Render.Systems {
                 var entities       = chunk.GetNativeArray(EntityType);
                 var spriteData     = chunk.GetNativeArray(SpriteDataType);
                 var resolutions    = chunk.GetNativeArray(SpriteResType);
+                var ltws           = chunk.GetNativeArray(LTWType);
 
                 for (int i         = 0; i < chunk.Count; i++) {
                     var dimension  = dimensions[i];
@@ -57,6 +62,7 @@ namespace UGUIDots.Render.Systems {
                     var entity     = entities[i];
                     var spriteInfo = spriteData[i];
                     var resolution = resolutions[i].Value;
+                    var position   = ltws[i].Position;
 
                     var spriteScale = (float2)(dimension.Value) / resolution;
 
@@ -69,7 +75,7 @@ namespace UGUIDots.Render.Systems {
                     var outer   = spriteInfo.OuterUV;
                     var padding = spriteInfo.Padding;
 
-                    var bl = -extents;
+                    var bl = position.xy - extents;
 
                     var spriteW = dimension.Width();
                     var spriteH = dimension.Height();
@@ -143,7 +149,7 @@ namespace UGUIDots.Render.Systems {
             graphicQuery = GetEntityQuery(new EntityQueryDesc {
                 All = new [] {
                     ComponentType.ReadOnly<Dimensions>(), ComponentType.ReadWrite<VertexData>(),
-                    ComponentType.ReadWrite<TriangleIndexElement>()
+                    ComponentType.ReadWrite<TriangleIndexElement>(), ComponentType.ReadOnly<LocalToWorld>()
                 },
                 None = new [] {
                     ComponentType.ReadOnly<CachedMeshTag>(), ComponentType.ReadOnly<CharElement>()
@@ -156,6 +162,7 @@ namespace UGUIDots.Render.Systems {
         protected override JobHandle OnUpdate(JobHandle inputDeps) {
             var rebuildDeps       = new RebuildImgMeshJob {
                 BuildMeshProfiler = new ProfilerMarker("BuildImageVertexDataSystem.RebuildImgMeshJob"),
+                LTWType           = GetArchetypeChunkComponentType<LocalToWorld>(true),
                 DimensionType     = GetArchetypeChunkComponentType<Dimensions>(true),
                 ColorType         = GetArchetypeChunkComponentType<AppliedColor>(true),
                 VertexType        = GetArchetypeChunkBufferType<VertexData>(),

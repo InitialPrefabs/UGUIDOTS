@@ -8,17 +8,24 @@ namespace UGUIDots.Render {
     /// Adds all the materials for each level of the mesh.
     /// </summary>
     public struct SubmeshMaterialIdxElement : IBufferElementData {
-        public int Value;
+        public short Value;
 
-        public static implicit operator SubmeshMaterialIdxElement(int value) => new SubmeshMaterialIdxElement { Value = value };
-        public static implicit operator int(SubmeshMaterialIdxElement value) => value.Value;
+        public static implicit operator SubmeshMaterialIdxElement(short value) => new SubmeshMaterialIdxElement { Value = value };
+        public static implicit operator short(SubmeshMaterialIdxElement value) => value.Value;
+    }
+
+    public struct SubmeshTextureIdxElement : IBufferElementData {
+        public short Value;
+
+        public static implicit operator SubmeshTextureIdxElement(short value) => new SubmeshTextureIdxElement{ Value = value };
+        public static implicit operator short(SubmeshTextureIdxElement value) => value.Value;
     }
 
     /// <summary>
     /// Stores the material index determiend by the MaterialBin that the image uses.
     /// </summary>
     public struct MaterialKey : IComponentData, IEquatable<MaterialKey> {
-        public int Value;
+        public short Value;
 
         public bool Equals(MaterialKey other) {
             return other.Value == Value;

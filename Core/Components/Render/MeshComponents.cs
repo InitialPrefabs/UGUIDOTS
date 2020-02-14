@@ -54,6 +54,8 @@ namespace UGUIDots.Render {
         public static implicit operator ushort(CanvasIndexElement value) => value.Value;
     }
 
+    public struct MeshBuildTag : IComponentData { }
+
     public static class MeshVertexDataExtensions {
 
         /// <summary>

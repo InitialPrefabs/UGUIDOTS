@@ -31,16 +31,16 @@ namespace UGUIDots.Conversions.Systems {
             Entities.ForEach((Image image) => {
 
                 var texture  = image.sprite != null ? image.sprite.texture : Texture2D.whiteTexture;
-                var imageKey = textureBin.Add(texture);
+                var imageKey = (short)textureBin.Add(texture);
 
                 var material    = image.material != null ? image.material : Canvas.GetDefaultCanvasMaterial();
-                var materialKey = materialBin.Add(material);
+                var materialKey = (short)materialBin.Add(material);
 
                 var entity   = GetPrimaryEntity(image);
                 var rectSize = image.rectTransform.Int2Size();
 
                 DstEntityManager.AddComponentData(entity, new TextureKey   { Value = imageKey });
-                DstEntityManager.AddComponentData(entity, new MaterialKey   { Value = materialKey });
+                DstEntityManager.AddComponentData(entity, new MaterialKey  { Value = materialKey });
                 DstEntityManager.AddComponentData(entity, new AppliedColor { Value = image.color });
                 DstEntityManager.AddComponentData(entity, new Dimensions   { Value = rectSize });
 
