@@ -35,8 +35,8 @@ namespace UGUIDots.Render.Authoring {
             }
 
             unsafe {
-                var renderBatches      = dstManager.AddBuffer<RenderElement>(entity);
-                var size               = UnsafeUtility.SizeOf<RenderElement>() * renderEntities.Length;
+                var renderBatches = dstManager.AddBuffer<RenderElement>(entity);
+                var size          = UnsafeUtility.SizeOf<RenderElement>() * renderEntities.Length;
 
                 renderBatches.ResizeUninitialized(renderEntities.Length);
                 UnsafeUtility.MemCpy(renderBatches.GetUnsafePtr(), renderEntities.GetUnsafePtr(), size);

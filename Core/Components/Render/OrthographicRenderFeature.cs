@@ -10,18 +10,22 @@ namespace UGUIDots.Render {
     public class OrthographicRenderPass : ScriptableRenderPass {
 
         public Queue<(Mesh, Material, Matrix4x4, MaterialPropertyBlock)> InstructionQueue { get; private set; }
-        public Queue<(NativeArray<SubmeshMaterialIdxElement>, Mesh)> RenderInstructions { get; private set; }
-        private string profilerTag;
-        private MaterialBin materialBin;
+        public Queue<(NativeArray<SubmeshKeyElement>, Mesh)> RenderInstructions { get; private set; }
+
+        private string                profilerTag;
+        private Bin<Material>         materialBin;
+        private Bin<Texture>          textureBin;
         private MaterialPropertyBlock _tempBlock;
 
         public OrthographicRenderPass(OrthographicRenderSettings settings) {
             profilerTag          = settings.ProfilerTag;
             base.renderPassEvent = settings.RenderPassEvt;
             InstructionQueue     = new Queue<(Mesh, Material, Matrix4x4, MaterialPropertyBlock)>();
-            RenderInstructions   = new Queue<(NativeArray<SubmeshMaterialIdxElement>, Mesh)>();
-            materialBin          = Resources.Load<MaterialBin>("MaterialBin");
+            RenderInstructions   = new Queue<(NativeArray<SubmeshKeyElement>, Mesh)>();
             _tempBlock           = new MaterialPropertyBlock();
+
+            MaterialBin.TryLoadBin("MaterialBin", out materialBin);
+            TextureBin.TryLoadBin("TextureBin", out textureBin);
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData) {
@@ -54,11 +58,17 @@ namespace UGUIDots.Render {
 
                 while (RenderInstructions.Count > 0) {
                     var dequed = RenderInstructions.Dequeue();
-                    var mats   = dequed.Item1;
+                    var keys   = dequed.Item1;
                     var mesh   = dequed.Item2;
 
                     for (int i = 0; i < mesh.subMeshCount; i++) {
-                        var mat = materialBin.At(mats[i]);
+                        var mat = materialBin.At(keys[i].MaterialKey);
+                        var textureKey = keys[i].TextureKey;
+
+                        if (textureKey >= 0) {
+                            _tempBlock.SetTexture(ShaderIDConstants.MainTex, textureBin.At(textureKey));
+                        }
+
                         cmd.DrawMesh(mesh, Matrix4x4.identity, mat, i, 0, _tempBlock);
                     }
                 }

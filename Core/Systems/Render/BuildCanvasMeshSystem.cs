@@ -6,6 +6,7 @@ using UnityEngine.Rendering;
 namespace UGUIDots.Render.Systems {
 
     [UpdateInGroup(typeof(MeshBatchGroup)), UpdateAfter(typeof(BatchCanvasVertexSystem))]
+    [AlwaysSynchronizeSystem]
     public class BuildCanvasMeshSystem : JobComponentSystem {
 
         private EntityQuery canvasMeshQuery;
@@ -15,7 +16,7 @@ namespace UGUIDots.Render.Systems {
             canvasMeshQuery = GetEntityQuery(new EntityQueryDesc {
                 All = new [] { 
                     ComponentType.ReadOnly<CanvasVertexData>(), ComponentType.ReadOnly<CanvasIndexElement>(),
-                    ComponentType.ReadOnly<SubmeshDescElement>(), ComponentType.ReadOnly<MeshBuildTag>()
+                    ComponentType.ReadOnly<SubmeshSliceElement>(), ComponentType.ReadOnly<MeshBuildTag>()
                 }
             });
 
@@ -23,8 +24,6 @@ namespace UGUIDots.Render.Systems {
         }
 
         protected override JobHandle OnUpdate(JobHandle inputDeps) {
-            inputDeps.Complete();
-
             var cmdBuffer = commandBufferSystem.CreateCommandBuffer();
 
             Entities.WithStoreEntityQueryInField(ref canvasMeshQuery).WithoutBurst().ForEach((
@@ -32,14 +31,18 @@ namespace UGUIDots.Render.Systems {
                 Mesh mesh, 
                 DynamicBuffer<CanvasVertexData> vertices, 
                 DynamicBuffer<CanvasIndexElement> indices, 
-                DynamicBuffer<SubmeshDescElement> submeshDesc) => {
+                DynamicBuffer<SubmeshSliceElement> submeshDesc) => {
 
                 mesh.Clear();
                 mesh.SetVertexBufferParams(vertices.Length, MeshVertexDataExtensions.VertexDescriptors);
                 mesh.SetVertexBufferData(vertices.AsNativeArray(), 0, 0, vertices.Length);
+                mesh.subMeshCount = submeshDesc.Length;
+
+                Debug.Log(mesh.subMeshCount);
 
                 for (int i = 0; i < submeshDesc.Length; i++) {
                     var current = submeshDesc[i];
+                    Debug.Log($"{current.IndexSpan} {current.VertexSpan}");
                     mesh.SetSubMesh(i, new SubMeshDescriptor {
                         baseVertex  = 0,
                         bounds      = default,

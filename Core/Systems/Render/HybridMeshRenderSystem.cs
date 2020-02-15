@@ -7,6 +7,7 @@ using UnityEngine;
 namespace UGUIDots.Render.Systems {
 
     [UpdateInGroup(typeof(MeshRenderGroup))]
+    [DisableAutoCreation]
     public class HybridMeshRenderSystem : JobComponentSystem {
 
         private MeshCacheSystem meshCacheSystem;

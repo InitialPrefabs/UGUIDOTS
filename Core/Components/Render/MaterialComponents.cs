@@ -7,6 +7,7 @@ namespace UGUIDots.Render {
     /// <summary>
     /// Adds all the materials for each level of the mesh.
     /// </summary>
+    [System.Obsolete]
     public struct SubmeshMaterialIdxElement : IBufferElementData {
         public short Value;
 
@@ -14,6 +15,7 @@ namespace UGUIDots.Render {
         public static implicit operator short(SubmeshMaterialIdxElement value) => value.Value;
     }
 
+    [System.Obsolete]
     public struct SubmeshTextureIdxElement : IBufferElementData {
         public short Value;
 

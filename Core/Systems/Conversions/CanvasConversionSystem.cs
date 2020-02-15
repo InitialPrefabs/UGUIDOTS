@@ -41,11 +41,13 @@ namespace UGUIDots.Conversions.Systems {
 
                 // Add a mesh to the canvas so treat it as a renderer.
                 DstEntityManager.AddComponentObject(entity, new Mesh());
-                
-                // Add a collection of the submesh information
-                DstEntityManager.AddBuffer<SubmeshMaterialIdxElement>(entity);
-                DstEntityManager.AddBuffer<SubmeshDescElement>(entity);
 
+                // Add a collection of the submesh information
+                DstEntityManager.AddBuffer<SubmeshSliceElement>(entity);
+                DstEntityManager.AddBuffer<SubmeshKeyElement>(entity);
+
+                // Add the tags
+                // TODO: Clean up the tags
                 DstEntityManager.AddComponentData(entity, new MeshBuildTag { });
                 DstEntityManager.AddComponentData(entity, new DirtyTag { });
 
