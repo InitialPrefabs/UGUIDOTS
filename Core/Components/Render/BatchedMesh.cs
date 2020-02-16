@@ -7,7 +7,7 @@ namespace UGUIDots.Render {
     /// <summary>
     /// Used to describe the submesh's index buffer and vertex buffer params.
     /// </summary>
-    public struct SubmeshSliceElement : IBufferElementData {
+    public struct SubMeshSliceElement : IBufferElementData {
         public int2 VertexSpan;
         public int2 IndexSpan;
     }
@@ -16,7 +16,7 @@ namespace UGUIDots.Render {
     /// Stores the key and material keys required to render. A value of -1 indicates that the material or texture is 
     /// not used explicitly.
     /// </summary>
-    public struct SubmeshKeyElement : IBufferElementData {
+    public struct SubMeshKeyElement : IBufferElementData {
         public short TextureKey;
         public short MaterialKey;
     }

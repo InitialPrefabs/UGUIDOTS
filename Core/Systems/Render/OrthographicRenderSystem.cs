@@ -14,7 +14,7 @@ namespace UGUIDots.Render.Systems {
 
         protected override void OnCreate() {
             renderQuery = GetEntityQuery(new EntityQueryDesc {
-                All = new [] { ComponentType.ReadOnly<SubmeshKeyElement>(), ComponentType.ReadOnly<Mesh>() }
+                All = new [] { ComponentType.ReadOnly<SubMeshKeyElement>(), ComponentType.ReadOnly<Mesh>() }
             });
 
             renderCommandQuery = GetEntityQuery(new EntityQueryDesc {
@@ -30,7 +30,7 @@ namespace UGUIDots.Render.Systems {
 
         protected override JobHandle OnUpdate(JobHandle inputDeps) {
             Entities.WithStoreEntityQueryInField(ref renderQuery).WithoutBurst().
-                ForEach((Mesh mesh, DynamicBuffer<SubmeshKeyElement> keys) => {
+                ForEach((Mesh mesh, DynamicBuffer<SubMeshKeyElement> keys) => {
                 renderFeature.Pass.RenderInstructions.Enqueue((keys.AsNativeArray(), mesh));
             }).Run();
 

@@ -10,7 +10,7 @@ namespace UGUIDots.Render {
     public class OrthographicRenderPass : ScriptableRenderPass {
 
         public Queue<(Mesh, Material, Matrix4x4, MaterialPropertyBlock)> InstructionQueue { get; private set; }
-        public Queue<(NativeArray<SubmeshKeyElement>, Mesh)> RenderInstructions { get; private set; }
+        public Queue<(NativeArray<SubMeshKeyElement>, Mesh)> RenderInstructions { get; private set; }
 
         private string                profilerTag;
         private Bin<Material>         materialBin;
@@ -21,7 +21,7 @@ namespace UGUIDots.Render {
             profilerTag          = settings.ProfilerTag;
             base.renderPassEvent = settings.RenderPassEvt;
             InstructionQueue     = new Queue<(Mesh, Material, Matrix4x4, MaterialPropertyBlock)>();
-            RenderInstructions   = new Queue<(NativeArray<SubmeshKeyElement>, Mesh)>();
+            RenderInstructions   = new Queue<(NativeArray<SubMeshKeyElement>, Mesh)>();
             _tempBlock           = new MaterialPropertyBlock();
 
             MaterialBin.TryLoadBin("MaterialBin", out materialBin);
