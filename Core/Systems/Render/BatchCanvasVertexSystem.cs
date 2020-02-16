@@ -95,12 +95,13 @@ namespace UGUIDots.Render.Systems {
                 ref DynamicBuffer<SubMeshSliceElement> submeshes) {
 
                 int entityCount = 0;
+                UnityEngine.Debug.Log(spans.Length);
                 for (int j = 0; j < spans.Length; j++) {
                     var currentSpan  = spans[j].Value;
                     var subMeshVertexStart = rootVertices.Length;
                     var subMeshIndexStart = rootIndices.Length;
 
-                    for (int k = currentSpan.x; k < currentSpan.y; k++, entityCount++) {
+                    for (int k = currentSpan.x; k < currentSpan.y + currentSpan.x; k++, entityCount++) {
                         var childEntity   = renders[k].Value;
                         var childVertices = MeshVertices[childEntity].AsNativeArray().Reinterpret<CanvasVertexData>();
                         var childIndices  = TriangleIndices[childEntity].AsNativeArray();
@@ -111,17 +112,18 @@ namespace UGUIDots.Render.Systems {
                         rootVertices.AddRange(childVertices);
                         AddAdjustedIndex(entityCount, ref rootIndices, in childIndices);
 
+
                         CommandBuffer.AddComponent<MeshDataSpan>(childEntity.Index, childEntity);
                         CommandBuffer.SetComponent(childEntity.Index, childEntity, new MeshDataSpan {
                             VertexSpan = new int2(startVertexIndex, childVertices.Length),
                             IndexSpan  = new int2(startTriangleIndex, childIndices.Length)
                         });
                     }
-
                     submeshes.Add(new SubMeshSliceElement {
-                        VertexSpan = new int2(subMeshVertexStart, rootVertices.Length),
-                        IndexSpan  = new int2(subMeshIndexStart, rootVertices.Length)
+                        VertexSpan = new int2(subMeshVertexStart, rootVertices.Length - subMeshVertexStart),
+                        IndexSpan  = new int2(subMeshIndexStart, rootIndices.Length - subMeshIndexStart)
                     });
+
                 }
             }
 

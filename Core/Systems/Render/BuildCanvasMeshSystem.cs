@@ -43,6 +43,7 @@ namespace UGUIDots.Render.Systems {
                 for (int i = 0; i < submeshDesc.Length; i++) {
                     var current = submeshDesc[i];
                     Debug.Log($"{current.IndexSpan} {current.VertexSpan}");
+                    /*
                     mesh.SetSubMesh(i, new SubMeshDescriptor {
                         baseVertex  = 0,
                         bounds      = default,
@@ -52,8 +53,9 @@ namespace UGUIDots.Render.Systems {
                         vertexCount = current.VertexSpan.y,
                         topology    = MeshTopology.Triangles,
                     });
+                    */
                 }
-                mesh.UploadMeshData(false);
+                // mesh.UploadMeshData(false);
 
                 cmdBuffer.RemoveComponent<MeshBuildTag>(entity);
             }).Run();
