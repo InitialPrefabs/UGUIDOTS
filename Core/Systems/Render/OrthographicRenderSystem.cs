@@ -31,6 +31,7 @@ namespace UGUIDots.Render.Systems {
         protected override JobHandle OnUpdate(JobHandle inputDeps) {
             Entities.WithStoreEntityQueryInField(ref renderQuery).WithoutBurst().
                 ForEach((Mesh mesh, DynamicBuffer<SubMeshKeyElement> keys) => {
+                // TODO: Fix passing in the keys as a NativeArray... - currently get deallocation errors
                 renderFeature.Pass.RenderInstructions.Enqueue((keys.AsNativeArray(), mesh));
             }).Run();
 

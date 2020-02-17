@@ -1,3 +1,4 @@
+using UGUIDots.Transforms;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -63,6 +64,7 @@ namespace UGUIDots.Render.Systems {
                     var spriteInfo = spriteData[i];
                     var resolution = resolutions[i].Value;
                     var position   = ltws[i].Position;
+                    var scale      = ltws[i].Scale();
 
                     var spriteScale = (float2)(dimension.Value) / resolution;
 
@@ -75,7 +77,7 @@ namespace UGUIDots.Render.Systems {
                     var outer   = spriteInfo.OuterUV;
                     var padding = spriteInfo.Padding;
 
-                    var bl = position.xy - extents;
+                    var bl = position.xy - extents * scale.xy;
 
                     var spriteW = dimension.Width();
                     var spriteH = dimension.Height();
@@ -92,10 +94,10 @@ namespace UGUIDots.Render.Systems {
                     var bottomAdjust = spriteScale.y * (padding.y > 0 ? 1f : 0f);
 
                     var v = new float4(
-                        bl.x + spriteW * pixelAdjustments.x,
-                        (bl.y + spriteH * pixelAdjustments.y) + bottomAdjust,
-                        bl.x + spriteW * pixelAdjustments.z,
-                        (bl.y + spriteH * pixelAdjustments.w) - topAdjust
+                        bl.x + spriteW * pixelAdjustments.x * scale.x,
+                        (bl.y + spriteH * pixelAdjustments.y * scale.y) + bottomAdjust,
+                        bl.x + spriteW * pixelAdjustments.z * scale.x,
+                        (bl.y + spriteH * pixelAdjustments.w * scale.y) - topAdjust
                     );
 
                     vertices.Add(new VertexData {
