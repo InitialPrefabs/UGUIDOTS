@@ -183,6 +183,8 @@ public class SubmeshGenerationTest : MonoBehaviour {
         mesh.subMeshCount = 2;
         mesh.SetSubMesh(0, new SubMeshDescriptor(0, indices.Count - 6, MeshTopology.Triangles));
 
+        Debug.Log($"{indices.Count - 6}");
+
         mesh.SetSubMesh(1, new SubMeshDescriptor {
             baseVertex  = 0,
             bounds      = default,

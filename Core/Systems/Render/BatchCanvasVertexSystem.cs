@@ -95,11 +95,10 @@ namespace UGUIDots.Render.Systems {
                 ref DynamicBuffer<SubMeshSliceElement> submeshes) {
 
                 int entityCount = 0;
-                UnityEngine.Debug.Log(spans.Length);
                 for (int j = 0; j < spans.Length; j++) {
-                    var currentSpan  = spans[j].Value;
+                    var currentSpan        = spans[j].Value;
                     var subMeshVertexStart = rootVertices.Length;
-                    var subMeshIndexStart = rootIndices.Length;
+                    var subMeshIndexStart  = rootIndices.Length;
 
                     for (int k = currentSpan.x; k < currentSpan.y + currentSpan.x; k++, entityCount++) {
                         var childEntity   = renders[k].Value;

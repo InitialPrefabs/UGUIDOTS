@@ -21,6 +21,7 @@ namespace UGUIDots.Render.Systems {
             });
 
             commandBufferSystem = World.GetOrCreateSystem<BeginPresentationEntityCommandBufferSystem>();
+            RequireForUpdate(canvasMeshQuery);
         }
 
         protected override JobHandle OnUpdate(JobHandle inputDeps) {
@@ -36,16 +37,14 @@ namespace UGUIDots.Render.Systems {
                 mesh.Clear();
                 mesh.SetVertexBufferParams(vertices.Length, MeshVertexDataExtensions.VertexDescriptors);
                 mesh.SetVertexBufferData(vertices.AsNativeArray(), 0, 0, vertices.Length);
+                mesh.SetIndexBufferParams(indices.Length, IndexFormat.UInt16);
+                mesh.SetIndexBufferData(indices.AsNativeArray(), 0, 0, indices.Length);
                 mesh.subMeshCount = submeshDesc.Length;
-
-                Debug.Log(mesh.subMeshCount);
 
                 for (int i = 0; i < submeshDesc.Length; i++) {
                     var current = submeshDesc[i];
-                    Debug.Log($"{current.IndexSpan} {current.VertexSpan}");
-                    /*
+
                     mesh.SetSubMesh(i, new SubMeshDescriptor {
-                        baseVertex  = 0,
                         bounds      = default,
                         indexStart  = current.IndexSpan.x,
                         indexCount  = current.IndexSpan.y,
@@ -53,10 +52,9 @@ namespace UGUIDots.Render.Systems {
                         vertexCount = current.VertexSpan.y,
                         topology    = MeshTopology.Triangles,
                     });
-                    */
                 }
-                // mesh.UploadMeshData(false);
 
+                mesh.UploadMeshData(false);
                 cmdBuffer.RemoveComponent<MeshBuildTag>(entity);
             }).Run();
 
