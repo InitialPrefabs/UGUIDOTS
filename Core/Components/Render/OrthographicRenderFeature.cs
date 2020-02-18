@@ -71,7 +71,7 @@ namespace UGUIDots.Render {
                         }
 
                         var m = Matrix4x4.identity;
-                        cmd.DrawMesh(mesh, m, mat, i, 0, _tempBlock);
+                        cmd.DrawMesh(mesh, m, mat, i, -1, _tempBlock);
                     }
                 }
             }

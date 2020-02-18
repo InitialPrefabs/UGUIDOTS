@@ -8,6 +8,7 @@ namespace UGUIDots.Collections.Runtime {
         [Tooltip("What is the initial capacity of values we want to initialize with?")]
         public int InitialCapacity = 20;
 
+        [SerializeField]
         protected List<T> collection;
 
         protected virtual void OnEnable() {
@@ -22,7 +23,6 @@ namespace UGUIDots.Collections.Runtime {
         public int Add(T value) {
             if (!collection.Exists(v => v.Equals(value))) {
                 collection.Add(value);
-                return collection.Count - 1;
             }
             return collection.IndexOf(value);
         }

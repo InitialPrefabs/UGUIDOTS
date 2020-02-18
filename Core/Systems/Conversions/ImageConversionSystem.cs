@@ -30,7 +30,7 @@ namespace UGUIDots.Conversions.Systems {
 
             Entities.ForEach((Image image) => {
 
-                var texture  = image.sprite != null ? image.sprite.texture : Texture2D.whiteTexture;
+                var texture  = image.sprite != null ? image.sprite.texture : (Texture)Texture2D.whiteTexture;
                 var imageKey = (short)textureBin.Add(texture);
 
                 var material    = image.material != null ? image.material : Canvas.GetDefaultCanvasMaterial();

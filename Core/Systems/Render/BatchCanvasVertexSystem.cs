@@ -40,8 +40,8 @@ namespace UGUIDots.Render.Systems {
 
                     batchedSubMesh.Clear();
 
-                    for (int k = 0; k < renderer.Length; k++) {
-                        var current = span[i].Value;
+                    for (int k = 0; k < span.Length; k++) {
+                        var current = span[k].Value;
                         var element = renderer[current.x].Value;
 
                         var materialKey = (short)(MaterialKeys.Exists(element) ? MaterialKeys[element].Value : -1);
