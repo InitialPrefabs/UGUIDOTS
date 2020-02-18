@@ -63,9 +63,9 @@ namespace UGUIDots.Render {
 
                     for (int i = 0; i < mesh.subMeshCount; i++) {
                         var mat = materialBin.At(keys[i].MaterialKey);
-                        Debug.Log(mat.name);
                         var textureKey = keys[i].TextureKey;
 
+                        _tempBlock.Clear();
                         if (textureKey >= 0) {
                             _tempBlock.SetTexture(ShaderIDConstants.MainTex, textureBin.At(textureKey));
                         }

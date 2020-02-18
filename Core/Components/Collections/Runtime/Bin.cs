@@ -24,7 +24,6 @@ namespace UGUIDots.Collections.Runtime {
                 collection.Add(value);
                 return collection.Count - 1;
             }
-
             return collection.IndexOf(value);
         }
 
@@ -35,7 +34,7 @@ namespace UGUIDots.Collections.Runtime {
         /// <returns>An element of type T</returns>
         public T At(int index) {
             if (index < 0 || index >= collection.Count) {
-                throw new System.ArgumentOutOfRangeException($"{index} is out of range and must be between " + 
+                throw new System.ArgumentOutOfRangeException($"{index} is out of range and must be between " +
                     $"[0, {collection.Count - 1}]");
             }
             return collection[index];
