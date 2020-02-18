@@ -24,6 +24,7 @@ namespace UGUIDots.Collections.Runtime {
                 collection.Add(value);
                 return collection.Count - 1;
             }
+
             return collection.IndexOf(value);
         }
 

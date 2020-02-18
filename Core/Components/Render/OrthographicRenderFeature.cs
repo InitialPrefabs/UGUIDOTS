@@ -63,13 +63,15 @@ namespace UGUIDots.Render {
 
                     for (int i = 0; i < mesh.subMeshCount; i++) {
                         var mat = materialBin.At(keys[i].MaterialKey);
+                        Debug.Log(mat.name);
                         var textureKey = keys[i].TextureKey;
 
                         if (textureKey >= 0) {
                             _tempBlock.SetTexture(ShaderIDConstants.MainTex, textureBin.At(textureKey));
                         }
 
-                        cmd.DrawMesh(mesh, Matrix4x4.identity, mat, i, 0, _tempBlock);
+                        var m = Matrix4x4.identity;
+                        cmd.DrawMesh(mesh, m, mat, i, 0, _tempBlock);
                     }
                 }
             }

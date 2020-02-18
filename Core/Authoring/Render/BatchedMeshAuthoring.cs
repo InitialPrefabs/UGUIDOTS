@@ -41,8 +41,8 @@ namespace UGUIDots.Render.Authoring {
                 renderBatches.ResizeUninitialized(renderEntities.Length);
                 UnsafeUtility.MemCpy(renderBatches.GetUnsafePtr(), renderEntities.GetUnsafePtr(), size);
 
-                var renderSpans      = dstManager.AddBuffer<BatchedSpanElement>(entity);
-                size                 = UnsafeUtility.SizeOf<BatchedSpanElement>() * batchSpans.Length;
+                var renderSpans = dstManager.AddBuffer<BatchedSpanElement>(entity);
+                size            = UnsafeUtility.SizeOf<BatchedSpanElement>() * batchSpans.Length;
 
                 renderSpans.ResizeUninitialized(batchSpans.Length);
                 UnsafeUtility.MemCpy(renderSpans.GetUnsafePtr(), batchSpans.GetUnsafePtr(), size);

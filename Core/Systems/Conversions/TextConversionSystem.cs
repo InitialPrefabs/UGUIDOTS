@@ -103,7 +103,7 @@ namespace UGUIDots.Conversions.Systems {
                     Alignment = c0.alignment.FromTextAnchor()
                 });
 
-                var materialKey = (short)materialBin.Add(c0.material);
+                var materialKey = (short)materialBin.Add(c0.materialForRendering);
                 DstEntityManager.AddComponentData(entity, new MaterialKey { Value = materialKey });
 
                 AddTextData(entity, c0.text);

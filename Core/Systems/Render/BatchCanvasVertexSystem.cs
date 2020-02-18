@@ -44,8 +44,8 @@ namespace UGUIDots.Render.Systems {
                         var current = span[i].Value;
                         var element = renderer[current.x].Value;
 
-                        short materialKey = (short)math.select(-1, MaterialKeys[element].Value, MaterialKeys.Exists(element));
-                        short textureKey  = (short)math.select(-1, TextureKeys[element].Value, TextureKeys.Exists(element));
+                        var materialKey = (short)(MaterialKeys.Exists(element) ? MaterialKeys[element].Value : -1);
+                        var textureKey  = (short)(TextureKeys.Exists(element) ? TextureKeys[element].Value : -1);
 
                         batchedSubMesh.Add(new SubMeshKeyElement {
                             TextureKey  = textureKey,
@@ -145,6 +145,8 @@ namespace UGUIDots.Render.Systems {
                 }
             }
 
+            // TODO: Support text because the offset only assumes you have 6 vertices per image - does not  take into 
+            // account 9 slicing
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             void AddAdjustedIndex(int offset, ref DynamicBuffer<CanvasIndexElement> indices,
                 in NativeArray<TriangleIndexElement> localTriangles) {

@@ -273,13 +273,14 @@ GameObject:
   - component: {fileID: 243564436}
   - component: {fileID: 243564435}
   - component: {fileID: 243564439}
+  - component: {fileID: 243564440}
   m_Layer: 5
   m_Name: Text Canvas Layer 2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &243564435
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -378,6 +379,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ConversionMode: 0
+--- !u!114 &243564440
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 243564434}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fb66bb67f0b3b5c43b067b6b196daeb0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Batches:
+  - Elements:
+    - {fileID: 401072383}
 --- !u!1 &377810463
 GameObject:
   m_ObjectHideFlags: 0
@@ -471,7 +487,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &386341595
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1790,7 +1806,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1222487948
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1953,7 +1969,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1384626573}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 058cba836c1846c3aa1c5fd2e28aea77, type: 3}
   m_Name: 

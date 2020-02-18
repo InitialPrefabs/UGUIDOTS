@@ -24,6 +24,23 @@ namespace UGUIDots.Render.Systems {
         }
 
         [BurstCompile]
+        private struct BuildGlyphMapJobChunk : IJobChunk {
+            
+            [WriteOnly] public NativeHashMap<int, Entity>.ParallelWriter GlyphMap;
+            [ReadOnly] public ArchetypeChunkComponentType<FontID> FontType;
+            [ReadOnly] public ArchetypeChunkEntityType EntityType;
+            
+            public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex) {
+                var fonts = chunk.GetNativeArray(FontType);
+                var entities = chunk.GetNativeArray(EntityType);
+
+                for (int i = 0; i < chunk.Count; i++) {
+                    GlyphMap.TryAdd(fonts[i].Value, entities[i]);
+                }
+            }
+        }
+
+        [BurstCompile]
         private struct BuildTextMeshJob : IJobChunk {
 
             [ReadOnly] public NativeHashMap<int, Entity> GlyphMap;
@@ -98,7 +115,7 @@ namespace UGUIDots.Render.Systems {
                     var start = new float2(
                         TextUtil.GetHorizontalAlignment(textOption.Alignment, extents, lines[0].LineWidth),
                         TextUtil.GetVerticalAlignment(heights, fontScale, textOption.Alignment, 
-                            in extents, in linesHeight, lines.Length));
+                            in extents, in linesHeight, lines.Length)) + ltw.Position.xy;
 
                     for (int k = 0, row = 0; k < text.Length; k++) {
                         var c = text[k].Value;
@@ -114,7 +131,7 @@ namespace UGUIDots.Render.Systems {
 
                             start.y -= height;
                             start.x  = TextUtil.GetHorizontalAlignment(textOption.Alignment, 
-                                    extents, lines[row].LineWidth);
+                                    extents, lines[row].LineWidth) + ltw.Position.x;
 
                             row++;
                         }
@@ -210,8 +227,10 @@ namespace UGUIDots.Render.Systems {
         protected override JobHandle OnUpdate(JobHandle inputDeps) {
             var glyphMap = new NativeHashMap<int, Entity>(glyphQuery.CalculateEntityCount(), Allocator.TempJob);
 
-            var glyphMapDeps = new BuildGlyphMapJob {
-                GlyphMap = glyphMap.AsParallelWriter()
+            var glyphMapDeps = new BuildGlyphMapJobChunk {
+                GlyphMap   = glyphMap.AsParallelWriter(),
+                EntityType = GetArchetypeChunkEntityType(),
+                FontType   = GetArchetypeChunkComponentType<FontID>(true)
             }.Schedule(glyphQuery, inputDeps);
 
             var textMeshDeps       = new BuildTextMeshJob {
