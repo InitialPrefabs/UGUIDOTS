@@ -151,8 +151,10 @@ namespace UGUIDots.Render.Systems {
             void AddAdjustedIndex(int offset, ref DynamicBuffer<CanvasIndexElement> indices,
                 in NativeArray<TriangleIndexElement> localTriangles) {
 
+                var nextStartIndex = indices.Length > 1 ? indices[indices.Length - 1] + 1 : 0;
+
                 for (int x = 0; x < localTriangles.Length; x++) {
-                    indices.Add((ushort)(localTriangles[x].Value + (offset * 4)));
+                    indices.Add((ushort)(localTriangles[x].Value + nextStartIndex));
                 }
             }
         }
