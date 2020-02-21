@@ -10,8 +10,8 @@ public class SubmeshGenerationTest : MonoBehaviour {
     public Vector2                   Size;
     public Material[]                Mats;
 
-    List<VertexData>       vertices = new List<VertexData>();
-    List<TriangleIndexElement> indices  = new List<TriangleIndexElement>();
+    List<LocalVertexData>       vertices = new List<LocalVertexData>();
+    List<LocalTriangleIndexElement> indices  = new List<LocalTriangleIndexElement>();
 
     MaterialPropertyBlock block;
     Mesh                  mesh;
@@ -44,25 +44,25 @@ public class SubmeshGenerationTest : MonoBehaviour {
         var normal = new float3(1, 0, 0);
         var red = new float4(1, 0, 0, 1);
 
-        vertices.Add(new VertexData {
+        vertices.Add(new LocalVertexData {
             Position = new float3(bl, 0),
             Normal   = normal,
             Color    = red
         });
 
-        vertices.Add(new VertexData {
+        vertices.Add(new LocalVertexData {
             Position = new float3(tl, 0),
             Normal   = normal,
             Color    = red
         });
 
-        vertices.Add(new VertexData {
+        vertices.Add(new LocalVertexData {
             Position = new float3(tr, 0),
             Normal   = normal,
             Color    = red
         });
 
-        vertices.Add(new VertexData {
+        vertices.Add(new LocalVertexData {
             Position = new float3(br, 0),
             Normal   = normal,
             Color    = red
@@ -77,25 +77,25 @@ public class SubmeshGenerationTest : MonoBehaviour {
 
         var green = new float4(0, 1, 0, 1);
 
-        vertices.Add(new VertexData {
+        vertices.Add(new LocalVertexData {
             Position = new float3(bl - new Vector2(0, Size.y), 0),
             Normal   = normal,
             Color    = green
         });
 
-        vertices.Add(new VertexData {
+        vertices.Add(new LocalVertexData {
             Position = new float3(tl - new Vector2(0, Size.y), 0),
             Normal   = normal,
             Color    = green
         });
 
-        vertices.Add(new VertexData {
+        vertices.Add(new LocalVertexData {
             Position = new float3(tr - new Vector2(0, Size.y), 0),
             Normal   = normal,
             Color    = green
         });
 
-        vertices.Add(new VertexData {
+        vertices.Add(new LocalVertexData {
             Position = new float3(br - new Vector2(0, Size.y), 0),
             Normal   = normal,
             Color    = green
@@ -110,25 +110,25 @@ public class SubmeshGenerationTest : MonoBehaviour {
 
         var blue = new float4(0, 0, 1, 1);
 
-        vertices.Add(new VertexData {
+        vertices.Add(new LocalVertexData {
             Position = new float3(bl + new Vector2(0, Size.y), 0),
             Normal   = normal,
             Color    = blue
         });
 
-        vertices.Add(new VertexData {
+        vertices.Add(new LocalVertexData {
             Position = new float3(tl + new Vector2(0, Size.y), 0),
             Normal   = normal,
             Color    = blue
         });
 
-        vertices.Add(new VertexData {
+        vertices.Add(new LocalVertexData {
             Position = new float3(tr + new Vector2(0, Size.y), 0),
             Normal   = normal,
             Color    = blue
         });
 
-        vertices.Add(new VertexData {
+        vertices.Add(new LocalVertexData {
             Position = new float3(br + new Vector2(0, Size.y), 0),
             Normal   = normal,
             Color    = blue
@@ -144,25 +144,25 @@ public class SubmeshGenerationTest : MonoBehaviour {
         var orange = new float4(1, 0.75f, 0, 1f);
 
         // New submesh
-        vertices.Add(new VertexData {
+        vertices.Add(new LocalVertexData {
             Position = new float3(bl + Size, 0),
             Normal   = normal,
             Color    = orange
         });
 
-        vertices.Add(new VertexData {
+        vertices.Add(new LocalVertexData {
             Position = new float3(tl + Size, 0),
             Normal   = normal,
             Color    = orange
         });
 
-        vertices.Add(new VertexData {
+        vertices.Add(new LocalVertexData {
             Position = new float3(tr + Size, 0),
             Normal   = normal,
             Color    = orange
         });
 
-        vertices.Add(new VertexData {
+        vertices.Add(new LocalVertexData {
             Position = new float3(br + Size, 0),
             Normal   = normal,
             Color    = orange

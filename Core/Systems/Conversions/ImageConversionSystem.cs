@@ -45,7 +45,7 @@ namespace UGUIDots.Conversions.Systems {
                 DstEntityManager.AddComponentData(entity, new Dimensions   { Value = rectSize });
 
                 var spriteTexture = image.sprite;
-                var spriteRes = spriteTexture != null ? 
+                var spriteRes = spriteTexture != null ?
                     new int2(spriteTexture.texture.width, spriteTexture.texture.height) :
                     rectSize;
 
@@ -55,8 +55,8 @@ namespace UGUIDots.Conversions.Systems {
                 DstEntityManager.AddComponentData(entity, spriteData);
 
                 // TODO: Does not handle image slicing
-                DstEntityManager.AddBuffer<VertexData>(entity).ResizeUninitialized(4);
-                DstEntityManager.AddBuffer<TriangleIndexElement>(entity).ResizeUninitialized(6);
+                DstEntityManager.AddBuffer<LocalVertexData>(entity).ResizeUninitialized(4);
+                DstEntityManager.AddBuffer<LocalTriangleIndexElement>(entity).ResizeUninitialized(6);
             });
         }
     }

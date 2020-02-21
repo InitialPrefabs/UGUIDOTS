@@ -1,4 +1,3 @@
-using System;
 using System.Runtime.InteropServices;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -7,22 +6,10 @@ using UnityEngine.Rendering;
 namespace UGUIDots.Render {
 
     /// <summary>
-    /// Used for internal look ups.
+    /// Stores all batched vertices.
     /// </summary>
-    public struct MeshIndex : ISystemStateComponentData, IEquatable<MeshIndex> {
-        public int Value;
-
-        public bool Equals(MeshIndex other) {
-            return other.Value == Value;
-        }
-
-        public override int GetHashCode() {
-            return Value.GetHashCode();
-        }
-    }
-
     [StructLayout(LayoutKind.Sequential)]
-    public struct CanvasVertexData : IBufferElementData {
+    public struct RootVertexData : IBufferElementData {
         public float3 Position;
         public float3 Normal;
         public float4 Color;
@@ -30,8 +17,11 @@ namespace UGUIDots.Render {
         public float2 UV2;
     }
 
+    /// <summary>
+    /// Stores the UI elements vertex element required for each mesh.
+    /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    public struct VertexData : IBufferElementData {
+    public struct LocalVertexData : IBufferElementData {
         public float3 Position;
         public float3 Normal;
         public float4 Color;
@@ -39,22 +29,27 @@ namespace UGUIDots.Render {
         public float2 UV2;
     }
 
-    public struct TriangleIndexElement : IBufferElementData {
+    /// <summary>
+    /// Stores the root indices needed to generate triangles.
+    /// </summary>
+    public struct RootTriangleIndexElement : IBufferElementData {
         public ushort Value;
 
-        public static implicit operator TriangleIndexElement(ushort value) => 
-            new TriangleIndexElement { Value = value };
-        public static implicit operator ushort(TriangleIndexElement value) => value.Value;
+        public static implicit operator RootTriangleIndexElement(ushort value) => new RootTriangleIndexElement { Value = value };
+        public static implicit operator ushort(RootTriangleIndexElement value) => value.Value;
     }
 
-    public struct CanvasIndexElement : IBufferElementData {
+    /// <summary>
+    /// Stores the UI element's local indices to generate a triangle.
+    /// </summary>
+    public struct LocalTriangleIndexElement : IBufferElementData {
         public ushort Value;
 
-        public static implicit operator CanvasIndexElement(ushort value) => new CanvasIndexElement { Value = value };
-        public static implicit operator ushort(CanvasIndexElement value) => value.Value;
+        public static implicit operator LocalTriangleIndexElement(ushort value) =>
+            new LocalTriangleIndexElement { Value = value };
+        public static implicit operator ushort(LocalTriangleIndexElement value) => value.Value;
     }
 
-    public struct MeshBuildTag : IComponentData { }
 
     public static class MeshVertexDataExtensions {
 

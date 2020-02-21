@@ -59,15 +59,15 @@ namespace UGUIDots.Render.Systems {
         [BurstCompile]
         private struct BuildCanvasJob : IJobChunk {
 
-            public ArchetypeChunkBufferType<CanvasVertexData>    CanvasVertexType;
-            public ArchetypeChunkBufferType<CanvasIndexElement>  CanvasIndexType;
+            public ArchetypeChunkBufferType<RootVertexData>    CanvasVertexType;
+            public ArchetypeChunkBufferType<RootTriangleIndexElement>  CanvasIndexType;
             public ArchetypeChunkBufferType<SubMeshSliceElement> SubMeshType;
 
             [ReadOnly]
-            public BufferFromEntity<VertexData> MeshVertices;
+            public BufferFromEntity<LocalVertexData> MeshVertices;
 
             [ReadOnly]
-            public BufferFromEntity<TriangleIndexElement> TriangleIndices;
+            public BufferFromEntity<LocalTriangleIndexElement> TriangleIndices;
 
             [ReadOnly]
             public ArchetypeChunkBufferType<RenderElement> RenderElementType;
@@ -81,8 +81,6 @@ namespace UGUIDots.Render.Systems {
             public EntityCommandBuffer.Concurrent CommandBuffer;
 
             public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex) {
-                // TODO: Loop through the RenderEntities and fill the vertices
-                // TODO: Add the data spans to the images and texts.
                 var entities         = chunk.GetNativeArray(EntityType);
                 var vertexAccessor   = chunk.GetBufferAccessor(CanvasVertexType);
                 var triangleAccessor = chunk.GetBufferAccessor(CanvasIndexType);
@@ -103,14 +101,14 @@ namespace UGUIDots.Render.Systems {
 
                     PopulateRootCanvas(in renderElements, in spans, ref rootVertices, ref rootTriangles, ref submesh);
 
-                    // The canvas is no longer dirty
-                    CommandBuffer.RemoveComponent<DirtyTag>(entity.Index, entity);
+                    // The canvas does not have to be rebatched.
+                    CommandBuffer.RemoveComponent<BatchCanvasTag>(entity.Index, entity);
                 }
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             void PopulateRootCanvas(in NativeArray<RenderElement> renders, in NativeArray<BatchedSpanElement> spans,
-                ref DynamicBuffer<CanvasVertexData> rootVertices, ref DynamicBuffer<CanvasIndexElement> rootIndices,
+                ref DynamicBuffer<RootVertexData> rootVertices, ref DynamicBuffer<RootTriangleIndexElement> rootIndices,
                 ref DynamicBuffer<SubMeshSliceElement> submeshes) {
 
                 int entityCount = 0;
@@ -121,7 +119,7 @@ namespace UGUIDots.Render.Systems {
 
                     for (int k = currentSpan.x; k < currentSpan.y + currentSpan.x; k++, entityCount++) {
                         var childEntity   = renders[k].Value;
-                        var childVertices = MeshVertices[childEntity].AsNativeArray().Reinterpret<CanvasVertexData>();
+                        var childVertices = MeshVertices[childEntity].AsNativeArray().Reinterpret<RootVertexData>();
                         var childIndices  = TriangleIndices[childEntity].AsNativeArray();
 
                         var startVertexIndex   = rootVertices.Length;
@@ -145,11 +143,11 @@ namespace UGUIDots.Render.Systems {
                 }
             }
 
-            // TODO: Support text because the offset only assumes you have 6 vertices per image - does not  take into 
+            // TODO: Support text because the offset only assumes you have 6 vertices per image - does not  take into
             // account 9 slicing
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            void AddAdjustedIndex(int offset, ref DynamicBuffer<CanvasIndexElement> indices,
-                in NativeArray<TriangleIndexElement> localTriangles) {
+            void AddAdjustedIndex(int offset, ref DynamicBuffer<RootTriangleIndexElement> indices,
+                in NativeArray<LocalTriangleIndexElement> localTriangles) {
 
                 var nextStartIndex = indices.Length > 1 ? indices[indices.Length - 1] + 1 : 0;
 
@@ -168,8 +166,8 @@ namespace UGUIDots.Render.Systems {
             unbatchedCanvasGroup = GetEntityQuery(new EntityQueryDesc {
                 All  = new [] {
                     ComponentType.ReadOnly<RenderElement>(), ComponentType.ReadWrite<SubMeshKeyElement>(),
-                    ComponentType.ReadWrite<CanvasVertexData>(), ComponentType.ReadWrite<CanvasIndexElement>(),
-                    ComponentType.ReadOnly<DirtyTag>(), ComponentType.ReadOnly<BatchedSpanElement>(),
+                    ComponentType.ReadWrite<RootVertexData>(), ComponentType.ReadWrite<RootTriangleIndexElement>(),
+                    ComponentType.ReadOnly<BatchCanvasTag>(), ComponentType.ReadOnly<BatchedSpanElement>(),
                     ComponentType.ReadOnly<Child>(),
                 },
             });
@@ -187,11 +185,11 @@ namespace UGUIDots.Render.Systems {
             }.Schedule(unbatchedCanvasGroup, inputDeps);
 
             var batchDeps         = new BuildCanvasJob {
-                CanvasVertexType  = GetArchetypeChunkBufferType<CanvasVertexData>(),
-                CanvasIndexType   = GetArchetypeChunkBufferType<CanvasIndexElement>(),
+                CanvasVertexType  = GetArchetypeChunkBufferType<RootVertexData>(),
+                CanvasIndexType   = GetArchetypeChunkBufferType<RootTriangleIndexElement>(),
                 SubMeshType       = GetArchetypeChunkBufferType<SubMeshSliceElement>(),
-                MeshVertices      = GetBufferFromEntity<VertexData>(true),
-                TriangleIndices   = GetBufferFromEntity<TriangleIndexElement>(true),
+                MeshVertices      = GetBufferFromEntity<LocalVertexData>(true),
+                TriangleIndices   = GetBufferFromEntity<LocalTriangleIndexElement>(true),
                 RenderElementType = renderType,
                 SpanType          = spanType,
                 EntityType        = GetArchetypeChunkEntityType(),

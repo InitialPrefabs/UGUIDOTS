@@ -38,8 +38,8 @@ namespace UGUIDots.Render.Systems {
             [ReadOnly]
             public ArchetypeChunkComponentType<DefaultSpriteResolution> SpriteResType;
 
-            public ArchetypeChunkBufferType<VertexData> VertexType;
-            public ArchetypeChunkBufferType<TriangleIndexElement> TriangleType;
+            public ArchetypeChunkBufferType<LocalVertexData> VertexType;
+            public ArchetypeChunkBufferType<LocalTriangleIndexElement> TriangleType;
 
             public EntityCommandBuffer.Concurrent CmdBuffer;
 
@@ -100,28 +100,28 @@ namespace UGUIDots.Render.Systems {
                         (bl.y + spriteH * pixelAdjustments.w * scale.y) - topAdjust
                     );
 
-                    vertices.Add(new VertexData {
+                    vertices.Add(new LocalVertexData {
                         Position = new float3(v.xy, 0),
                         Normal   = right,
                         Color    = color,
                         UV1      = outer.xy,
                         UV2      = new float2(1)
                     });
-                    vertices.Add(new VertexData {
+                    vertices.Add(new LocalVertexData {
                         Position = new float3(v.xw, 0),
                         Normal   = right,
                         Color    = color,
                         UV1      = outer.xw,
                         UV2      = new float2(1)
                     });
-                    vertices.Add(new VertexData {
+                    vertices.Add(new LocalVertexData {
                         Position = new float3(v.zw, 0),
                         Normal   = right,
                         Color    = color,
                         UV1      = outer.zw,
                         UV2      = new float2(1)
                     });
-                    vertices.Add(new VertexData {
+                    vertices.Add(new LocalVertexData {
                         Position = new float3(v.zy, 0),
                         Normal   = right,
                         Color    = color,
@@ -131,12 +131,12 @@ namespace UGUIDots.Render.Systems {
 
                     // TODO: Figure this out mathematically instead of hard coding
                     // batched meshes need to be figured out and rebuilt...
-                    indices.Add(new TriangleIndexElement { Value = 0 });
-                    indices.Add(new TriangleIndexElement { Value = 1 });
-                    indices.Add(new TriangleIndexElement { Value = 2 });
-                    indices.Add(new TriangleIndexElement { Value = 0 });
-                    indices.Add(new TriangleIndexElement { Value = 2 });
-                    indices.Add(new TriangleIndexElement { Value = 3 });
+                    indices.Add(new LocalTriangleIndexElement { Value = 0 });
+                    indices.Add(new LocalTriangleIndexElement { Value = 1 });
+                    indices.Add(new LocalTriangleIndexElement { Value = 2 });
+                    indices.Add(new LocalTriangleIndexElement { Value = 0 });
+                    indices.Add(new LocalTriangleIndexElement { Value = 2 });
+                    indices.Add(new LocalTriangleIndexElement { Value = 3 });
 
                     CmdBuffer.AddComponent<CachedMeshTag>(entity.Index, entity);
                 }
@@ -150,8 +150,8 @@ namespace UGUIDots.Render.Systems {
         protected override void OnCreate() {
             graphicQuery = GetEntityQuery(new EntityQueryDesc {
                 All = new [] {
-                    ComponentType.ReadOnly<Dimensions>(), ComponentType.ReadWrite<VertexData>(),
-                    ComponentType.ReadWrite<TriangleIndexElement>(), ComponentType.ReadOnly<LocalToWorld>()
+                    ComponentType.ReadOnly<Dimensions>(), ComponentType.ReadWrite<LocalVertexData>(),
+                    ComponentType.ReadWrite<LocalTriangleIndexElement>(), ComponentType.ReadOnly<LocalToWorld>()
                 },
                 None = new [] {
                     ComponentType.ReadOnly<CachedMeshTag>(), ComponentType.ReadOnly<CharElement>()
@@ -167,8 +167,8 @@ namespace UGUIDots.Render.Systems {
                 LTWType           = GetArchetypeChunkComponentType<LocalToWorld>(true),
                 DimensionType     = GetArchetypeChunkComponentType<Dimensions>(true),
                 ColorType         = GetArchetypeChunkComponentType<AppliedColor>(true),
-                VertexType        = GetArchetypeChunkBufferType<VertexData>(),
-                TriangleType      = GetArchetypeChunkBufferType<TriangleIndexElement>(),
+                VertexType        = GetArchetypeChunkBufferType<LocalVertexData>(),
+                TriangleType      = GetArchetypeChunkBufferType<LocalTriangleIndexElement>(),
                 CharType          = GetArchetypeChunkBufferType<CharElement>(true),
                 SpriteDataType    = GetArchetypeChunkComponentType<SpriteData>(true),
                 SpriteResType     = GetArchetypeChunkComponentType<DefaultSpriteResolution>(true),

@@ -36,8 +36,8 @@ namespace UGUIDots.Conversions.Systems {
                 // DstEntityManager.AddSharedComponentData(entity, new CanvasSortOrder { Value = canvas.sortingOrder });
 
                 // Add the root mesh renderering data to the canvas as the root primary renderer
-                DstEntityManager.AddBuffer<CanvasVertexData>(entity);
-                DstEntityManager.AddBuffer<CanvasIndexElement>(entity);
+                DstEntityManager.AddBuffer<RootVertexData>(entity);
+                DstEntityManager.AddBuffer<RootTriangleIndexElement>(entity);
 
                 // Add a mesh to the canvas so treat it as a renderer.
                 DstEntityManager.AddComponentObject(entity, new Mesh());
@@ -48,8 +48,8 @@ namespace UGUIDots.Conversions.Systems {
 
                 // Add the tags
                 // TODO: Clean up the tags
-                DstEntityManager.AddComponentData(entity, new MeshBuildTag { });
-                DstEntityManager.AddComponentData(entity, new DirtyTag { });
+                DstEntityManager.AddComponentData(entity, new BuildCanvasTag { });
+                DstEntityManager.AddComponentData(entity, new BatchCanvasTag { });
 
                 switch (canvasScaler.uiScaleMode) {
                     case CanvasScaler.ScaleMode.ScaleWithScreenSize:

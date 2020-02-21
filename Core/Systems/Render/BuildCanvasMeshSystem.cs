@@ -14,9 +14,9 @@ namespace UGUIDots.Render.Systems {
 
         protected override void OnCreate() {
             canvasMeshQuery = GetEntityQuery(new EntityQueryDesc {
-                All = new [] { 
-                    ComponentType.ReadOnly<CanvasVertexData>(), ComponentType.ReadOnly<CanvasIndexElement>(),
-                    ComponentType.ReadOnly<SubMeshSliceElement>(), ComponentType.ReadOnly<MeshBuildTag>()
+                All = new [] {
+                    ComponentType.ReadOnly<RootVertexData>(), ComponentType.ReadOnly<RootTriangleIndexElement>(),
+                    ComponentType.ReadOnly<SubMeshSliceElement>(), ComponentType.ReadOnly<BuildCanvasTag>()
                 }
             });
 
@@ -28,10 +28,10 @@ namespace UGUIDots.Render.Systems {
             var cmdBuffer = commandBufferSystem.CreateCommandBuffer();
 
             Entities.WithStoreEntityQueryInField(ref canvasMeshQuery).WithoutBurst().ForEach((
-                Entity entity, 
-                Mesh mesh, 
-                DynamicBuffer<CanvasVertexData> vertices, 
-                DynamicBuffer<CanvasIndexElement> indices, 
+                Entity entity,
+                Mesh mesh,
+                DynamicBuffer<RootVertexData> vertices,
+                DynamicBuffer<RootTriangleIndexElement> indices,
                 DynamicBuffer<SubMeshSliceElement> submeshDesc) => {
 
                 mesh.Clear();
@@ -55,7 +55,7 @@ namespace UGUIDots.Render.Systems {
                 }
 
                 mesh.UploadMeshData(false);
-                cmdBuffer.RemoveComponent<MeshBuildTag>(entity);
+                cmdBuffer.RemoveComponent<BuildCanvasTag>(entity);
             }).Run();
 
             return inputDeps;

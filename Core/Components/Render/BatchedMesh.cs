@@ -22,7 +22,7 @@ namespace UGUIDots.Render {
     }
 
     /// <summary>
-    /// Stores which slice of the vertices and indices that the mesh owns.
+    /// Stores which slice of the vertices and indices that the particular element owns.
     /// </summary>
     public struct MeshDataSpan : IComponentData {
         public int2 VertexSpan;

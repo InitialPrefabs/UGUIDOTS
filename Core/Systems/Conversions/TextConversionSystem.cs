@@ -30,11 +30,11 @@ namespace UGUIDots.Conversions.Systems {
                 if (fontAsset != null) {
                     var fontAssetEntity = GetPrimaryEntity(fontAsset);
 
-                    DstEntityManager.AddComponentData(fontAssetEntity, new FontID { 
+                    DstEntityManager.AddComponentData(fontAssetEntity, new FontID {
                         Value = fontAsset.GetInstanceID()
                     });
 
-                    DstEntityManager.AddComponentData(fontAssetEntity, 
+                    DstEntityManager.AddComponentData(fontAssetEntity,
                         fontAsset.faceInfo.ToFontFaceInfo(
                             new float2(fontAsset.normalStyle, fontAsset.normalSpacingOffset),
                             new float2(fontAsset.boldStyle, fontAsset.boldSpacing),
@@ -76,7 +76,7 @@ namespace UGUIDots.Conversions.Systems {
     }
 
     /// <summary>
-    /// Converts UGUI Text components by adding a buffer to chars to the entity, the dimensions, and 
+    /// Converts UGUI Text components by adding a buffer to chars to the entity, the dimensions, and
     /// applied color for shader updates.
     ///
     /// Initially components are marked dirty until the vertices are built.
@@ -120,14 +120,14 @@ namespace UGUIDots.Conversions.Systems {
                 txtBuffer[i] = text[i];
             }
 
-            var vertexBuffer = DstEntityManager.AddBuffer<VertexData>(e);
+            var vertexBuffer = DstEntityManager.AddBuffer<LocalVertexData>(e);
             vertexBuffer.ResizeUninitialized(text.Length);
 
             for (int i = 0; i < text.Length; i++) {
                 vertexBuffer[i] = default;
             }
 
-            var indexBuffer = DstEntityManager.AddBuffer<TriangleIndexElement>(e);
+            var indexBuffer = DstEntityManager.AddBuffer<LocalTriangleIndexElement>(e);
         }
     }
 }
