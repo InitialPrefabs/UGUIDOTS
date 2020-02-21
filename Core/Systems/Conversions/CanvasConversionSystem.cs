@@ -1,16 +1,17 @@
 using System;
-using System.Collections.Generic;
+using UGUIDots.Render;
 using UGUIDots.Transforms;
 using Unity.Entities;
+using Unity.Transforms;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace UGUIDots.Conversions.Systems {
 
     [UpdateAfter(typeof(RectTransformConversionSystem))]
+    [UpdateAfter(typeof(ImageConversionSystem))]
+    [UpdateAfter(typeof(TMPTextConversionSystem))]
     public class CanvasConversionSystem : GameObjectConversionSystem {
-
-        private List<int> sortOrders = new List<int>();
 
         protected override void OnUpdate() {
             Entities.ForEach((Canvas canvas) => {
@@ -26,13 +27,29 @@ namespace UGUIDots.Conversions.Systems {
                 var entity       = GetPrimaryEntity(canvas);
                 var canvasScaler = canvas.GetComponent<CanvasScaler>();
 
+                // Remove unnecessary information
                 DstEntityManager.RemoveComponent<Anchor>(entity);
-                DstEntityManager.AddSharedComponentData(entity, new CanvasSortOrder { Value = canvas.sortingOrder });
-                DstEntityManager.AddComponentData(entity, new DirtyTag { });
+                DstEntityManager.RemoveComponent<Rotation>(entity);
+                DstEntityManager.RemoveComponent<Translation>(entity);
+                DstEntityManager.RemoveComponent<NonUniformScale>(entity);
 
-                if (!sortOrders.Contains(canvas.sortingOrder)) {
-                    sortOrders.Add(canvas.sortingOrder);
-                }
+                // DstEntityManager.AddSharedComponentData(entity, new CanvasSortOrder { Value = canvas.sortingOrder });
+
+                // Add the root mesh renderering data to the canvas as the root primary renderer
+                DstEntityManager.AddBuffer<RootVertexData>(entity);
+                DstEntityManager.AddBuffer<RootTriangleIndexElement>(entity);
+
+                // Add a mesh to the canvas so treat it as a renderer.
+                DstEntityManager.AddComponentObject(entity, new Mesh());
+
+                // Add a collection of the submesh information
+                DstEntityManager.AddBuffer<SubMeshSliceElement>(entity);
+                DstEntityManager.AddBuffer<SubMeshKeyElement>(entity);
+
+                // Add the tags
+                // TODO: Clean up the tags
+                DstEntityManager.AddComponentData(entity, new BuildCanvasTag { });
+                DstEntityManager.AddComponentData(entity, new BatchCanvasTag { });
 
                 switch (canvasScaler.uiScaleMode) {
                     case CanvasScaler.ScaleMode.ScaleWithScreenSize:

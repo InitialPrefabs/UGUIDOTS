@@ -9,7 +9,7 @@ using Unity.Transforms;
 
 namespace UGUIDots.Render.Systems {
 
-    [UpdateInGroup(typeof(MeshBatchingGroup))]
+    [UpdateInGroup(typeof(MeshBuildGroup))]
     public class BuildTextVertexDataSystem : JobComponentSystem {
 
         [BurstCompile]
@@ -20,6 +20,23 @@ namespace UGUIDots.Render.Systems {
 
             public void Execute(Entity entity, int index, ref FontID c0) {
                 GlyphMap.TryAdd(c0.Value, entity);
+            }
+        }
+
+        [BurstCompile]
+        private struct BuildGlyphMapJobChunk : IJobChunk {
+
+            [WriteOnly] public NativeHashMap<int, Entity>.ParallelWriter GlyphMap;
+            [ReadOnly] public ArchetypeChunkComponentType<FontID> FontType;
+            [ReadOnly] public ArchetypeChunkEntityType EntityType;
+
+            public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex) {
+                var fonts = chunk.GetNativeArray(FontType);
+                var entities = chunk.GetNativeArray(EntityType);
+
+                for (int i = 0; i < chunk.Count; i++) {
+                    GlyphMap.TryAdd(fonts[i].Value, entities[i]);
+                }
             }
         }
 
@@ -38,8 +55,8 @@ namespace UGUIDots.Render.Systems {
             [ReadOnly] public ArchetypeChunkComponentType<LocalToWorld> LTWType;
             [ReadOnly] public ArchetypeChunkComponentType<Dimensions> DimensionType;
 
-            public ArchetypeChunkBufferType<MeshVertexData> MeshVertexDataType;
-            public ArchetypeChunkBufferType<TriangleIndexElement> TriangleIndexType;
+            public ArchetypeChunkBufferType<LocalVertexData> MeshVertexDataType;
+            public ArchetypeChunkBufferType<LocalTriangleIndexElement> TriangleIndexType;
 
             public EntityCommandBuffer.Concurrent CmdBuffer;
 
@@ -74,7 +91,7 @@ namespace UGUIDots.Render.Systems {
                     var fontFaceExists    = FontFaces.Exists(glyphEntity);
 
                     if (!(glyphTableExists && glyphBufferExists && fontFaceExists)) {
-                        continue; 
+                        continue;
                     }
 
                     var fontFace  = FontFaces[glyphEntity];
@@ -97,8 +114,8 @@ namespace UGUIDots.Render.Systems {
 
                     var start = new float2(
                         TextUtil.GetHorizontalAlignment(textOption.Alignment, extents, lines[0].LineWidth),
-                        TextUtil.GetVerticalAlignment(heights, fontScale, textOption.Alignment, 
-                            in extents, in linesHeight, lines.Length));
+                        TextUtil.GetVerticalAlignment(heights, fontScale, textOption.Alignment,
+                            in extents, in linesHeight, lines.Length)) + ltw.Position.xy;
 
                     for (int k = 0, row = 0; k < text.Length; k++) {
                         var c = text[k].Value;
@@ -113,8 +130,8 @@ namespace UGUIDots.Render.Systems {
                             var height = fontFace.LineHeight * fontScale * (row > 0 ? 1f : 0f);
 
                             start.y -= height;
-                            start.x  = TextUtil.GetHorizontalAlignment(textOption.Alignment, 
-                                    extents, lines[row].LineWidth);
+                            start.x  = TextUtil.GetHorizontalAlignment(textOption.Alignment,
+                                    extents, lines[row].LineWidth) + ltw.Position.x;
 
                             row++;
                         }
@@ -129,28 +146,28 @@ namespace UGUIDots.Render.Systems {
 
                         var vertexColor = color.Value.ToNormalizedFloat4();
 
-                        vertices.Add(new MeshVertexData {
+                        vertices.Add(new LocalVertexData {
                             Position = new float3(xPos, yPos, 0),
                             Normal   = right,
                             Color    = vertexColor,
                             UV1      = uv1.c0,
                             UV2      = uv2
                         });
-                        vertices.Add(new MeshVertexData {
+                        vertices.Add(new LocalVertexData {
                             Position = new float3(xPos, yPos + size.y, 0),
                             Normal   = right,
                             Color    = vertexColor,
                             UV1      = uv1.c1,
                             UV2      = uv2
                         });
-                        vertices.Add(new MeshVertexData {
+                        vertices.Add(new LocalVertexData {
                             Position = new float3(xPos + size.x, yPos + size.y, 0),
                             Normal   = right,
                             Color    = vertexColor,
                             UV1      = uv1.c2,
                             UV2      = uv2
                         });
-                        vertices.Add(new MeshVertexData {
+                        vertices.Add(new LocalVertexData {
                             Position = new float3(xPos + size.x, yPos, 0),
                             Normal   = right,
                             Color    = vertexColor,
@@ -162,13 +179,13 @@ namespace UGUIDots.Render.Systems {
                         var tr = (ushort)(bl + 2);
                         var br = (ushort)(bl + 3);
 
-                        indices.Add(new TriangleIndexElement { Value = bl });
-                        indices.Add(new TriangleIndexElement { Value = tl });
-                        indices.Add(new TriangleIndexElement { Value = tr });
+                        indices.Add(new LocalTriangleIndexElement { Value = bl });
+                        indices.Add(new LocalTriangleIndexElement { Value = tl });
+                        indices.Add(new LocalTriangleIndexElement { Value = tr });
 
-                        indices.Add(new TriangleIndexElement { Value = bl });
-                        indices.Add(new TriangleIndexElement { Value = tr });
-                        indices.Add(new TriangleIndexElement { Value = br });
+                        indices.Add(new LocalTriangleIndexElement { Value = bl });
+                        indices.Add(new LocalTriangleIndexElement { Value = tr });
+                        indices.Add(new LocalTriangleIndexElement { Value = br });
 
                         start += new float2(glyph.Advance * padding, 0);
                     }
@@ -194,8 +211,8 @@ namespace UGUIDots.Render.Systems {
 
             textQuery = GetEntityQuery(new EntityQueryDesc {
                 All = new [] {
-                    ComponentType.ReadWrite<MeshVertexData>(),
-                    ComponentType.ReadWrite<TriangleIndexElement>(),
+                    ComponentType.ReadWrite<LocalVertexData>(),
+                    ComponentType.ReadWrite<LocalTriangleIndexElement>(),
                     ComponentType.ReadOnly<CharElement>(),
                     ComponentType.ReadOnly<TextOptions>(),
                     ComponentType.ReadOnly<BuildTextTag>()
@@ -210,8 +227,10 @@ namespace UGUIDots.Render.Systems {
         protected override JobHandle OnUpdate(JobHandle inputDeps) {
             var glyphMap = new NativeHashMap<int, Entity>(glyphQuery.CalculateEntityCount(), Allocator.TempJob);
 
-            var glyphMapDeps = new BuildGlyphMapJob {
-                GlyphMap = glyphMap.AsParallelWriter()
+            var glyphMapDeps = new BuildGlyphMapJobChunk {
+                GlyphMap   = glyphMap.AsParallelWriter(),
+                EntityType = GetArchetypeChunkEntityType(),
+                FontType   = GetArchetypeChunkComponentType<FontID>(true)
             }.Schedule(glyphQuery, inputDeps);
 
             var textMeshDeps       = new BuildTextMeshJob {
@@ -225,8 +244,8 @@ namespace UGUIDots.Render.Systems {
                 ColorType          = GetArchetypeChunkComponentType<AppliedColor>(true),
                 LTWType            = GetArchetypeChunkComponentType<LocalToWorld>(true),
                 DimensionType      = GetArchetypeChunkComponentType<Dimensions>(true),
-                MeshVertexDataType = GetArchetypeChunkBufferType<MeshVertexData>(),
-                TriangleIndexType  = GetArchetypeChunkBufferType<TriangleIndexElement>(),
+                MeshVertexDataType = GetArchetypeChunkBufferType<LocalVertexData>(),
+                TriangleIndexType  = GetArchetypeChunkBufferType<LocalTriangleIndexElement>(),
                 CmdBuffer          = cmdBufferSystem.CreateCommandBuffer().ToConcurrent()
             }.Schedule(textQuery, glyphMapDeps);
 

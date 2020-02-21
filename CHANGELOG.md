@@ -1,5 +1,14 @@
 # Change Log
 
+## 0.0.5 - 2020-02-21
+### Added
+* Static analysis batching of the canvas hierarchy.
+* Added systems to congregate children mesh vertices and indices
+### Changed
+* Removed RenderRecurseOrderSystem because the batcher builds the meshes in order
+* Removed CanvasSortOrder for the time being because there currently isn't a good way to sort it currently.
+* Removed MeshIndex because meshes are attached to Canvas root objects instead.
+
 ## 0.0.4 - 2020-02-06
 ### Added
 * Supports text wrapping for multiline texts

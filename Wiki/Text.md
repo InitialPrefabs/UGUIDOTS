@@ -33,16 +33,18 @@ Grabs all `TextMeshProUGUI`s and adds the following components to the linked ent
 | Dimensions | The rect size for displaying the text |
 | TextFontID | The mapping required to link to the FontID |
 | TextOptions | The font style, size, and alignment |
-| Material | The shader properties/bitmap needed to render the text |
 | CharElement | Stores all characters of a string |
-| MeshVertexData | Vertex information needed to make the mesh |
-| TriangleIndexElement | Mesh index information needed to store |
+| LocalVertexDataElement | Vertex information needed to make the mesh |
+| LocalTriangleIndexElement | Mesh index information needed to store |
+| MaterialKey | Stores the index of the material required to render |
+| MeshDataSpan | Stores the slice of vertex and index spans of the submesh that the text belongs to |
+| AppliedColor | The general color of the text |
 
-### Building the Actual Mesh
-All letters of a mesh are built to the same vertex buffer, this batches all potential meshes such that there is only 1 issued draw calls. Generally, each letter's glyph is
-retrieved from the FontAsset entity, and the glyph metrics are applied to build the
-quad that will display. This takes into account font scaling so that larger point
-sizes match the editor time representation.
+### Storing Mesh Data
+All letters of a mesh are built to the same vertex buffer, this batches all potential meshes such that there is only 1
+issued draw calls. Generally, each letter's glyph is retrieved from the FontAsset entity, and the glyph metrics are
+applied to build the quad that will display. This takes into account font scaling so that larger point sizes match the
+editor time representation.
 
 For a more detailed outlook of building text individually and rendering, take a look
 at the [OpenGL tutorial](https://learnopengl.com/In-Practice/Text-Rendering), which
