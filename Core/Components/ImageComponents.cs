@@ -67,6 +67,6 @@ namespace UGUIDots {
     /// Stores the key to the texture that needs to be displayed.
     /// </summary>
     public struct TextureKey : IComponentData {
-        public int Value;
+        public short Value;
     }
 }

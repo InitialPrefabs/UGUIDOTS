@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using UGUIDots.Collections.Runtime;
+using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -8,19 +10,26 @@ namespace UGUIDots.Render {
     public class OrthographicRenderPass : ScriptableRenderPass {
 
         public Queue<(Mesh, Material, Matrix4x4, MaterialPropertyBlock)> InstructionQueue { get; private set; }
-        private string profilerTag;
+        public Queue<(NativeArray<SubMeshKeyElement>, Mesh)> RenderInstructions { get; private set; }
 
-        // private CommandBuffer cmd;
+        private string                profilerTag;
+        private Bin<Material>         materialBin;
+        private Bin<Texture>          textureBin;
+        private MaterialPropertyBlock _tempBlock;
 
         public OrthographicRenderPass(OrthographicRenderSettings settings) {
             profilerTag          = settings.ProfilerTag;
             base.renderPassEvent = settings.RenderPassEvt;
             InstructionQueue     = new Queue<(Mesh, Material, Matrix4x4, MaterialPropertyBlock)>();
-            // cmd                  = new CommandBuffer() { name = profilerTag };
+            RenderInstructions   = new Queue<(NativeArray<SubMeshKeyElement>, Mesh)>();
+            _tempBlock           = new MaterialPropertyBlock();
+
+            MaterialBin.TryLoadBin("MaterialBin", out materialBin);
+            TextureBin.TryLoadBin("TextureBin", out textureBin);
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData) {
-            if (InstructionQueue.Count <= 0) {
+            if (RenderInstructions.Count <= 0) {
                 return;
             }
 
@@ -36,14 +45,37 @@ namespace UGUIDots.Render {
                 cmd.SetViewProjectionMatrices(view, proj);
 
                 while (InstructionQueue.Count > 0) {
-                    var tuple = InstructionQueue.Dequeue();
-                    var mesh = tuple.Item1;
+                    var tuple    = InstructionQueue.Dequeue();
+                    var mesh     = tuple.Item1;
+                    var material = tuple.Item2;
+                    var m        = tuple.Item3;
+                    var block    = tuple.Item4;
 
                     for (int i = 0; i < mesh.subMeshCount; i++) {
-                        cmd.DrawMesh(mesh, tuple.Item3, tuple.Item2, i, 0, tuple.Item4);
+                        cmd.DrawMesh(mesh, m, material, i, -i, block);
+                    }
+                }
+
+                while (RenderInstructions.Count > 0) {
+                    var dequed = RenderInstructions.Dequeue();
+                    var keys   = dequed.Item1;
+                    var mesh   = dequed.Item2;
+
+                    for (int i = 0; i < mesh.subMeshCount; i++) {
+                        var mat = materialBin.At(keys[i].MaterialKey);
+                        var textureKey = keys[i].TextureKey;
+
+                        _tempBlock.Clear();
+                        if (textureKey >= 0) {
+                            _tempBlock.SetTexture(ShaderIDConstants.MainTex, textureBin.At(textureKey));
+                        }
+
+                        var m = Matrix4x4.identity;
+                        cmd.DrawMesh(mesh, m, mat, i, -1, _tempBlock);
                     }
                 }
             }
+
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
