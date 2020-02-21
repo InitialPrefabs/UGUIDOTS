@@ -9,7 +9,7 @@ namespace UGUIDots.Analyzers {
     public static class BatchAnalysis {
 
         public static List<List<GameObject>> BuildStaticBatch(Canvas root) {
-            Assert.IsNull(root.transform.parent);
+            Assert.IsNull(root.transform.parent, $"The current Canvas: {root.name} is not a root canvas!");
             var batchMap = new Dictionary<int, List<GameObject>>();
             RecurseChildrenBatch(root.transform, batchMap);
 
@@ -21,11 +21,15 @@ namespace UGUIDots.Analyzers {
         }
 
         private static void RecurseChildrenBatch(Transform parent, Dictionary<int, List<GameObject>> batchMap) {
-            for (int i = 0; i < parent.childCount; i++) {
-                var current = parent.GetChild(i);
+            if (parent.childCount <= 0) {
+                return;
+            }
 
-                if (current.TryGetComponent(out Image img)) {
-                    var texture  = img.sprite.texture != null ? img.sprite.texture : (Texture)Texture2D.whiteTexture;
+            for (int i = 0; i < parent.childCount; i++) {
+                var child = parent.GetChild(i);
+
+                if (child.TryGetComponent(out Image img)) {
+                    var texture  = img.sprite != null ? img.sprite.texture : (Texture)Texture2D.whiteTexture;
                     var material = img.material != null ? img.material : Canvas.GetDefaultCanvasMaterial();
                     var hash     = texture.GetHashCode() ^ material.GetHashCode();
 
@@ -33,10 +37,10 @@ namespace UGUIDots.Analyzers {
                         collection = new List<GameObject>();
                         batchMap.Add(hash, collection);
                     }
-                    collection.Add(current.gameObject);
+                    collection.Add(child.gameObject);
                 }
 
-                if (current.TryGetComponent(out TextMeshProUGUI text)) {
+                if (child.TryGetComponent(out TextMeshProUGUI text)) {
                     var hash = text.materialForRendering != null ? text.materialForRendering.GetHashCode() : 0;
 
                     if (!batchMap.TryGetValue(hash, out var collection)) {
@@ -46,7 +50,7 @@ namespace UGUIDots.Analyzers {
                     collection.Add(text.gameObject);
                 }
 
-                RecurseChildrenBatch(parent, batchMap);
+                RecurseChildrenBatch(child, batchMap);
             }
         }
     }

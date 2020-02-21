@@ -357,7 +357,6 @@ RectTransform:
   - {fileID: 829987382}
   - {fileID: 950217652}
   - {fileID: 1185037435}
-  - {fileID: 399500888}
   m_Father: {fileID: 0}
   m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -398,7 +397,6 @@ MonoBehaviour:
     - {fileID: 829987381}
     - {fileID: 950217651}
     - {fileID: 1185037434}
-    - {fileID: 399500887}
 --- !u!1 &377810463
 GameObject:
   m_ObjectHideFlags: 0
@@ -633,8 +631,8 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
-  m_Father: {fileID: 243564438}
-  m_RootOrder: 5
+  m_Father: {fileID: 1222487951}
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -1866,7 +1864,7 @@ Canvas:
   m_OverrideSorting: 0
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
-  m_AdditionalShaderChannelsFlag: 0
+  m_AdditionalShaderChannelsFlag: 25
   m_SortingLayerID: 0
   m_SortingOrder: 1
   m_TargetDisplay: 0
@@ -1884,6 +1882,7 @@ RectTransform:
   - {fileID: 1523990840}
   - {fileID: 164615289}
   - {fileID: 661625668}
+  - {fileID: 399500888}
   m_Father: {fileID: 0}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1923,12 +1922,14 @@ MonoBehaviour:
     - {fileID: 377810463}
     - {fileID: 2140778752}
   - Elements:
+    - {fileID: 164615288}
+  - Elements:
     - {fileID: 1851019858}
     - {fileID: 1898921997}
   - Elements:
-    - {fileID: 164615288}
-  - Elements:
     - {fileID: 637611625}
+  - Elements:
+    - {fileID: 399500887}
 --- !u!1 &1394915335
 GameObject:
   m_ObjectHideFlags: 0
