@@ -4,6 +4,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Sprites;
+using UnityEngine.UI;
 
 namespace UGUIDots {
 
@@ -50,6 +51,24 @@ namespace UGUIDots {
 
         public override int GetHashCode() {
             return Value.GetHashCode();
+        }
+    }
+
+    /// <summary>
+    /// Stores various color states that need to be applied to the image.
+    /// </summary>
+    public struct ColorStates : IComponentData { 
+        public Color32 DefaultColor, HighlightedColor, PressedColor, SelectedColor, DisabledColor;
+        public float FadeDuration;
+
+        public static ColorStates FromColorBlock(ColorBlock block) {
+            return new ColorStates {
+                HighlightedColor = block.highlightedColor,
+                PressedColor     = block.pressedColor,
+                SelectedColor    = block.selectedColor,
+                DisabledColor    = block.disabledColor,
+                FadeDuration     = block.fadeDuration
+            };
         }
     }
 
