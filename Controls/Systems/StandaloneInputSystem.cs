@@ -1,5 +1,4 @@
-﻿using Unity.Burst;
-using Unity.Entities;
+﻿using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
@@ -20,6 +19,10 @@ namespace UGUIDots.Controls.Systems {
     [UpdateInGroup(typeof(InputGroup))]
     public class UpdateMouseStateSystem : JobComponentSystem {
         protected override JobHandle OnUpdate(JobHandle inputDeps) {
+            Entities.ForEach((DynamicBuffer<CursorStateElement> b0,  in PrimaryMouseKeyCode c0) => {
+                var clicked = Input.GetKey(c0.Value);
+                b0[0] = new CursorStateElement { Value = clicked };
+            }).Run();
             return inputDeps;
         }
     }

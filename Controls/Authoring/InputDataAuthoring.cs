@@ -4,15 +4,19 @@ using UnityEngine;
 namespace UGUIDots.Controls.Authoring {
 
     public class InputDataAuthoring : MonoBehaviour, IConvertGameObjectToEntity {
-        public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem) {
-            var buffer = dstManager.AddBuffer<CursorPositionElement>(entity);
 
-#if UNITY_EDITOR || UNITY_STANDALONE
-            buffer.Capacity = 1;
-            buffer.Add(CursorPositionElement.None());
-#elif UNITY_ANDROID || UNITY_IOS
-            // TODO: Add the touch buffer effectively
-#endif
+        public KeyCode PrimaryMouseKey = KeyCode.Mouse0;
+
+        public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem) {
+            var posBuffer   = dstManager.AddBuffer<CursorPositionElement>(entity);
+            posBuffer.ResizeUninitialized(1);
+            posBuffer[0] = CursorPositionElement.None();
+
+            var clickBuffer = dstManager.AddBuffer<CursorStateElement>(entity);
+            clickBuffer.ResizeUninitialized(1);
+            clickBuffer[0] = CursorStateElement.Default();
+
+            dstManager.AddComponentData(entity, new PrimaryMouseKeyCode { Value = PrimaryMouseKey });
         }
     }
 }

@@ -5,12 +5,9 @@ using UnityEngine;
 
 namespace UGUIDots.Controls {
 
-    public enum CursorState {
-        Began,
-        Moved,
-        Ended
-    }
-
+    /// <summary>
+    /// Stores the primary mouse key code.
+    /// </summary>
     public struct PrimaryMouseKeyCode : IComponentData {
         public KeyCode Value;
 
@@ -20,6 +17,9 @@ namespace UGUIDots.Controls {
         }
     }
 
+    /// <summary>
+    /// Stores the position of the touch or mouse position.
+    /// </summary>
     public struct CursorPositionElement : IBufferElementData {
         public float2 Value;
 
@@ -29,8 +29,16 @@ namespace UGUIDots.Controls {
         }
     }
 
+    /// <summary>
+    /// Stores whether the mouse or touch state has been pressed or held.
+    /// </summary>
     public struct CursorStateElement : IBufferElementData {
-        public CursorState Value;
+        public bool Value;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static CursorStateElement Default() {
+            return new CursorStateElement { Value = false };
+        }
     }
 
     public static class InputExtension {
