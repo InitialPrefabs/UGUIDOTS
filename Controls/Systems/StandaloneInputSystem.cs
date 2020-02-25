@@ -6,24 +6,24 @@ using UnityEngine;
 namespace UGUIDots.Controls.Systems {
 
     [UpdateInGroup(typeof(InputGroup))]
-    public class UpdateMousePositionSystem : JobComponentSystem {
+    public class UpdateMousePositionSystem : SystemBase {
 
-        protected override JobHandle OnUpdate(JobHandle inputDeps) {
+        protected override void OnUpdate() {
             var mousePos = new float2(Input.mousePosition.x, Input.mousePosition.y);
-            return Entities.ForEach((DynamicBuffer<CursorPositionElement> b0) => {
+            Entities.ForEach((DynamicBuffer<CursorPositionElement> b0) => {
                 b0[0] = new CursorPositionElement { Value = mousePos };
-            }).WithBurst().Schedule(inputDeps);
+            }).WithBurst().Run();
         }
     }
 
     [UpdateInGroup(typeof(InputGroup))]
-    public class UpdateMouseStateSystem : JobComponentSystem {
-        protected override JobHandle OnUpdate(JobHandle inputDeps) {
+    [UpdateAfter(typeof(UpdateMousePositionSystem))]
+    public class UpdateMouseStateSystem : SystemBase {
+        protected override void OnUpdate() {
             Entities.ForEach((DynamicBuffer<CursorStateElement> b0,  in PrimaryMouseKeyCode c0) => {
                 var clicked = Input.GetKey(c0.Value);
                 b0[0] = new CursorStateElement { Value = clicked };
-            }).Run();
-            return inputDeps;
+            }).WithBurst().Run();
         }
     }
 }

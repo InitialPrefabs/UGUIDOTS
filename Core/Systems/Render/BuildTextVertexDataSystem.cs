@@ -10,7 +10,7 @@ using Unity.Transforms;
 namespace UGUIDots.Render.Systems {
 
     [UpdateInGroup(typeof(MeshBuildGroup))]
-    public class BuildTextVertexDataSystem : JobComponentSystem {
+    public class BuildTextVertexDataSystem : SystemBase {
 
         [BurstCompile]
         private struct BuildGlyphMapJob : IJobForEachWithEntity<FontID> {
@@ -224,16 +224,16 @@ namespace UGUIDots.Render.Systems {
             cmdBufferSystem = World.GetOrCreateSystem<BeginPresentationEntityCommandBufferSystem>();
         }
 
-        protected override JobHandle OnUpdate(JobHandle inputDeps) {
+        protected override void OnUpdate() {
             var glyphMap = new NativeHashMap<int, Entity>(glyphQuery.CalculateEntityCount(), Allocator.TempJob);
 
-            var glyphMapDeps = new BuildGlyphMapJobChunk {
+            Dependency = new BuildGlyphMapJobChunk {
                 GlyphMap   = glyphMap.AsParallelWriter(),
                 EntityType = GetArchetypeChunkEntityType(),
                 FontType   = GetArchetypeChunkComponentType<FontID>(true)
-            }.Schedule(glyphQuery, inputDeps);
+            }.Schedule(glyphQuery, Dependency);
 
-            var textMeshDeps       = new BuildTextMeshJob {
+            Dependency = new BuildTextMeshJob {
                 GlyphMap           = glyphMap,
                 GlyphData          = GetBufferFromEntity<GlyphElement>(true),
                 FontFaces          = GetComponentDataFromEntity<FontFaceInfo>(true),
@@ -247,13 +247,10 @@ namespace UGUIDots.Render.Systems {
                 MeshVertexDataType = GetArchetypeChunkBufferType<LocalVertexData>(),
                 TriangleIndexType  = GetArchetypeChunkBufferType<LocalTriangleIndexElement>(),
                 CmdBuffer          = cmdBufferSystem.CreateCommandBuffer().ToConcurrent()
-            }.Schedule(textQuery, glyphMapDeps);
+            }.Schedule(textQuery, Dependency);
 
-            var finalDeps = glyphMap.Dispose(textMeshDeps);
-
-            cmdBufferSystem.AddJobHandleForProducer(finalDeps);
-
-            return finalDeps;
+            Dependency = glyphMap.Dispose(Dependency);
+            cmdBufferSystem.AddJobHandleForProducer(Dependency);
         }
     }
 }

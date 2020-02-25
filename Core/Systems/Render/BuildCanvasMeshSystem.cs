@@ -7,7 +7,7 @@ namespace UGUIDots.Render.Systems {
 
     [UpdateInGroup(typeof(MeshBatchGroup)), UpdateAfter(typeof(BatchCanvasVertexSystem))]
     [AlwaysSynchronizeSystem]
-    public class BuildCanvasMeshSystem : JobComponentSystem {
+    public class BuildCanvasMeshSystem : SystemBase {
 
         private EntityQuery canvasMeshQuery;
         private EntityCommandBufferSystem commandBufferSystem;
@@ -24,7 +24,7 @@ namespace UGUIDots.Render.Systems {
             RequireForUpdate(canvasMeshQuery);
         }
 
-        protected override JobHandle OnUpdate(JobHandle inputDeps) {
+        protected override void OnUpdate() {
             var cmdBuffer = commandBufferSystem.CreateCommandBuffer();
 
             Entities.WithStoreEntityQueryInField(ref canvasMeshQuery).WithoutBurst().ForEach((
@@ -57,8 +57,6 @@ namespace UGUIDots.Render.Systems {
                 mesh.UploadMeshData(false);
                 cmdBuffer.RemoveComponent<BuildCanvasTag>(entity);
             }).Run();
-
-            return inputDeps;
         }
     }
 }

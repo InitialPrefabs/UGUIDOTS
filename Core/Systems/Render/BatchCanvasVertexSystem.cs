@@ -9,7 +9,7 @@ using Unity.Transforms;
 namespace UGUIDots.Render.Systems {
 
     [UpdateInGroup(typeof(MeshBatchGroup))]
-    public class BatchCanvasVertexSystem : JobComponentSystem {
+    public class BatchCanvasVertexSystem : SystemBase {
 
         [BurstCompile]
         private struct BuildSubMeshBufferJob : IJobChunk {
@@ -173,18 +173,18 @@ namespace UGUIDots.Render.Systems {
             });
         }
 
-        protected override JobHandle OnUpdate(JobHandle inputDeps) {
-            var renderType = GetArchetypeChunkBufferType<RenderElement>(true);
-            var spanType   = GetArchetypeChunkBufferType<BatchedSpanElement>(true);
-            var submeshMatJob = new BuildSubMeshBufferJob {
+        protected override void OnUpdate() {
+            var renderType   = GetArchetypeChunkBufferType<RenderElement>(true);
+            var spanType     = GetArchetypeChunkBufferType<BatchedSpanElement>(true);
+            Dependency       = new BuildSubMeshBufferJob {
                 MaterialKeys = GetComponentDataFromEntity<MaterialKey>(true),
                 TextureKeys  = GetComponentDataFromEntity<TextureKey>(true),
                 RenderType   = renderType,
                 SpanType     = spanType,
                 SubMeshType  = GetArchetypeChunkBufferType<SubMeshKeyElement>()
-            }.Schedule(unbatchedCanvasGroup, inputDeps);
+            }.Schedule(unbatchedCanvasGroup, Dependency);
 
-            var batchDeps         = new BuildCanvasJob {
+            Dependency            = new BuildCanvasJob {
                 CanvasVertexType  = GetArchetypeChunkBufferType<RootVertexData>(),
                 CanvasIndexType   = GetArchetypeChunkBufferType<RootTriangleIndexElement>(),
                 SubMeshType       = GetArchetypeChunkBufferType<SubMeshSliceElement>(),
@@ -194,11 +194,9 @@ namespace UGUIDots.Render.Systems {
                 SpanType          = spanType,
                 EntityType        = GetArchetypeChunkEntityType(),
                 CommandBuffer     = cmdBufferSystem.CreateCommandBuffer().ToConcurrent()
-            }.Schedule(unbatchedCanvasGroup, submeshMatJob);
+            }.Schedule(unbatchedCanvasGroup, Dependency);
 
-            cmdBufferSystem.AddJobHandleForProducer(batchDeps);
-
-            return batchDeps;
+            cmdBufferSystem.AddJobHandleForProducer(Dependency);
         }
     }
 }
