@@ -6,9 +6,9 @@ namespace UGUIDots {
     /// Defines if the state of the button based on the positions of the cursor(s).
     /// </summary>
     public enum ButtonState : byte {
-        None    = 1 >> 0,
-        Hover   = 1 >> 1,
-        Pressed = 1 >> 2
+        None    = 1,
+        Hover   = 1 << 1,
+        Pressed = 1 << 2
     }
 
     /// <summary>
@@ -16,5 +16,8 @@ namespace UGUIDots {
     /// </summary>
     public struct CursorState : IComponentData {
         public ButtonState Value;
+
+        public static CursorState None() => new CursorState { Value = ButtonState.None };
     }
+
 }

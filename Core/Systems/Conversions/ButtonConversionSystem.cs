@@ -11,7 +11,7 @@ namespace UGUIDots.Conversions.Systems {
 
                 var colorBlock = button.colors;
                 DstEntityManager.SetComponentData(entity, new AppliedColor { Value = colorBlock.normalColor });
-                DstEntityManager.AddComponentData(entity, new CursorState  { Value = ButtonState.None });
+                DstEntityManager.AddComponentData(entity, CursorState.None());
                 DstEntityManager.AddComponentData(entity, ColorStates.FromColorBlock(colorBlock));
             });
         }
