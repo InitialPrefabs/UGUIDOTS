@@ -67,7 +67,8 @@ namespace UGUIDots {
                 PressedColor     = block.pressedColor,
                 SelectedColor    = block.selectedColor,
                 DisabledColor    = block.disabledColor,
-                FadeDuration     = block.fadeDuration
+                FadeDuration     = block.fadeDuration,
+                DefaultColor     = block.normalColor
             };
         }
     }

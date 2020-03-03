@@ -542,8 +542,8 @@ GameObject:
   - component: {fileID: 386341598}
   - component: {fileID: 386341597}
   - component: {fileID: 386341596}
-  - component: {fileID: 386341595}
   - component: {fileID: 386341600}
+  - component: {fileID: 386341595}
   m_Layer: 5
   m_Name: Canvas Layer 0
   m_TagString: Untagged
@@ -2688,7 +2688,7 @@ MonoBehaviour:
   m_Colors:
     m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
     m_HighlightedColor: {r: 0.9433962, g: 0.3693485, b: 0.3693485, a: 1}
-    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
+    m_PressedColor: {r: 1, g: 0.8608516, b: 0, a: 1}
     m_SelectedColor: {r: 0.6630063, g: 0.18396229, b: 1, a: 1}
     m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
     m_ColorMultiplier: 1
@@ -2757,7 +2757,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bdab13ed5c1b846e78c4f1836ac8f9fa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Type: 1
+  Type: 2
 --- !u!1 &2140778752
 GameObject:
   m_ObjectHideFlags: 0

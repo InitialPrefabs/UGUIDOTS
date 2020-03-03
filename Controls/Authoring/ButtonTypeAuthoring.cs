@@ -7,7 +7,7 @@ namespace UGUIDots.Controls.Authoring {
         public ClickType Type = ClickType.ReleaseUp;
 
         public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem) {
-            dstManager.AddComponentData(entity, new ButtonClickType { Value = Type });
+            dstManager.AddComponentData(entity, new ButtonClickType { Type = Type });
         }
     }
 }

@@ -6,7 +6,6 @@ using UnityEngine.Rendering;
 namespace UGUIDots.Render.Systems {
 
     [UpdateInGroup(typeof(MeshBatchGroup)), UpdateAfter(typeof(BatchCanvasVertexSystem))]
-    [AlwaysSynchronizeSystem]
     public class BuildCanvasMeshSystem : SystemBase {
 
         private EntityQuery canvasMeshQuery;

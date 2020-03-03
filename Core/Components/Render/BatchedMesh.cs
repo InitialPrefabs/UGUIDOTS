@@ -1,5 +1,4 @@
-﻿using System;
-using Unity.Entities;
+﻿using Unity.Entities;
 using Unity.Mathematics;
 
 namespace UGUIDots.Render {
@@ -44,28 +43,5 @@ namespace UGUIDots.Render {
 
         public static implicit operator BatchedSpanElement(int2 value) => new BatchedSpanElement { Value = value };
         public static implicit operator int2(BatchedSpanElement value) => value.Value;
-    }
-
-    /// <summary>
-    /// Tags components as effectively dirty in the render group, this may be due to adding new UI elements 
-    /// or shifting children around.
-    /// </summary>
-    [System.Obsolete]
-    public struct UnsortedRenderTag : IComponentData { }
-
-    /// <summary>
-    /// Tags an entity to contain a render priority. Lower integer values mean less priority in rendering.
-    /// </summary>
-    [System.Obsolete]
-    public struct RenderGroupID : IComponentData, IComparable<RenderGroupID> {
-        public int Value;
-
-        public int CompareTo(RenderGroupID other) {
-            return Value.CompareTo(other.Value);
-        }
-
-        public override int GetHashCode() {
-            return Value.GetHashCode();
-        }
     }
 }

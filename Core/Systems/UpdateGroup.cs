@@ -7,6 +7,9 @@ namespace UGUIDots {
     public class UGUITransformSystemGroup : ComponentSystemGroup { }
 
     [UpdateInGroup(typeof(PresentationSystemGroup)), UpdateAfter(typeof(UITransformUpdateGroup))]
+    public class MeshUpdateGroup : ComponentSystemGroup { }
+
+    [UpdateInGroup(typeof(PresentationSystemGroup)), UpdateAfter(typeof(MeshUpdateGroup))]
     public class MeshBuildGroup : ComponentSystemGroup { }
 
     [UpdateInGroup(typeof(PresentationSystemGroup)), UpdateAfter(typeof(MeshBuildGroup))]

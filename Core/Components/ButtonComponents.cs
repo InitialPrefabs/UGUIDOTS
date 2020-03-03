@@ -15,9 +15,11 @@ namespace UGUIDots {
     /// Stores if the button has a cursor on top of it, or if the cursor has been pressed 
     /// </summary>
     public struct CursorState : IComponentData {
-        public ButtonState Value;
+        public ButtonState State;
+        // TODO: Deprecate the held...
+        public bool Held;
 
-        public static CursorState None() => new CursorState { Value = ButtonState.None };
+        public static CursorState None() => new CursorState { State = ButtonState.None };
     }
 
 }
