@@ -78,7 +78,7 @@ public class MeshGeneration : MonoBehaviour {
     void Update()
     {
         var m = Matrix4x4.TRS(default, Quaternion.identity, Vector3.one);
-        Feature.Pass.InstructionQueue.Enqueue((mesh, mat, m, block));
+        // Feature.Pass.InstructionQueue.Enqueue((mesh, mat, m, block));
     }
 }
 

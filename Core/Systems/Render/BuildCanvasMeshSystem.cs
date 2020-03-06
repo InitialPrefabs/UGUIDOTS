@@ -15,7 +15,7 @@ namespace UGUIDots.Render.Systems {
             canvasMeshQuery = GetEntityQuery(new EntityQueryDesc {
                 All = new [] {
                     ComponentType.ReadOnly<RootVertexData>(), ComponentType.ReadOnly<RootTriangleIndexElement>(),
-                    ComponentType.ReadOnly<SubMeshSliceElement>(), ComponentType.ReadOnly<BuildCanvasTag>()
+                    ComponentType.ReadOnly<SubmeshSliceElement>(), ComponentType.ReadOnly<BuildCanvasTag>()
                 }
             });
 
@@ -31,7 +31,7 @@ namespace UGUIDots.Render.Systems {
                 Mesh mesh,
                 DynamicBuffer<RootVertexData> vertices,
                 DynamicBuffer<RootTriangleIndexElement> indices,
-                DynamicBuffer<SubMeshSliceElement> submeshDesc) => {
+                DynamicBuffer<SubmeshSliceElement> submeshDesc) => {
 
                 mesh.Clear();
                 mesh.SetVertexBufferParams(vertices.Length, MeshVertexDataExtensions.VertexDescriptors);

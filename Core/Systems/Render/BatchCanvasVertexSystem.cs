@@ -26,7 +26,7 @@ namespace UGUIDots.Render.Systems {
             [ReadOnly]
             public ArchetypeChunkBufferType<BatchedSpanElement> SpanType;
 
-            public ArchetypeChunkBufferType<SubMeshKeyElement> SubMeshType;
+            public ArchetypeChunkBufferType<SubmeshKeyElement> SubMeshType;
 
             public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex) {
                 var renders      = chunk.GetBufferAccessor(RenderType);
@@ -47,7 +47,7 @@ namespace UGUIDots.Render.Systems {
                         var materialKey = (short)(MaterialKeys.Exists(element) ? MaterialKeys[element].Value : -1);
                         var textureKey  = (short)(TextureKeys.Exists(element) ? TextureKeys[element].Value : -1);
 
-                        batchedSubMesh.Add(new SubMeshKeyElement {
+                        batchedSubMesh.Add(new SubmeshKeyElement {
                             TextureKey  = textureKey,
                             MaterialKey = materialKey
                         });
@@ -61,7 +61,7 @@ namespace UGUIDots.Render.Systems {
 
             public ArchetypeChunkBufferType<RootVertexData>    CanvasVertexType;
             public ArchetypeChunkBufferType<RootTriangleIndexElement>  CanvasIndexType;
-            public ArchetypeChunkBufferType<SubMeshSliceElement> SubMeshType;
+            public ArchetypeChunkBufferType<SubmeshSliceElement> SubMeshType;
 
             [ReadOnly]
             public BufferFromEntity<LocalVertexData> MeshVertices;
@@ -109,7 +109,7 @@ namespace UGUIDots.Render.Systems {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             void PopulateRootCanvas(in NativeArray<RenderElement> renders, in NativeArray<BatchedSpanElement> spans,
                 ref DynamicBuffer<RootVertexData> rootVertices, ref DynamicBuffer<RootTriangleIndexElement> rootIndices,
-                ref DynamicBuffer<SubMeshSliceElement> submeshes) {
+                ref DynamicBuffer<SubmeshSliceElement> submeshes) {
 
                 int entityCount = 0;
                 for (int j = 0; j < spans.Length; j++) {
@@ -135,7 +135,7 @@ namespace UGUIDots.Render.Systems {
                             IndexSpan  = new int2(startTriangleIndex, childIndices.Length)
                         });
                     }
-                    submeshes.Add(new SubMeshSliceElement {
+                    submeshes.Add(new SubmeshSliceElement {
                         VertexSpan = new int2(subMeshVertexStart, rootVertices.Length - subMeshVertexStart),
                         IndexSpan  = new int2(subMeshIndexStart, rootIndices.Length - subMeshIndexStart)
                     });
@@ -165,7 +165,7 @@ namespace UGUIDots.Render.Systems {
 
             unbatchedCanvasGroup = GetEntityQuery(new EntityQueryDesc {
                 All  = new [] {
-                    ComponentType.ReadOnly<RenderElement>(), ComponentType.ReadWrite<SubMeshKeyElement>(),
+                    ComponentType.ReadOnly<RenderElement>(), ComponentType.ReadWrite<SubmeshKeyElement>(),
                     ComponentType.ReadWrite<RootVertexData>(), ComponentType.ReadWrite<RootTriangleIndexElement>(),
                     ComponentType.ReadOnly<BatchCanvasTag>(), ComponentType.ReadOnly<BatchedSpanElement>(),
                     ComponentType.ReadOnly<Child>(),
@@ -181,13 +181,13 @@ namespace UGUIDots.Render.Systems {
                 TextureKeys  = GetComponentDataFromEntity<TextureKey>(true),
                 RenderType   = renderType,
                 SpanType     = spanType,
-                SubMeshType  = GetArchetypeChunkBufferType<SubMeshKeyElement>()
+                SubMeshType  = GetArchetypeChunkBufferType<SubmeshKeyElement>()
             }.Schedule(unbatchedCanvasGroup, Dependency);
 
             Dependency            = new BuildCanvasJob {
                 CanvasVertexType  = GetArchetypeChunkBufferType<RootVertexData>(),
                 CanvasIndexType   = GetArchetypeChunkBufferType<RootTriangleIndexElement>(),
-                SubMeshType       = GetArchetypeChunkBufferType<SubMeshSliceElement>(),
+                SubMeshType       = GetArchetypeChunkBufferType<SubmeshSliceElement>(),
                 MeshVertices      = GetBufferFromEntity<LocalVertexData>(true),
                 TriangleIndices   = GetBufferFromEntity<LocalTriangleIndexElement>(true),
                 RenderElementType = renderType,
