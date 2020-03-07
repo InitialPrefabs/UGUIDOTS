@@ -28,14 +28,14 @@ namespace UGUIDots.Render.Systems {
         }
 
         protected unsafe override void OnUpdate() {
-            Entities.WithStoreEntityQueryInField(ref renderQuery).WithoutBurst().
+            Entities.WithStoreEntityQueryInField(ref renderQuery).
                 ForEach((Mesh mesh, DynamicBuffer<SubmeshKeyElement> keys) => {
-                var submeshKeys = keys.AsNativeArray();
-                renderFeature.Pass.RenderInstructions.Enqueue(new RenderInstruction {
-                    Start  = (SubmeshKeyElement*)keys.GetUnsafePtr(),
-                    Mesh   = mesh
-                });
-            }).Run();
+                    renderFeature.Pass.RenderInstructions.Enqueue(new RenderInstruction {
+                        Start  = (SubmeshKeyElement*)keys.GetUnsafePtr(),
+                        Mesh   = mesh
+                    }
+                );
+            }).WithoutBurst().Run();
         }
     }
 }
