@@ -1,7 +1,7 @@
-using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
 using UnityEngine;
+using static UGUIDots.Render.OrthographicRenderPass;
 
 namespace UGUIDots.Render.Systems {
 
@@ -27,11 +27,14 @@ namespace UGUIDots.Render.Systems {
             }).WithoutBurst().Run();
         }
 
-        protected override void OnUpdate() {
+        protected unsafe override void OnUpdate() {
             Entities.WithStoreEntityQueryInField(ref renderQuery).WithoutBurst().
                 ForEach((Mesh mesh, DynamicBuffer<SubmeshKeyElement> keys) => {
                 var submeshKeys = keys.AsNativeArray();
-                renderFeature.Pass.RenderInstructions.Enqueue((submeshKeys, mesh));
+                renderFeature.Pass.RenderInstructions.Enqueue(new RenderInstruction {
+                    Start  = (SubmeshKeyElement*)keys.GetUnsafePtr(),
+                    Mesh   = mesh
+                });
             }).Run();
         }
     }

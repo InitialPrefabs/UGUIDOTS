@@ -7,9 +7,14 @@ using UnityEngine.Rendering.Universal;
 
 namespace UGUIDots.Render {
 
-    public class OrthographicRenderPass : ScriptableRenderPass {
+    public unsafe class OrthographicRenderPass : ScriptableRenderPass {
 
-        public Queue<(NativeArray<SubmeshKeyElement>, Mesh)> RenderInstructions { get; private set; }
+        public unsafe struct RenderInstruction {
+            public SubmeshKeyElement* Start;
+            public Mesh Mesh;
+        };
+
+        public Queue<RenderInstruction> RenderInstructions { get; private set; }
 
         private string                profilerTag;
         private Bin<Material>         materialBin;
@@ -19,7 +24,7 @@ namespace UGUIDots.Render {
         public OrthographicRenderPass(OrthographicRenderSettings settings) {
             profilerTag          = settings.ProfilerTag;
             base.renderPassEvent = settings.RenderPassEvt;
-            RenderInstructions   = new Queue<(NativeArray<SubmeshKeyElement>, Mesh)>();
+            RenderInstructions   = new Queue<RenderInstruction>();
             _tempBlock           = new MaterialPropertyBlock();
 
             MaterialBin.TryLoadBin("MaterialBin", out materialBin);
@@ -44,8 +49,8 @@ namespace UGUIDots.Render {
 
                 while (RenderInstructions.Count > 0) {
                     var dequed = RenderInstructions.Dequeue();
-                    var keys   = dequed.Item1;
-                    var mesh   = dequed.Item2;
+                    var keys   = dequed.Start;
+                    var mesh   = dequed.Mesh;
 
                     for (int i = 0; i < mesh.subMeshCount; i++) {
                         var mat        = materialBin.At(keys[i].MaterialKey);
@@ -73,7 +78,7 @@ namespace UGUIDots.Render {
         public RenderPassEvent RenderPassEvt;
 
         public OrthographicRenderSettings() {
-            ProfilerTag = "Orthographic Render Pass";
+            ProfilerTag   = "Orthographic Render Pass";
             RenderPassEvt = RenderPassEvent.AfterRenderingPostProcessing;
         }
     }

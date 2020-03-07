@@ -110,7 +110,7 @@ namespace UGUIDots.Render.Systems {
                     TextUtil.CountLines(in text, in glyphData, dimensions, padding, ref lines);
 
                     var linesHeight = lines.Length * fontFace.LineHeight * fontScale * ltw.Scale().y;
-                    var heights     = new float3(fontFace.LineHeight, fontFace.AscentLine, fontFace.DescentLine);
+                    var heights     = new float3(fontFace.LineHeight, fontFace.AscentLine, fontFace.DescentLine) * ltw.Scale().y;
 
                     var start = new float2(
                         TextUtil.GetHorizontalAlignment(textOption.Alignment, extents, lines[0].LineWidth * ltw.Scale().x),
