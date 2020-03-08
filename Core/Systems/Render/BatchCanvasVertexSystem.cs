@@ -59,9 +59,9 @@ namespace UGUIDots.Render.Systems {
         [BurstCompile]
         private struct BuildCanvasJob : IJobChunk {
 
-            public ArchetypeChunkBufferType<RootVertexData>    CanvasVertexType;
-            public ArchetypeChunkBufferType<RootTriangleIndexElement>  CanvasIndexType;
-            public ArchetypeChunkBufferType<SubmeshSliceElement> SubMeshType;
+            public ArchetypeChunkBufferType<RootVertexData>           CanvasVertexType;
+            public ArchetypeChunkBufferType<RootTriangleIndexElement> CanvasIndexType;
+            public ArchetypeChunkBufferType<SubmeshSliceElement>      SubMeshType;
 
             [ReadOnly]
             public BufferFromEntity<LocalVertexData> MeshVertices;
