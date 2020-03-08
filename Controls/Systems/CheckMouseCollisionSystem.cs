@@ -15,9 +15,6 @@ namespace UGUIDots.Controls.Systems {
             public bool2 Pressed;
         }
 
-        protected override void OnStartRunning() {
-        }
-
         protected override void OnUpdate() {
             var keycode   = GetSingleton<PrimaryMouseKeyCode>().Value;
             var mousePos  = Input.mousePosition;
@@ -29,14 +26,30 @@ namespace UGUIDots.Controls.Systems {
             mouseInfo[0]  = new MouseInfo { Position = mousePos, Pressed = new bool2(clickDown, clickUp) };
 
             Dependency = Entities.WithReadOnly(mouseInfo).
-                ForEach((ref ClickState c0, in Dimensions c1, in LocalToWorld c2, in ButtonClickType c3) => {
+                ForEach((ref ClickState c0, ref ButtonVisual c1, in Dimensions c2, in LocalToWorld c3, in ButtonClickType c4) => {
                 var aabb = new AABB {
-                    Center  = c2.Position,
-                    Extents = new float3(c1.Extents(), c2.Position.z)
+                    Center  = c3.Position,
+                    Extents = new float3(c2.Extents(), c3.Position.z)
                 };
 
                 if (aabb.Contains(mouseInfo[0].Position)) {
+                    switch (c4.Value) {
+                        case ClickType.PressDown:
+                            c0.Value = clickDown;
+                            break;
+                        case ClickType.ReleaseUp:
+                            c0.Value = clickUp;
+                            break;
+                        case ClickType.Held:
+                            c0.Value = clickHeld;
+                            break;
+                        default:
+                            break;
+                    }
+
+                    c1.Value =  clickHeld ? ButtonVisualState.Pressed : ButtonVisualState.Hover;
                 } else {
+                    c1.Value = ButtonVisualState.None;
                 }
             }).WithDeallocateOnJobCompletion(mouseInfo).ScheduleParallel(Dependency);
         }

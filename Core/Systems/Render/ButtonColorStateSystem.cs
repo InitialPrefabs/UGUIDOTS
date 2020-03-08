@@ -13,7 +13,8 @@ namespace UGUIDots.Render.Systems {
         protected override void OnCreate() {
             buttonColorQuery = GetEntityQuery(new EntityQueryDesc {
                 All = new [] { 
-                    ComponentType.ReadOnly<AppliedColor>() , ComponentType.ReadOnly<ColorStates>()
+                    ComponentType.ReadOnly<AppliedColor>(), ComponentType.ReadOnly<ColorStates>(),
+                    ComponentType.ReadOnly<ButtonVisual>()
                 },
             });
 
@@ -24,12 +25,33 @@ namespace UGUIDots.Render.Systems {
             var cmdBuffer = cmdBufferSystem.CreateCommandBuffer().ToConcurrent();
 
             Dependency = Entities.WithStoreEntityQueryInField(ref buttonColorQuery).
-                ForEach((Entity entity, in AppliedColor c0, in ColorStates c1, in ClickState c2) => {
+                ForEach((Entity entity, in AppliedColor c0, in ColorStates c1,  in ButtonVisual c3) => {
 
-                bool delta = false;
+                bool delta = true;
                 Color32 color = default;
 
+                var currentColor = c0.Value.ToNormalizedFloat4();
+                
                 // TODO: Redo how button clicks are registered.
+                switch (c3.Value) {
+                    case var _ when ButtonVisualState.Hover == c3.Value && 
+                        !currentColor.Equals(c1.HighlightedColor.ToNormalizedFloat4()):
+                        color = c1.HighlightedColor;
+                        break;
+
+                    case var _ when ButtonVisualState.Pressed == c3.Value &&
+                        !currentColor.Equals(c1.PressedColor.ToNormalizedFloat4()):
+                        color = c1.PressedColor;
+                        break;
+
+                    case var _ when ButtonVisualState.None == c3.Value &&
+                        !currentColor.Equals(c1.DefaultColor.ToNormalizedFloat4()):
+                        color = c1.DefaultColor;
+                        break;
+                    default:
+                        delta = false;
+                        break;
+                } 
 
                 if (delta) {
                     cmdBuffer.SetComponent(entity.Index, entity, new AppliedColor { Value = color });

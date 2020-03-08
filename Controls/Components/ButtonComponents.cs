@@ -9,6 +9,6 @@ namespace UGUIDots.Controls {
     }
 
     public struct ButtonClickType : IComponentData {
-        public ClickType Type;
+        public ClickType Value;
     }
 }
