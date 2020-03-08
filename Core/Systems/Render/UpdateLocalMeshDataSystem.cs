@@ -59,7 +59,7 @@ namespace UGUIDots.Render.Systems {
             }
         }
 
-        private EntityQuery cachedMeshQuery, canvasQuery;
+        private EntityQuery cachedMeshQuery, canvasQuery, childrenUIQuery;
         private EntityCommandBufferSystem cmdBufferSystem;
 
         protected override void OnCreate() {
@@ -74,9 +74,16 @@ namespace UGUIDots.Render.Systems {
                 All = new [] { ComponentType.ReadOnly<WidthHeightRatio>() }
             });
 
+            childrenUIQuery = GetEntityQuery(new EntityQueryDesc {
+                All = new [] {
+                    ComponentType.ReadOnly<UpdateVertexColorTag>(), ComponentType.ReadOnly<MeshDataSpan>(),
+                    ComponentType.ReadWrite<LocalVertexData>()
+                }
+            });
+
             cmdBufferSystem = World.GetOrCreateSystem<BeginPresentationEntityCommandBufferSystem>();
 
-            RequireForUpdate(cachedMeshQuery);
+            RequireForUpdate(childrenUIQuery);
         }
 
         protected override void OnUpdate() {

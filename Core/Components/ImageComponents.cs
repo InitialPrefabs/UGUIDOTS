@@ -58,16 +58,13 @@ namespace UGUIDots {
     /// Stores various color states that need to be applied to the image.
     /// </summary>
     public struct ColorStates : IComponentData { 
-        public Color32 DefaultColor, HighlightedColor, PressedColor, SelectedColor, DisabledColor;
-        public float FadeDuration;
+        public Color32 DefaultColor, HighlightedColor, PressedColor, DisabledColor;
 
         public static ColorStates FromColorBlock(ColorBlock block) {
             return new ColorStates {
                 HighlightedColor = block.highlightedColor,
                 PressedColor     = block.pressedColor,
-                SelectedColor    = block.selectedColor,
                 DisabledColor    = block.disabledColor,
-                FadeDuration     = block.fadeDuration,
                 DefaultColor     = block.normalColor
             };
         }

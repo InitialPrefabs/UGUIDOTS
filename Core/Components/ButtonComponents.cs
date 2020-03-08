@@ -28,4 +28,9 @@ namespace UGUIDots {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ButtonVisual Default() => new ButtonVisual { Value = ButtonVisualState.None };
     }
+
+    /// <summary>
+    /// Marks that a button is non interactable.
+    /// </summary>
+    public struct ButtonDisabledTag : IComponentData { }
 }
