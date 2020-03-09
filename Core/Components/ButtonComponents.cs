@@ -30,6 +30,11 @@ namespace UGUIDots {
     }
 
     /// <summary>
+    /// Marks an entity to have a message archetype.
+    /// </summary>
+    public struct ButtonMessageRequest : IComponentData { }
+
+    /// <summary>
     /// Marks that a button is non interactable.
     /// </summary>
     public struct ButtonDisabledTag : IComponentData { }

@@ -17,4 +17,11 @@ namespace UGUIDots.Controls {
     public struct ButtonClickType : IComponentData {
         public ClickType Value;
     }
+
+    /// <summary>
+    /// Stores the Archetype that the button will produce when clicked.
+    /// </summary>
+    public struct ButtonArchetypeProducerRequest : IComponentData {
+        public EntityArchetype Value;
+    }
 }
