@@ -14,17 +14,15 @@ namespace UGUIDots.Render.Systems {
         }
 
         protected override void OnUpdate() {
-            var cmdBuffer = cmdBufferSystem.CreateCommandBuffer();
+            var cmdBuffer = cmdBufferSystem.CreateCommandBuffer().ToConcurrent();
 
-            Entities.WithNone<ButtonDisabledTag>().
+            Dependency = Entities.WithNone<ButtonDisabledTag>().
                 ForEach((Entity entity, in AppliedColor c0, in ColorStates c1,  in ButtonVisual c3) => {
 
                 bool delta = true;
                 Color32 color = default;
-
                 var currentColor = c0.Value.ToNormalizedFloat4();
                 
-                // TODO: Redo how button clicks are registered.
                 switch (c3.Value) {
                     case var _ when ButtonVisualState.Hover == c3.Value && 
                         !currentColor.Equals(c1.HighlightedColor.ToNormalizedFloat4()):
@@ -47,10 +45,10 @@ namespace UGUIDots.Render.Systems {
                 } 
 
                 if (delta) {
-                    cmdBuffer.SetComponent(entity, new AppliedColor { Value = color });
-                    cmdBuffer.AddComponent<UpdateVertexColorTag>(entity);
+                    cmdBuffer.SetComponent(entity.Index, entity, new AppliedColor { Value = color });
+                    cmdBuffer.AddComponent<UpdateVertexColorTag>(entity.Index, entity);
                 }
-            }).WithBurst().Run();
+            }).WithBurst().ScheduleParallel(Dependency);
 
             cmdBufferSystem.AddJobHandleForProducer(Dependency);
         }
