@@ -6,26 +6,18 @@ namespace UGUIDots.Controls.Messaging.Systems {
     [UpdateInGroup(typeof(MessagingConsumptionGroup))]
     public class ButtonMessageConsumerSystem : SystemBase {
 
-        private EntityQuery messageRequests;
-
         private EntityCommandBufferSystem cmdBufferSystem;
 
         protected override void OnCreate() {
-
-            messageRequests = GetEntityQuery(new EntityQueryDesc {
-                All = new [] {
-                    ComponentType.ReadOnly<ButtonMessageRequest>()
-                }
-            });
             cmdBufferSystem = World.GetOrCreateSystem<BeginPresentationEntityCommandBufferSystem>();
         }
 
         protected override void OnUpdate() {
             var cmdBuffer = cmdBufferSystem.CreateCommandBuffer().ToConcurrent();
 
-            Entities.ForEach((Entity entity, in ButtonMessageRequest c0) => {
+            Dependency = Entities.ForEach((Entity entity, in ButtonMessageRequest c0) => {
                 cmdBuffer.DestroyEntity(entity.Index, entity);
-            }).WithBurst().ScheduleParallel(Dependency);
+            }).WithBurst().Schedule(Dependency);
 
             cmdBufferSystem.AddJobHandleForProducer(Dependency);
         }
@@ -37,6 +29,7 @@ namespace UGUIDots.Controls.Messaging.Systems {
         private EntityCommandBufferSystem cmdBufferSystem;
         
         protected override void OnCreate() {
+            cmdBufferSystem = World.GetOrCreateSystem<BeginPresentationEntityCommandBufferSystem>();
         }
 
         protected override void OnUpdate() {
@@ -46,6 +39,8 @@ namespace UGUIDots.Controls.Messaging.Systems {
                     var e = cmdBuffer.CreateEntity(entity.Index, c1.Value);
                 }
             }).ScheduleParallel(Dependency);
+
+            cmdBufferSystem.AddJobHandleForProducer(Dependency);
         }
     }
 }
