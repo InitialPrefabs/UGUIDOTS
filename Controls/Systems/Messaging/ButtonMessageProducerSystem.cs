@@ -1,8 +1,8 @@
 ﻿using Unity.Entities;
-using UnityEngine;
 
 namespace UGUIDots.Controls.Messaging.Systems {
 
+    // TODO: Rename the accompanying file
     [UpdateInGroup(typeof(MessagingConsumptionGroup))]
     public class ButtonMessageConsumerSystem : SystemBase {
 
@@ -23,6 +23,8 @@ namespace UGUIDots.Controls.Messaging.Systems {
         }
     }
 
+    // TODO: Support the ButtonMessagePersistentPayload component which has a different life span
+    // TODO: Change the job to an IJobChunk
     [UpdateInGroup(typeof(MessagingProductionGroup))]
     public class ButtonMessageProducerSystem : SystemBase {
 
@@ -34,9 +36,9 @@ namespace UGUIDots.Controls.Messaging.Systems {
 
         protected override void OnUpdate() {
             var cmdBuffer = cmdBufferSystem.CreateCommandBuffer().ToConcurrent();
-            Dependency = Entities.ForEach((Entity entity, in ClickState c0, in ButtonArchetypeProducerRequest c1) => {
+            Dependency = Entities.ForEach((Entity entity, in ClickState c0, in ButtonMessageFramePayload c1) => {
                 if (c0.Value) {
-                    var e = cmdBuffer.CreateEntity(entity.Index, c1.Value);
+                    cmdBuffer.Instantiate(entity.Index, c1.Value);
                 }
             }).ScheduleParallel(Dependency);
 

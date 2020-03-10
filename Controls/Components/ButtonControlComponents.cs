@@ -21,7 +21,22 @@ namespace UGUIDots.Controls {
     /// <summary>
     /// Stores the Archetype that the button will produce when clicked.
     /// </summary>
+    [System.Obsolete]
     public struct ButtonArchetypeProducerRequest : IComponentData {
         public EntityArchetype Value;
+    }
+
+    /// <summary>
+    /// Stores the entity that needs to be produced and consumed on the next frame.
+    /// </summary>
+    public struct ButtonMessageFramePayload : IComponentData {
+        public Entity Value;
+    }
+
+    /// <summary>
+    /// Stores the entity that needs to be produced and remain persistent until the button is released.
+    /// </summary>
+    public struct ButtonMessagePersistentPayload : ISystemStateComponentData {
+        public Entity Value;
     }
 }
