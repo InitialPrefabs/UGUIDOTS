@@ -38,7 +38,8 @@ namespace UGUIDots.Controls.Messaging.Systems {
             var cmdBuffer = cmdBufferSystem.CreateCommandBuffer().ToConcurrent();
             Dependency = Entities.ForEach((Entity entity, in ClickState c0, in ButtonMessageFramePayload c1) => {
                 if (c0.Value) {
-                    cmdBuffer.Instantiate(entity.Index, c1.Value);
+                    var msgEntity = cmdBuffer.Instantiate(entity.Index, c1.Value);
+                    cmdBuffer.AddComponent<ButtonMessageRequest>(entity.Index, msgEntity);
                 }
             }).ScheduleParallel(Dependency);
 
