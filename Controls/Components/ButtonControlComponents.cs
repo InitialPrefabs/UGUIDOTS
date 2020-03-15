@@ -1,4 +1,7 @@
+using System.Runtime.CompilerServices;
 using Unity.Entities;
+using Unity.Mathematics;
+using UnityEngine;
 
 namespace UGUIDots.Controls {
 
@@ -30,5 +33,31 @@ namespace UGUIDots.Controls {
     /// </summary>
     public struct ButtonMessagePersistentPayload : ISystemStateComponentData {
         public Entity Value;
+    }
+
+    /// <summary>
+    /// Stores the touch state element recorded by Unity.
+    /// </summary>
+    public struct TouchElement : IBufferElementData {
+        public TouchPhase Phase;
+        public float2     Position;
+        public short      TapCount;
+
+        public static implicit operator TouchElement(Touch value) {
+            return new TouchElement {
+                Phase    = value.phase,
+                Position = value.position,
+                TapCount = (short)value.tapCount
+            };
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static TouchElement Default() {
+            return new TouchElement {
+                Phase    = TouchPhase.Canceled,
+                Position = new float2(float.PositiveInfinity, float.PositiveInfinity),
+                TapCount = -1
+            };
+        }
     }
 }
