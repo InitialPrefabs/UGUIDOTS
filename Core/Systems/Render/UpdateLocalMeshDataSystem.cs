@@ -9,9 +9,16 @@ namespace UGUIDots.Render.Systems {
     [UpdateInGroup(typeof(MeshUpdateGroup))]
     public class UpdateLocalMeshDataSystem : SystemBase {
 
-        [RequireComponentTag(typeof(UpdateVertexColorTag))]
         [BurstCompile]
-        private struct UpdateLocalVertexJob : IJobForEachWithEntity_EBCC<LocalVertexData, MeshDataSpan, AppliedColor> {
+        private struct UpdateLocalVertexJob : IJobChunk {
+
+            [ReadOnly]
+            public ArchetypeChunkComponentType<AppliedColor> AppliedColorType;
+
+            [ReadOnly]
+            public ArchetypeChunkEntityType EntityType;
+
+            public ArchetypeChunkBufferType<LocalVertexData> LocalVertexType;
 
             [ReadOnly]
             public ComponentDataFromEntity<Parent> Parents;
@@ -19,19 +26,25 @@ namespace UGUIDots.Render.Systems {
             [WriteOnly]
             public NativeHashMap<Entity, Entity>.ParallelWriter CanvasMap;
 
-            public void Execute(Entity entity, int index, DynamicBuffer<LocalVertexData> b0, ref MeshDataSpan c1, 
-                ref AppliedColor c2) {
+            public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex) {
+                var colors        = chunk.GetNativeArray(AppliedColorType);
+                var vertexBuffers = chunk.GetBufferAccessor(LocalVertexType);
+                var entities      = chunk.GetNativeArray(EntityType);
 
-                var vertices = b0.AsNativeArray();
+                for (int i = 0; i < chunk.Count; i++) {
+                    var color    = colors[i];
+                    var vertices = vertexBuffers[i].AsNativeArray();
+                    var entity   = entities[i];
 
-                for (int i      = 0; i < vertices.Length; i++) {
-                    var cpy     = vertices[i];
-                    cpy.Color   = c2.Value.ToNormalizedFloat4();
-                    vertices[i] = cpy;
+                    for (int k = 0; k < vertices.Length; k++) {
+                        var cpy     = vertices[k];
+                        cpy.Color   = color.Value.ToNormalizedFloat4();
+                        vertices[k] = cpy;
+                    }
+
+                    var root = GetRoot(in Parents, in entity);
+                    CanvasMap.TryAdd(root, entity);
                 }
-
-                var root = GetRoot(in Parents, entity);
-                CanvasMap.TryAdd(root, entity);
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -59,16 +72,10 @@ namespace UGUIDots.Render.Systems {
             }
         }
 
-        private EntityQuery cachedMeshQuery, canvasQuery, childrenUIQuery;
+        private EntityQuery canvasQuery, childrenUIQuery;
         private EntityCommandBufferSystem cmdBufferSystem;
 
         protected override void OnCreate() {
-            cachedMeshQuery = GetEntityQuery(new EntityQueryDesc {
-                All = new [] { 
-                    ComponentType.ReadOnly<UpdateVertexColorTag>(), ComponentType.ReadOnly<CachedMeshTag>(), 
-                    ComponentType.ReadWrite<LocalVertexData>(),
-                }
-            });
 
             canvasQuery = GetEntityQuery(new EntityQueryDesc { 
                 All = new [] { ComponentType.ReadOnly<WidthHeightRatio>() }
@@ -77,7 +84,7 @@ namespace UGUIDots.Render.Systems {
             childrenUIQuery = GetEntityQuery(new EntityQueryDesc {
                 All = new [] {
                     ComponentType.ReadOnly<UpdateVertexColorTag>(), ComponentType.ReadOnly<MeshDataSpan>(),
-                    ComponentType.ReadWrite<LocalVertexData>()
+                    ComponentType.ReadWrite<LocalVertexData>(), ComponentType.ReadOnly<AppliedColor>()
                 }
             });
 
@@ -90,15 +97,17 @@ namespace UGUIDots.Render.Systems {
             var map = new NativeHashMap<Entity, Entity>(canvasQuery.CalculateEntityCount() * 2, Allocator.TempJob);
             var cmdBuffer = cmdBufferSystem.CreateCommandBuffer();
 
-            Dependency        = new UpdateLocalVertexJob {
-                Parents       = GetComponentDataFromEntity<Parent>(),
-                CanvasMap     = map.AsParallelWriter(),
-            }.Schedule(this, Dependency);
-
+            Dependency           = new UpdateLocalVertexJob {
+                Parents          = GetComponentDataFromEntity<Parent>(),
+                CanvasMap        = map.AsParallelWriter(),
+                AppliedColorType = GetArchetypeChunkComponentType<AppliedColor>(true),
+                LocalVertexType  = GetArchetypeChunkBufferType<LocalVertexData>(false),
+                EntityType       = GetArchetypeChunkEntityType()
+            }.Schedule(childrenUIQuery, Dependency);
 
             Dependency        = new ScheduleRootVertexUpdate {
                 CommandBuffer = cmdBuffer,
-                CanvasMap     = map
+                CanvasMap     = map,
             }.Schedule(Dependency);
 
             cmdBufferSystem.AddJobHandleForProducer(Dependency);

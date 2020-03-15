@@ -13,17 +13,6 @@ namespace UGUIDots.Render.Systems {
     public class BuildTextVertexDataSystem : SystemBase {
 
         [BurstCompile]
-        private struct BuildGlyphMapJob : IJobForEachWithEntity<FontID> {
-
-            [WriteOnly]
-            public NativeHashMap<int, Entity>.ParallelWriter GlyphMap;
-
-            public void Execute(Entity entity, int index, ref FontID c0) {
-                GlyphMap.TryAdd(c0.Value, entity);
-            }
-        }
-
-        [BurstCompile]
         private struct BuildGlyphMapJobChunk : IJobChunk {
 
             [WriteOnly] public NativeHashMap<int, Entity>.ParallelWriter GlyphMap;

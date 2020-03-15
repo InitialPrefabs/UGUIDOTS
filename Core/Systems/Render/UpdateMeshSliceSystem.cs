@@ -5,12 +5,13 @@ using Unity.Jobs;
 using Unity.Transforms;
 
 namespace UGUIDots.Render.Systems {
+
     [UpdateInGroup(typeof(MeshUpdateGroup))]
     public class UpdateMeshSliceSystem : SystemBase {
 
         [RequireComponentTag(typeof(UpdateVertexColorTag))]
         [BurstCompile]
-        private struct UpdateMeshSliceJob : IJobForEachWithEntity_EB<RootVertexData> {
+        private struct UpdateMeshSliceJob : IJobChunk {
 
             [ReadOnly]
             public BufferFromEntity<Child> ChildrenBuffer;
@@ -21,7 +22,27 @@ namespace UGUIDots.Render.Systems {
             [ReadOnly]
             public BufferFromEntity<LocalVertexData> LocalVertexDatas;
 
+            public ArchetypeChunkBufferType<RootVertexData> RootVertexType;
+
+            [ReadOnly]
+            public ArchetypeChunkEntityType EntityType;
+
             public EntityCommandBuffer.Concurrent CmdBuffer;
+
+            public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex) {
+                var entities          = chunk.GetNativeArray(EntityType);
+                var rootVertexBuffers = chunk.GetBufferAccessor(RootVertexType);
+
+                for (int i = 0; i < chunk.Count; i++) {
+                    var entity       = entities[i];
+                    var rootVertices = rootVertexBuffers[i].AsNativeArray();
+
+                    RecurseUpdateChildren(entity, ref rootVertices);
+
+                    CmdBuffer.RemoveComponent<UpdateVertexColorTag>(entity.Index, entity);
+                    CmdBuffer.AddComponent<BuildCanvasTag>(entity.Index, entity);
+                }
+            }
 
             public void Execute(Entity entity, int index, DynamicBuffer<RootVertexData> b0) {
                 if (!ChildrenBuffer.Exists(entity)) {
@@ -80,7 +101,9 @@ namespace UGUIDots.Render.Systems {
                 ChildrenBuffer   = GetBufferFromEntity<Child>(true),
                 MeshDataSpans    = GetComponentDataFromEntity<MeshDataSpan>(true),
                 LocalVertexDatas = GetBufferFromEntity<LocalVertexData>(true),
-                CmdBuffer        = cmdBufferSystem.CreateCommandBuffer().ToConcurrent()
+                CmdBuffer        = cmdBufferSystem.CreateCommandBuffer().ToConcurrent(),
+                EntityType       = GetArchetypeChunkEntityType(),
+                RootVertexType = GetArchetypeChunkBufferType<RootVertexData>(false),
             }.Schedule(canvasUpdateQuery, Dependency);
 
             cmdBufferSystem.AddJobHandleForProducer(Dependency);
