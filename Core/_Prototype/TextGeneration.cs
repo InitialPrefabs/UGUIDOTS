@@ -103,7 +103,7 @@ public class TextGeneration : MonoBehaviour {
         }
 
         var m = Matrix4x4.TRS(default, Quaternion.identity, Vector3.one);
-        Feature.Pass.InstructionQueue.Enqueue((mesh, Material, m, block));
+        // Feature.Pass.InstructionQueue.Enqueue((mesh, Material, m, block));
     }
 
     void Update() 
