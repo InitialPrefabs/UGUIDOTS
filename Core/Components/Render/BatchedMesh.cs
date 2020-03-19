@@ -16,8 +16,8 @@ namespace UGUIDots.Render {
     /// not used explicitly.
     /// </summary>
     public struct SubmeshKeyElement : IBufferElementData {
-        public short TextureKey;
-        public short MaterialKey;
+        public Entity TextureEntity;
+        public Entity MaterialEntity;
     }
 
     /// <summary>

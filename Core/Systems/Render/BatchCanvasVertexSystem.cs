@@ -15,10 +15,10 @@ namespace UGUIDots.Render.Systems {
         private struct BuildSubMeshBufferJob : IJobChunk {
 
             [ReadOnly]
-            public ComponentDataFromEntity<MaterialKey> MaterialKeys;
+            public ComponentDataFromEntity<LinkedMaterialEntity> MaterialKeys;
 
             [ReadOnly]
-            public ComponentDataFromEntity<TextureKey> TextureKeys;
+            public ComponentDataFromEntity<LinkedTextureEntity> TextureKeys;
 
             [ReadOnly]
             public ArchetypeChunkBufferType<RenderElement> RenderType;
@@ -44,12 +44,12 @@ namespace UGUIDots.Render.Systems {
                         var current = span[k].Value;
                         var element = renderer[current.x].Value;
 
-                        var materialKey = (short)(MaterialKeys.Exists(element) ? MaterialKeys[element].Value : -1);
-                        var textureKey  = (short)(TextureKeys.Exists(element) ? TextureKeys[element].Value : -1);
+                        var materialKey = MaterialKeys.Exists(element) ? MaterialKeys[element].Value : Entity.Null;
+                        var textureKey  = TextureKeys.Exists(element) ? TextureKeys[element].Value : Entity.Null;
 
                         batchedSubMesh.Add(new SubmeshKeyElement {
-                            TextureKey  = textureKey,
-                            MaterialKey = materialKey
+                            TextureEntity  = textureKey,
+                            MaterialEntity = materialKey
                         });
                     }
                 }
@@ -177,8 +177,8 @@ namespace UGUIDots.Render.Systems {
             var renderType   = GetArchetypeChunkBufferType<RenderElement>(true);
             var spanType     = GetArchetypeChunkBufferType<BatchedSpanElement>(true);
             Dependency       = new BuildSubMeshBufferJob {
-                MaterialKeys = GetComponentDataFromEntity<MaterialKey>(true),
-                TextureKeys  = GetComponentDataFromEntity<TextureKey>(true),
+                MaterialKeys = GetComponentDataFromEntity<LinkedMaterialEntity>(true),
+                TextureKeys  = GetComponentDataFromEntity<LinkedTextureEntity>(true),
                 RenderType   = renderType,
                 SpanType     = spanType,
                 SubMeshType  = GetArchetypeChunkBufferType<SubmeshKeyElement>()

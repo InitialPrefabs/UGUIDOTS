@@ -83,7 +83,15 @@ namespace UGUIDots {
     /// <summary>
     /// Stores the key to the texture that needs to be displayed.
     /// </summary>
+    [System.Obsolete]
     public struct TextureKey : IComponentData {
         public short Value;
+    }
+
+    /// <summary>
+    /// Sotres the entity that is linked
+    /// </summary>
+    public struct LinkedTextureEntity : IComponentData {
+        public Entity Value;
     }
 }
