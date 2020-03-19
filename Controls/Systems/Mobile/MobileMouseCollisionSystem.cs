@@ -28,25 +28,25 @@ namespace UGUIDots.Controls.Systems {
 
                 for (int i = 0; i < touches.Length; i++) {
                     var touch = touches[i];
-                    if (aabb.Contains(new float3(touches[i].Position, 0))) {
+                    if (aabb.Contains(new float3(touches[i].Position, c3.Position.z))) {
                         switch (c4.Value) {
-                            case var _ when ClickType.PressDown == c4.Value && touch.Phase == TouchPhase.Began && 
-                                touch.TapCount > 0:
+                            case var _ when ClickType.PressDown == c4.Value && touch.Phase == TouchPhase.Began:
                                 c0.Value = true;
                                 break;
-                            case var _ when ClickType.ReleaseUp == c4.Value && touch.Phase == TouchPhase.Ended && 
-                                touch.TapCount > 0:
+                            case var _ when ClickType.ReleaseUp == c4.Value && touch.Phase == TouchPhase.Ended:
                                 c0.Value = true;
                                 break;
                             default:
                                 break;
                         }
+
+                        // Debug.Log($"MobileMouseCollisionSystem->Pressed: {c1.Value}");
                         c1.Value =  c0.Value ? ButtonVisualState.Pressed : ButtonVisualState.Hover;
                     } else {
                         c1.Value = ButtonVisualState.None;
                     }
                 }
-            }).ScheduleParallel(Dependency);
+            }).WithoutBurst().ScheduleParallel(Dependency);
         }
     }
 }
