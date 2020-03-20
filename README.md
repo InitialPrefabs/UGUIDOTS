@@ -31,14 +31,13 @@ Support for the following will come over time - depends on the needs for my own 
 * [x] Canvas Scaling
 * [x] Anchoring
 * [x] Image stretching
-* [ ] Button actions
-* [ ] Button states (with color support)
+* [x] Button actions
+* [x] Button states (with color support)
 * [ ] Hierarchy based disabling
 * [x] Text Rendering
 * [ ] Input fields
-* [ ] Subscene caching
-* [ ] Convert reference types to use pointers to avoid chunk splitting (?)
-* [ ] Support manual image / text batching of static UI elements (static analysis)
+* [ ] Subscene support
+* [x] Support manual image / text batching of static UI elements (static analysis)
 
 ## QuickStart
 
