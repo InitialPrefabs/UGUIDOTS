@@ -1,13 +1,19 @@
 # Change Log
 
-## 0.0.5 - 2020-02-21
+## 0.0.5 - 2020-03-20
 ### Added
-* Static analysis batching of the canvas hierarchy.
-* Added systems to congregate children mesh vertices and indices
+* Static analysis batching of the canvas hierarchy
+* Added systems to aggregate children mesh vertices and indices
+* Added VisualAssetConversionSystem to declare prefab entities for textures and materials
+
 ### Changed
+* Changed IJobForEach structs to use the Entities.Lambda option
 * Removed RenderRecurseOrderSystem because the batcher builds the meshes in order
-* Removed CanvasSortOrder for the time being because there currently isn't a good way to sort it currently.
+* Removed CanvasSortOrder for the time being because there currently isn't a good way to sort it currently
 * Removed MeshIndex because meshes are attached to Canvas root objects instead.
+* Removed SubmeshKeyElement indices
+* Removed Bin<T> which stored project assets
+* Removed TextureKey and MaterialKey index operations of retrieving keys.
 
 ## 0.0.4 - 2020-02-06
 ### Added
