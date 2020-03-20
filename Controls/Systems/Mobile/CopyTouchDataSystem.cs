@@ -14,7 +14,6 @@ namespace UGUIDots.Controls.Systems {
                 var touchBuffer = b0.AsNativeArray();
                 for (int i = 0; i < Input.touchCount; i++) {
                     touchBuffer[i] = Input.GetTouch(i);
-                    // Debug.Log($"CopyTouchDataSystems -> at {i}: {touchBuffer[i].Phase}, Taps: {touchBuffer[i].TapCount}");
                 }
 
                 for (int i = Input.touchCount; i < touchBuffer.Length; i++) {

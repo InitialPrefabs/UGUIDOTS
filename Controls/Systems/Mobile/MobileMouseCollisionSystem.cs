@@ -14,12 +14,12 @@ namespace UGUIDots.Controls.Systems {
 
             var touches = new NativeArray<TouchElement>(10, Allocator.TempJob);
 
-            Dependency = Entities.ForEach((DynamicBuffer<TouchElement> b0) => {
+            Entities.ForEach((DynamicBuffer<TouchElement> b0) => {
                 UnsafeUtility.MemCpy(touches.GetUnsafePtr(), b0.GetUnsafePtr(), 
                     UnsafeUtility.SizeOf<TouchElement>() * b0.Length);
-            }).Schedule(Dependency);
+            }).Run();
 
-            Dependency = Entities.WithDeallocateOnJobCompletion(touches).WithNone<ButtonDisabledTag>().
+            Entities.WithDeallocateOnJobCompletion(touches).WithNone<ButtonDisabledTag>().
                 ForEach((ref ClickState c0, ref ButtonVisual c1, in Dimensions c2, in LocalToWorld c3, in ButtonClickType c4) => {
                 var aabb = new AABB {
                     Center  = c3.Position,
@@ -40,13 +40,14 @@ namespace UGUIDots.Controls.Systems {
                                 break;
                         }
 
-                        // Debug.Log($"MobileMouseCollisionSystem->Pressed: {c1.Value}");
-                        c1.Value =  c0.Value ? ButtonVisualState.Pressed : ButtonVisualState.Hover;
+                        var onTop = (touch.Phase & (TouchPhase.Began | TouchPhase.Stationary | TouchPhase.Moved)) > 0;
+                        c1.Value  = onTop ? ButtonVisualState.Pressed : ButtonVisualState.Hover;
+                        break;
                     } else {
-                        c1.Value = ButtonVisualState.None;
+                        c1.Value  = ButtonVisualState.None;
                     }
                 }
-            }).WithoutBurst().ScheduleParallel(Dependency);
+            }).Run();
         }
     }
 }
