@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using UGUIDots.Collections.Runtime;
+using Unity.Entities;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -16,8 +16,6 @@ namespace UGUIDots.Render {
         public Queue<RenderInstruction> RenderInstructions { get; private set; }
 
         private string                profilerTag;
-        private Bin<Material>         materialBin;
-        private Bin<Texture>          textureBin;
         private MaterialPropertyBlock _tempBlock;
 
         public OrthographicRenderPass(OrthographicRenderSettings settings) {
@@ -25,9 +23,6 @@ namespace UGUIDots.Render {
             base.renderPassEvent = settings.RenderPassEvt;
             RenderInstructions   = new Queue<RenderInstruction>();
             _tempBlock           = new MaterialPropertyBlock();
-
-            MaterialBin.TryLoadBin("MaterialBin", out materialBin);
-            TextureBin.TryLoadBin("TextureBin", out textureBin);
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData) {
@@ -46,18 +41,21 @@ namespace UGUIDots.Render {
                 var view = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, Vector3.one);
                 cmd.SetViewProjectionMatrices(view, proj);
 
+                var mgr = World.DefaultGameObjectInjectionWorld.EntityManager;
+
                 while (RenderInstructions.Count > 0) {
                     var dequed = RenderInstructions.Dequeue();
                     var keys   = dequed.Start;
                     var mesh   = dequed.Mesh;
 
                     for (int i = 0; i < mesh.subMeshCount; i++) {
-                        var mat        = materialBin.At(keys[i].MaterialKey);
-                        var textureKey = keys[i].TextureKey;
+                        var mat        = mgr.GetComponentObject<Material>(keys[i].MaterialEntity);
+                        var textureKey = keys[i].TextureEntity;
 
                         _tempBlock.Clear();
-                        if (textureKey >= 0) {
-                            _tempBlock.SetTexture(ShaderIDConstants.MainTex, textureBin.At(textureKey));
+                        if (textureKey != Entity.Null) {
+                            _tempBlock.SetTexture(ShaderIDConstants.MainTex, 
+                                mgr.GetComponentObject<Texture2D>(textureKey));
                         }
 
                         var m = Matrix4x4.identity;

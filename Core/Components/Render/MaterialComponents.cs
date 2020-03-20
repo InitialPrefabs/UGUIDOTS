@@ -1,20 +1,22 @@
 using System;
 using Unity.Entities;
+using UnityEngine;
 
 namespace UGUIDots.Render {
 
-    /// <summary>
-    /// Stores the material index determiend by the MaterialBin that the image uses.
-    /// </summary>
-    public struct MaterialKey : IComponentData, IEquatable<MaterialKey> {
-        public short Value;
-
-        public bool Equals(MaterialKey other) {
-            return other.Value == Value;
-        }
+    public struct SharedMaterial : ISharedComponentData, IEquatable<SharedMaterial> {
+        public Material Value;
 
         public override int GetHashCode() {
-            return Value.GetHashCode();
+            return Value != null ? Value.GetHashCode() : 0;
         }
+
+        public bool Equals(SharedMaterial other) {
+            return other.Value == Value;
+        }
+    }
+
+    public struct LinkedMaterialEntity : IComponentData {
+        public Entity Value;
     }
 }
