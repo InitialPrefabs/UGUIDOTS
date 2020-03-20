@@ -58,11 +58,16 @@ Open RectTransformConversionTest.unity to see how scenes are set up.
 
 Grab these from Unity's package manager.
 
-* Burst 1.2.1
-* Entities 0.5.1-preview-11
-* Jobs 0.2.2-preview-11
-* Collections 0.5.1-preview-11
+* Burst 1.3.0
+* Entities 0.8.0-preview-8
+* Jobs 0.2.7-preview-11
+* Collections 0.7.0-preview-2
 * UGUI 1.0.0
+
+### Note
+Regarding Entities 0.8.0-preview-8 there is an issue regarding the preprocessor defines for Android. Please follow the 
+instructions in this [Unity forum post](https://forum.unity.com/threads/entities-0-8-compile-error-in-android-platform.846583/) 
+to resolve it.
 
 ## Limitations
 Development is still underway - so not all of the features Unity has by default is supported. Similarly - there are certain
