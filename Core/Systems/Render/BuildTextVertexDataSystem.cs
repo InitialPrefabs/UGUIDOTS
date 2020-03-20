@@ -10,18 +10,7 @@ using Unity.Transforms;
 namespace UGUIDots.Render.Systems {
 
     [UpdateInGroup(typeof(MeshBuildGroup))]
-    public class BuildTextVertexDataSystem : JobComponentSystem {
-
-        [BurstCompile]
-        private struct BuildGlyphMapJob : IJobForEachWithEntity<FontID> {
-
-            [WriteOnly]
-            public NativeHashMap<int, Entity>.ParallelWriter GlyphMap;
-
-            public void Execute(Entity entity, int index, ref FontID c0) {
-                GlyphMap.TryAdd(c0.Value, entity);
-            }
-        }
+    public class BuildTextVertexDataSystem : SystemBase {
 
         [BurstCompile]
         private struct BuildGlyphMapJobChunk : IJobChunk {
@@ -97,7 +86,7 @@ namespace UGUIDots.Render.Systems {
                     var fontFace  = FontFaces[glyphEntity];
                     var fontScale = textOption.Size > 0 ? (float)textOption.Size / fontFace.PointSize : 1f;
                     var glyphData = GlyphData[glyphEntity].AsNativeArray();
-                    var extents   = dimensions.Extents();
+                    var extents   = dimensions.Extents() * ltw.Scale().xy;
 
                     var stylePadding = TextUtil.SelectStylePadding(in textOption, in fontFace);
                     var parentScale  = textOption.Size * new float2(1) / fontFace.PointSize;
@@ -109,11 +98,11 @@ namespace UGUIDots.Render.Systems {
 
                     TextUtil.CountLines(in text, in glyphData, dimensions, padding, ref lines);
 
-                    var linesHeight = lines.Length * fontFace.LineHeight * fontScale;
-                    var heights     = new float3(fontFace.LineHeight, fontFace.AscentLine, fontFace.DescentLine);
+                    var linesHeight = lines.Length * fontFace.LineHeight * fontScale * ltw.Scale().y;
+                    var heights     = new float3(fontFace.LineHeight, fontFace.AscentLine, fontFace.DescentLine) * ltw.Scale().y;
 
                     var start = new float2(
-                        TextUtil.GetHorizontalAlignment(textOption.Alignment, extents, lines[0].LineWidth),
+                        TextUtil.GetHorizontalAlignment(textOption.Alignment, extents, lines[0].LineWidth * ltw.Scale().x),
                         TextUtil.GetVerticalAlignment(heights, fontScale, textOption.Alignment,
                             in extents, in linesHeight, lines.Length)) + ltw.Position.xy;
 
@@ -127,19 +116,19 @@ namespace UGUIDots.Render.Systems {
                         var bl = (ushort)vertices.Length;
 
                         if (row < lines.Length && k == lines[row].StartIndex) {
-                            var height = fontFace.LineHeight * fontScale * (row > 0 ? 1f : 0f);
+                            var height = fontFace.LineHeight * fontScale * ltw.Scale().y * (row > 0 ? 1f : 0f);
 
                             start.y -= height;
                             start.x  = TextUtil.GetHorizontalAlignment(textOption.Alignment,
-                                    extents, lines[row].LineWidth) + ltw.Position.x;
+                                    extents, lines[row].LineWidth * ltw.Scale().x) + ltw.Position.x;
 
                             row++;
                         }
 
-                        var xPos = start.x + (glyph.Bearings.x - stylePadding) * fontScale;
-                        var yPos = start.y - (glyph.Size.y - glyph.Bearings.y - stylePadding) * fontScale;
+                        var xPos = start.x + (glyph.Bearings.x - stylePadding) * fontScale * ltw.Scale().x;
+                        var yPos = start.y - (glyph.Size.y - glyph.Bearings.y - stylePadding) * fontScale * ltw.Scale().y;
 
-                        var size  = (glyph.Size + new float2(stylePadding * 2)) * fontScale;
+                        var size  = (glyph.Size + new float2(stylePadding * 2)) * fontScale * ltw.Scale().xy;
                         var uv1   = glyph.RawUV.NormalizeAdjustedUV(stylePadding, fontFace.AtlasSize);
                         var uv2   = new float2(glyph.Scale) * math.select(canvasScale, -canvasScale, isBold);
                         var right = new float3(1, 0, 0);
@@ -187,7 +176,7 @@ namespace UGUIDots.Render.Systems {
                         indices.Add(new LocalTriangleIndexElement { Value = tr });
                         indices.Add(new LocalTriangleIndexElement { Value = br });
 
-                        start += new float2(glyph.Advance * padding, 0);
+                        start += new float2(glyph.Advance * padding * ltw.Scale().x, 0);
                     }
 
                     lines.Dispose();
@@ -224,16 +213,16 @@ namespace UGUIDots.Render.Systems {
             cmdBufferSystem = World.GetOrCreateSystem<BeginPresentationEntityCommandBufferSystem>();
         }
 
-        protected override JobHandle OnUpdate(JobHandle inputDeps) {
+        protected override void OnUpdate() {
             var glyphMap = new NativeHashMap<int, Entity>(glyphQuery.CalculateEntityCount(), Allocator.TempJob);
 
-            var glyphMapDeps = new BuildGlyphMapJobChunk {
+            Dependency = new BuildGlyphMapJobChunk {
                 GlyphMap   = glyphMap.AsParallelWriter(),
                 EntityType = GetArchetypeChunkEntityType(),
                 FontType   = GetArchetypeChunkComponentType<FontID>(true)
-            }.Schedule(glyphQuery, inputDeps);
+            }.Schedule(glyphQuery, Dependency);
 
-            var textMeshDeps       = new BuildTextMeshJob {
+            Dependency = new BuildTextMeshJob {
                 GlyphMap           = glyphMap,
                 GlyphData          = GetBufferFromEntity<GlyphElement>(true),
                 FontFaces          = GetComponentDataFromEntity<FontFaceInfo>(true),
@@ -247,13 +236,10 @@ namespace UGUIDots.Render.Systems {
                 MeshVertexDataType = GetArchetypeChunkBufferType<LocalVertexData>(),
                 TriangleIndexType  = GetArchetypeChunkBufferType<LocalTriangleIndexElement>(),
                 CmdBuffer          = cmdBufferSystem.CreateCommandBuffer().ToConcurrent()
-            }.Schedule(textQuery, glyphMapDeps);
+            }.Schedule(textQuery, Dependency);
 
-            var finalDeps = glyphMap.Dispose(textMeshDeps);
-
-            cmdBufferSystem.AddJobHandleForProducer(finalDeps);
-
-            return finalDeps;
+            Dependency = glyphMap.Dispose(Dependency);
+            cmdBufferSystem.AddJobHandleForProducer(Dependency);
         }
     }
 }

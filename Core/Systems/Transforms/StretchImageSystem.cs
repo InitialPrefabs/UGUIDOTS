@@ -1,5 +1,4 @@
 using UGUIDots.Render;
-using Unity.Burst;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
@@ -10,25 +9,7 @@ namespace UGUIDots.Transforms.Systems {
 
     [UpdateInGroup(typeof(UITransformUpdateGroup))]
     [UpdateAfter(typeof(AnchorSystem))]
-    public class StretchDimensionsSystem : JobComponentSystem {
-
-        [BurstCompile]
-        private struct StretchDimensionsJob : IJobForEachWithEntity<LocalToWorld, Dimensions, Stretch> {
-
-            public float2 Resolution;
-            public EntityCommandBuffer.Concurrent CmdBuffer;
-
-            public void Execute(Entity entity, int index, ref LocalToWorld c0, ref Dimensions c1, ref Stretch c2) {
-                var scale = c0.Scale().xy;
-                var newDimensions = (int2)(Resolution / scale);
-
-                c1 = new Dimensions {
-                    Value = newDimensions,
-                };
-
-                CmdBuffer.RemoveComponent<CachedMeshTag>(index, entity);
-            }
-        }
+    public class StretchDimensionsSystem : SystemBase {
 
         private EntityCommandBufferSystem cmdBufferSystem;
 
@@ -37,16 +18,17 @@ namespace UGUIDots.Transforms.Systems {
             RequireSingletonForUpdate<ResolutionChangeEvt>();
         }
 
-        protected override JobHandle OnUpdate(JobHandle inputDeps) {
-            var cmdBuffer = cmdBufferSystem.CreateCommandBuffer().ToConcurrent();
+        protected override void OnUpdate() {
+            var cmdBuffer  = cmdBufferSystem.CreateCommandBuffer().ToConcurrent();
+            var resolution = new float2(Screen.width, Screen.height);
 
-            var stretchDeps = new StretchDimensionsJob {
-                Resolution = new float2(Screen.width, Screen.height),
-                CmdBuffer = cmdBuffer
-            }.Schedule(this, inputDeps);
+            Dependency = Entities.ForEach((Entity entity, ref Dimensions c1, in LocalToWorld c0, in Stretch c2) => {
+                var scale = c0.Scale().xy;
+                c1        = new Dimensions { Value = (int2)(resolution / scale) };
+                cmdBuffer.RemoveComponent<CachedMeshTag>(entity.Index, entity);
+            }).WithBurst().ScheduleParallel(Dependency);
 
-            cmdBufferSystem.AddJobHandleForProducer(stretchDeps);
-            return stretchDeps;
+            cmdBufferSystem.AddJobHandleForProducer(Dependency);
         }
     }
 }

@@ -10,7 +10,7 @@ using Unity.Transforms;
 namespace UGUIDots.Render.Systems {
 
     [UpdateInGroup(typeof(MeshBuildGroup))]
-    public class BuildImageVertexDataSystem : JobComponentSystem {
+    public class BuildImageVertexDataSystem : SystemBase {
 
         [BurstCompile]
         private unsafe struct RebuildImgMeshJob : IJobChunk {
@@ -161,8 +161,8 @@ namespace UGUIDots.Render.Systems {
             cmdBufferSystem = World.GetOrCreateSystem<BeginPresentationEntityCommandBufferSystem>();
         }
 
-        protected override JobHandle OnUpdate(JobHandle inputDeps) {
-            var rebuildDeps       = new RebuildImgMeshJob {
+        protected override void OnUpdate() {
+            Dependency            = new RebuildImgMeshJob {
                 BuildMeshProfiler = new ProfilerMarker("BuildImageVertexDataSystem.RebuildImgMeshJob"),
                 LTWType           = GetArchetypeChunkComponentType<LocalToWorld>(true),
                 DimensionType     = GetArchetypeChunkComponentType<Dimensions>(true),
@@ -174,10 +174,9 @@ namespace UGUIDots.Render.Systems {
                 SpriteResType     = GetArchetypeChunkComponentType<DefaultSpriteResolution>(true),
                 EntityType        = GetArchetypeChunkEntityType(),
                 CmdBuffer         = cmdBufferSystem.CreateCommandBuffer().ToConcurrent()
-            }.Schedule(graphicQuery, inputDeps);
+            }.Schedule(graphicQuery, Dependency);
 
-            cmdBufferSystem.AddJobHandleForProducer(rebuildDeps);
-            return rebuildDeps;
+            cmdBufferSystem.AddJobHandleForProducer(Dependency);
         }
     }
 }

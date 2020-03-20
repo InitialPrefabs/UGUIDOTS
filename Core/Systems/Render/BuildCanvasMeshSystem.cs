@@ -6,8 +6,7 @@ using UnityEngine.Rendering;
 namespace UGUIDots.Render.Systems {
 
     [UpdateInGroup(typeof(MeshBatchGroup)), UpdateAfter(typeof(BatchCanvasVertexSystem))]
-    [AlwaysSynchronizeSystem]
-    public class BuildCanvasMeshSystem : JobComponentSystem {
+    public class BuildCanvasMeshSystem : SystemBase {
 
         private EntityQuery canvasMeshQuery;
         private EntityCommandBufferSystem commandBufferSystem;
@@ -16,7 +15,7 @@ namespace UGUIDots.Render.Systems {
             canvasMeshQuery = GetEntityQuery(new EntityQueryDesc {
                 All = new [] {
                     ComponentType.ReadOnly<RootVertexData>(), ComponentType.ReadOnly<RootTriangleIndexElement>(),
-                    ComponentType.ReadOnly<SubMeshSliceElement>(), ComponentType.ReadOnly<BuildCanvasTag>()
+                    ComponentType.ReadOnly<SubmeshSliceElement>(), ComponentType.ReadOnly<BuildCanvasTag>()
                 }
             });
 
@@ -24,7 +23,7 @@ namespace UGUIDots.Render.Systems {
             RequireForUpdate(canvasMeshQuery);
         }
 
-        protected override JobHandle OnUpdate(JobHandle inputDeps) {
+        protected override void OnUpdate() {
             var cmdBuffer = commandBufferSystem.CreateCommandBuffer();
 
             Entities.WithStoreEntityQueryInField(ref canvasMeshQuery).WithoutBurst().ForEach((
@@ -32,7 +31,7 @@ namespace UGUIDots.Render.Systems {
                 Mesh mesh,
                 DynamicBuffer<RootVertexData> vertices,
                 DynamicBuffer<RootTriangleIndexElement> indices,
-                DynamicBuffer<SubMeshSliceElement> submeshDesc) => {
+                DynamicBuffer<SubmeshSliceElement> submeshDesc) => {
 
                 mesh.Clear();
                 mesh.SetVertexBufferParams(vertices.Length, MeshVertexDataExtensions.VertexDescriptors);
@@ -57,8 +56,6 @@ namespace UGUIDots.Render.Systems {
                 mesh.UploadMeshData(false);
                 cmdBuffer.RemoveComponent<BuildCanvasTag>(entity);
             }).Run();
-
-            return inputDeps;
         }
     }
 }

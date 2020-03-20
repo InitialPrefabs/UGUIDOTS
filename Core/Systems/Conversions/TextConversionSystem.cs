@@ -1,5 +1,4 @@
 ﻿using TMPro;
-using UGUIDots.Collections.Runtime;
 using UGUIDots.Render;
 using UGUIDots.Transforms;
 using Unity.Entities;
@@ -83,13 +82,6 @@ namespace UGUIDots.Conversions.Systems {
     /// </summary>
     public class TMPTextConversionSystem : GameObjectConversionSystem {
         protected override void OnUpdate() {
-            var materialLoad = MaterialBin.TryLoadBin("MaterialBin", out var materialBin);
-
-#if UNITY_EDITOR
-            if (!materialLoad) {
-                throw new System.InvalidOperationException("MaterialBin does not exist at Assets/Resources!");
-            }
-#endif
             Entities.ForEach((TextMeshProUGUI c0) => {
                 var entity = GetPrimaryEntity(c0);
 
@@ -103,8 +95,9 @@ namespace UGUIDots.Conversions.Systems {
                     Alignment = c0.alignment.FromTextAnchor()
                 });
 
-                var materialKey = (short)materialBin.Add(c0.materialForRendering);
-                DstEntityManager.AddComponentData(entity, new MaterialKey { Value = materialKey });
+                DstEntityManager.AddComponentData(entity, new LinkedMaterialEntity { 
+                    Value = GetPrimaryEntity(c0.materialForRendering) 
+                });
 
                 AddTextData(entity, c0.text);
             });

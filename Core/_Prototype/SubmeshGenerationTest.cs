@@ -199,7 +199,7 @@ public class SubmeshGenerationTest : MonoBehaviour {
         var m = Matrix4x4.TRS(new Vector3(Screen.width / 2f, Screen.height / 2f, 0), Quaternion.identity, Vector3.one);
 
         for (int i = 0; i < mesh.subMeshCount; i++) {
-            RenderFeature.Pass.InstructionQueue.Enqueue((mesh, Mats[i], m, block));
+            // RenderFeature.Pass.InstructionQueue.Enqueue((mesh, Mats[i], m, block));
         }
     }
 }

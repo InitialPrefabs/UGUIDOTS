@@ -4,6 +4,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Sprites;
+using UnityEngine.UI;
 
 namespace UGUIDots {
 
@@ -53,12 +54,28 @@ namespace UGUIDots {
         }
     }
 
+    /// <summary>
+    /// Stores various color states that need to be applied to the image.
+    /// </summary>
+    public struct ColorStates : IComponentData { 
+        public Color32 DefaultColor, HighlightedColor, PressedColor, DisabledColor;
+
+        public static ColorStates FromColorBlock(ColorBlock block) {
+            return new ColorStates {
+                HighlightedColor = block.highlightedColor,
+                PressedColor     = block.pressedColor,
+                DisabledColor    = block.disabledColor,
+                DefaultColor     = block.normalColor
+            };
+        }
+    }
+
     public static class ColorExtensions {
-        public static float4 ToFloat4(this Color32 color) {
+        public static float4 ToFloat4(this in Color32 color) {
             return new float4(color.r, color.g, color.b, color.a);
         }
 
-        public static float4 ToNormalizedFloat4(this Color32 color) {
+        public static float4 ToNormalizedFloat4(this in Color32 color) {
             return new float4(color.r / 255f, color.g / 255f, color.b / 255f, color.a / 255f);
         }
     }
@@ -66,7 +83,15 @@ namespace UGUIDots {
     /// <summary>
     /// Stores the key to the texture that needs to be displayed.
     /// </summary>
+    [System.Obsolete]
     public struct TextureKey : IComponentData {
         public short Value;
+    }
+
+    /// <summary>
+    /// Sotres the entity that is linked
+    /// </summary>
+    public struct LinkedTextureEntity : IComponentData {
+        public Entity Value;
     }
 }

@@ -7,4 +7,7 @@ namespace UGUIDots.Render {
     /// Internal tag so that meshes that have been cached haven't been rechecked.
     /// </summary>
     public struct CachedMeshTag : IComponentData { }
+
+    // TODO: Rename the file
+    public struct UpdateVertexColorTag : IComponentData { }
 }

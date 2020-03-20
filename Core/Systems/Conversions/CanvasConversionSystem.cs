@@ -43,8 +43,8 @@ namespace UGUIDots.Conversions.Systems {
                 DstEntityManager.AddComponentObject(entity, new Mesh());
 
                 // Add a collection of the submesh information
-                DstEntityManager.AddBuffer<SubMeshSliceElement>(entity);
-                DstEntityManager.AddBuffer<SubMeshKeyElement>(entity);
+                DstEntityManager.AddBuffer<SubmeshSliceElement>(entity);
+                DstEntityManager.AddBuffer<SubmeshKeyElement>(entity);
 
                 // Add the tags
                 // TODO: Clean up the tags

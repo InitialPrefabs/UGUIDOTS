@@ -1,20 +1,19 @@
 using Unity.Entities;
 using Unity.Jobs;
 using UnityEngine;
+using static UGUIDots.Render.OrthographicRenderPass;
 
 namespace UGUIDots.Render.Systems {
 
-    // TODO: Implement this
     [UpdateInGroup(typeof(MeshRenderGroup))]
-    [AlwaysSynchronizeSystem]
-    public class OrthographicRenderSystem : JobComponentSystem {
+    public class OrthographicRenderSystem : SystemBase {
 
         private EntityQuery renderQuery, renderCommandQuery;
         private OrthographicRenderFeature renderFeature;
 
         protected override void OnCreate() {
             renderQuery = GetEntityQuery(new EntityQueryDesc {
-                All = new [] { ComponentType.ReadOnly<SubMeshKeyElement>(), ComponentType.ReadOnly<Mesh>() }
+                All = new [] { ComponentType.ReadOnly<SubmeshKeyElement>(), ComponentType.ReadOnly<Mesh>() }
             });
 
             renderCommandQuery = GetEntityQuery(new EntityQueryDesc {
@@ -28,14 +27,15 @@ namespace UGUIDots.Render.Systems {
             }).WithoutBurst().Run();
         }
 
-        protected override JobHandle OnUpdate(JobHandle inputDeps) {
-            Entities.WithStoreEntityQueryInField(ref renderQuery).WithoutBurst().
-                ForEach((Mesh mesh, DynamicBuffer<SubMeshKeyElement> keys) => {
-                // TODO: Fix passing in the keys as a NativeArray... - currently get deallocation errors
-                renderFeature.Pass.RenderInstructions.Enqueue((keys.AsNativeArray(), mesh));
-            }).Run();
-
-            return inputDeps;
+        protected unsafe override void OnUpdate() {
+            Entities.WithStoreEntityQueryInField(ref renderQuery).
+                ForEach((Mesh mesh, DynamicBuffer<SubmeshKeyElement> keys) => {
+                    renderFeature.Pass.RenderInstructions.Enqueue(new RenderInstruction {
+                        Start  = (SubmeshKeyElement*)keys.GetUnsafePtr(),
+                        Mesh   = mesh
+                    }
+                );
+            }).WithoutBurst().Run();
         }
     }
 }

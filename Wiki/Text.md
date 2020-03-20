@@ -36,7 +36,7 @@ Grabs all `TextMeshProUGUI`s and adds the following components to the linked ent
 | CharElement | Stores all characters of a string |
 | LocalVertexDataElement | Vertex information needed to make the mesh |
 | LocalTriangleIndexElement | Mesh index information needed to store |
-| MaterialKey | Stores the index of the material required to render |
+| LinkedMaterialEntity | Stores the entity that has the Material component object and is linked to the text entity. |
 | MeshDataSpan | Stores the slice of vertex and index spans of the submesh that the text belongs to |
 | AppliedColor | The general color of the text |
 

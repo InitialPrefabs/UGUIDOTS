@@ -14,7 +14,7 @@ namespace UGUIDots.Transforms.Systems {
     }
 
     [UpdateInGroup(typeof(UITransformUpdateGroup))]
-    public class ConsumeChangeEvtSystem : JobComponentSystem {
+    public class ConsumeChangeEvtSystem : SystemBase {
 
         [BurstCompile]
         private struct ConsumeJob : IJobForEachWithEntity<ResolutionChangeEvt> {
@@ -32,13 +32,12 @@ namespace UGUIDots.Transforms.Systems {
             cmdBufferSystem = World.GetOrCreateSystem<BeginPresentationEntityCommandBufferSystem>();
         }
 
-        protected override JobHandle OnUpdate(JobHandle inputDeps) {
-            var cleanDeps = new ConsumeJob {
+        protected override void OnUpdate() {
+            Dependency = new ConsumeJob {
                 CmdBuffer = cmdBufferSystem.CreateCommandBuffer().ToConcurrent()
-            }.ScheduleSingle(this, inputDeps);
+            }.Schedule(this, Dependency);
 
-            cmdBufferSystem.AddJobHandleForProducer(cleanDeps);
-            return cleanDeps;
+            cmdBufferSystem.AddJobHandleForProducer(Dependency);
         }
     }
 
@@ -47,7 +46,7 @@ namespace UGUIDots.Transforms.Systems {
     /// </summary>
     [UpdateInGroup(typeof(UITransformUpdateGroup))]
     [UpdateAfter(typeof(ConsumeChangeEvtSystem))]
-    public class CanvasScalerSystem : JobComponentSystem {
+    public class CanvasScalerSystem : SystemBase {
 
         private struct ResizeCanvasJob : IJobForEach<ReferenceResolution, WidthHeightRatio, LocalToWorld> {
 
@@ -93,26 +92,22 @@ namespace UGUIDots.Transforms.Systems {
             res = new int2(Screen.width, Screen.height);
         }
 
-        protected override JobHandle OnUpdate(JobHandle inputDeps) {
+        protected override void OnUpdate() {
             var current = new int2(Screen.width, Screen.height);
 
             if (!res.Equals(current)) {
                 res = current;
-                var resizeDeps = new ResizeCanvasJob {
+                Dependency = new ResizeCanvasJob {
                     Resolution = current
-                }.Schedule(this, inputDeps);
+                }.Schedule(this, Dependency);
 
-                var productionJob = new ProduceJob {
+                Dependency = new ProduceJob {
                     EvtArchetype = evtArchetype,
                     CmdBuffer    = cmdBufferSystem.CreateCommandBuffer()
-                }.Schedule(resizeDeps);
+                }.Schedule(Dependency);
 
-                cmdBufferSystem.AddJobHandleForProducer(productionJob);
-
-                return productionJob;
+                cmdBufferSystem.AddJobHandleForProducer(Dependency);
             }
-
-            return inputDeps;
         }
     }
 }
