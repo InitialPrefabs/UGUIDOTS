@@ -37,4 +37,4 @@ typically not renderers - but are suppliers of mesh information to the Canvas.
 ### Why do this?
 The theory behind this is that we can store many canvases into a particular chunk - alongside the mesh data. This allows
 a singular archetype to be queried and read simply iterating on all the chunks instead of jumping between archetypes to
-render the UI. Theoretically, this should be faster although further testing is needed.
+render the UI.
