@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.0.6 - 2020-03-24
+### Added
+* `MessageUpdateGroup` was added so data can be processed before consumption
+
 ## 0.0.5 - 2020-03-20
 ### Added
 * Static analysis batching of the canvas hierarchy
