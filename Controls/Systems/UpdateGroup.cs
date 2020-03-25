@@ -6,6 +6,10 @@ namespace UGUIDots.Controls {
     public class InputGroup : ComponentSystemGroup { }
 
     [UpdateInGroup(typeof(PresentationSystemGroup))]
+    public class MessagingUpdateGroup : ComponentSystemGroup { }
+
+    [UpdateInGroup(typeof(PresentationSystemGroup))]
+    [UpdateAfter(typeof(MessagingUpdateGroup))]
     public class MessagingConsumptionGroup : ComponentSystemGroup { }
 
     [UpdateInGroup(typeof(PresentationSystemGroup))]
