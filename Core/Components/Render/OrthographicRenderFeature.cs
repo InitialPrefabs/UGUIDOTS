@@ -49,17 +49,20 @@ namespace UGUIDots.Render {
                     var mesh   = dequed.Mesh;
 
                     for (int i = 0; i < mesh.subMeshCount; i++) {
-                        var mat        = mgr.GetComponentObject<Material>(keys[i].MaterialEntity);
+                        var mat        = mgr.GetSharedComponentData<SharedMaterial>(keys[i].MaterialEntity).Value;
                         var textureKey = keys[i].TextureEntity;
 
                         _tempBlock.Clear();
                         if (textureKey != Entity.Null) {
-                            _tempBlock.SetTexture(ShaderIDConstants.MainTex, 
-                                mgr.GetComponentObject<Texture2D>(textureKey));
+                            var texture = mgr.GetSharedComponentData<SharedTexture>(textureKey).Value;
+
+                            if (texture)
+                                _tempBlock.SetTexture(ShaderIDConstants.MainTex, texture);
                         }
 
                         var m = Matrix4x4.identity;
-                        cmd.DrawMesh(mesh, m, mat, i, -1, _tempBlock);
+                        if (mat != null && _tempBlock != null && mesh != null)
+                            cmd.DrawMesh(mesh, m, mat, i, -1, _tempBlock);
                     }
                 }
             }

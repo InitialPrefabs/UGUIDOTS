@@ -1,4 +1,5 @@
 using TMPro;
+using UGUIDots.Render;
 using Unity.Entities;
 using UnityEngine;
 using UnityEngine.UI;
@@ -42,14 +43,14 @@ namespace UGUIDots.Conversions.Systems {
             var texture = img.sprite != null ? img.sprite.texture : Texture2D.whiteTexture;
             var linkedTexture = GetPrimaryEntity(texture);
 
-            DstEntityManager.AddComponentObject(linkedTexture, texture);
+            DstEntityManager.AddSharedComponentData(linkedTexture, new SharedTexture { Value = texture });
         }
 
         private void CreateMaterialEntity(Image img) {
             var mat = img.material != null ? img.material : Canvas.GetDefaultCanvasMaterial();
             var linkedMaterial = GetPrimaryEntity(mat);
 
-            DstEntityManager.AddComponentObject(linkedMaterial, mat);
+            DstEntityManager.AddSharedComponentData(linkedMaterial, new SharedMaterial { Value = mat });
         }
 
         private void CreateMaterialEntity(TextMeshProUGUI text) {
@@ -57,7 +58,7 @@ namespace UGUIDots.Conversions.Systems {
                 Canvas.GetDefaultCanvasMaterial();
 
             var linkedMaterial = GetPrimaryEntity(mat);
-            DstEntityManager.AddComponentObject(linkedMaterial, mat);
+            DstEntityManager.AddSharedComponentData(linkedMaterial, new SharedMaterial { Value = mat });
         }
     }
 }

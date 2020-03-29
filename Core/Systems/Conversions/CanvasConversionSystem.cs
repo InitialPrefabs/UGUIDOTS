@@ -40,7 +40,7 @@ namespace UGUIDots.Conversions.Systems {
                 DstEntityManager.AddBuffer<RootTriangleIndexElement>(entity);
 
                 // Add a mesh to the canvas so treat it as a renderer.
-                DstEntityManager.AddComponentObject(entity, new Mesh());
+                DstEntityManager.AddComponentData(entity, new AddMeshTag { });
 
                 // Add a collection of the submesh information
                 DstEntityManager.AddBuffer<SubmeshSliceElement>(entity);

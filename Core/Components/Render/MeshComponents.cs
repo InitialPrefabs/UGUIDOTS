@@ -60,6 +60,8 @@ namespace UGUIDots.Render {
         public static implicit operator ushort(LocalTriangleIndexElement value) => value.Value;
     }
 
+    public struct AddMeshTag : IComponentData { }
+
     public static class MeshVertexDataExtensions {
 
         /// <summary>

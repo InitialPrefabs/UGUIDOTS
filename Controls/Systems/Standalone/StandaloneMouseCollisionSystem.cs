@@ -15,6 +15,10 @@ namespace UGUIDots.Controls.Systems {
             public bool2 Pressed;
         }
 
+        protected override void OnCreate() {
+            RequireSingletonForUpdate<PrimaryMouseKeyCode>();
+        }
+
         protected override void OnUpdate() {
             var keycode   = GetSingleton<PrimaryMouseKeyCode>().Value;
             var mousePos  = Input.mousePosition;
