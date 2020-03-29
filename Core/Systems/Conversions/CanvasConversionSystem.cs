@@ -8,6 +8,7 @@ using UnityEngine.UI;
 
 namespace UGUIDots.Conversions.Systems {
 
+    [UpdateInGroup(typeof(GameObjectConversionGroup))]
     [UpdateAfter(typeof(RectTransformConversionSystem))]
     [UpdateAfter(typeof(ImageConversionSystem))]
     [UpdateAfter(typeof(TMPTextConversionSystem))]

@@ -12,10 +12,12 @@ namespace UGUIDots.Conversions.Systems {
             Entities.ForEach((Image img) => {
                 var mat = img.material != null ? img.material : 
                     Canvas.GetDefaultCanvasMaterial();
+
                 DeclareReferencedAsset(mat);
 
                 var texture = img.sprite != null ? img.sprite.texture : Texture2D.whiteTexture;
                 DeclareReferencedAsset(texture);
+
             });
 
             Entities.ForEach((TextMeshProUGUI text) => {
@@ -27,6 +29,7 @@ namespace UGUIDots.Conversions.Systems {
         }
     }
 
+    [UpdateInGroup(typeof(GameObjectConversionGroup))]
     public class VisualAssetsConversionSystem : GameObjectConversionSystem {
         protected override void OnUpdate() {
             Entities.ForEach((Image img) => {
@@ -41,6 +44,7 @@ namespace UGUIDots.Conversions.Systems {
 
         private void CreateTextureEntity(Image img) {
             var texture = img.sprite != null ? img.sprite.texture : Texture2D.whiteTexture;
+
             var linkedTexture = GetPrimaryEntity(texture);
 
             DstEntityManager.AddSharedComponentData(linkedTexture, new SharedTexture { Value = texture });

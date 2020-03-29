@@ -55,14 +55,11 @@ namespace UGUIDots.Render {
                         _tempBlock.Clear();
                         if (textureKey != Entity.Null) {
                             var texture = mgr.GetSharedComponentData<SharedTexture>(textureKey).Value;
-
-                            if (texture)
-                                _tempBlock.SetTexture(ShaderIDConstants.MainTex, texture);
+                            _tempBlock.SetTexture(ShaderIDConstants.MainTex, texture);
                         }
 
                         var m = Matrix4x4.identity;
-                        if (mat != null && _tempBlock != null && mesh != null)
-                            cmd.DrawMesh(mesh, m, mat, i, -1, _tempBlock);
+                        cmd.DrawMesh(mesh, m, mat, i, -1, _tempBlock);
                     }
                 }
             }

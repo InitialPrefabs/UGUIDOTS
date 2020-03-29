@@ -10,6 +10,7 @@ namespace UGUIDots.Conversions.Systems {
     /// <summary>
     /// Converts images by associating the material to the Image based chunk.
     /// </summary>
+    [UpdateInGroup(typeof(GameObjectConversionGroup))]
     [UpdateAfter(typeof(VisualAssetsConversionSystem))]
     public class ImageConversionSystem : GameObjectConversionSystem {
 

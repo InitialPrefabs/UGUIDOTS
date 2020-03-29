@@ -1,4 +1,5 @@
 using UGUIDots.Transforms;
+using Unity.Entities;
 using UnityEngine;
 
 namespace UGUIDots.Conversions.Systems {
@@ -7,6 +8,7 @@ namespace UGUIDots.Conversions.Systems {
     /// Converts all RectTransforms into its entities counterpart using LocalToWorld as its Matrix4x4 representation
     /// in ScreenSpace.
     /// </summary>
+    [UpdateInGroup(typeof(GameObjectConversionGroup))]
     public class RectTransformConversionSystem : GameObjectConversionSystem {
 
         protected override void OnUpdate() {
