@@ -1,5 +1,9 @@
 # UGUIDots
 
+<p align="center">
+    <img src="Wiki/Images/uguidots-logo.png" alt="Logo done by Sabrina Lam">
+</p>
+
 UGUIDots is a Data Oriented Tech Stack library aimed to bridge the gap in between
 [Unity's WYSIWYG UI](https://docs.unity3d.com/Packages/com.unity.ugui@1.0/manual/index.html) and
 the [Entity Component System](https://docs.unity3d.com/Packages/com.unity.entities@0.1/manual/index.html). This is a **low level library** which augments on top of Unity's UI and does not serve as a
@@ -75,6 +79,7 @@ cases that are not accounted for, like sub canvases as I barely use features lik
 ## Credits
 Some thanks to a few folks who've helped me figure out things along the way
 
+* Sabrina Lam (Logo artwork)
 * Valentina S.
 * Arthur D.
 * Mason R.
