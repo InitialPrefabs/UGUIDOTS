@@ -7,6 +7,7 @@ using UnityEngine;
 
 namespace UGUIDots.Transforms.Systems {
 
+    [DisableAutoCreation]
     [UpdateInGroup(typeof(UITransformUpdateGroup))]
     [UpdateAfter(typeof(AnchorSystem))]
     public class StretchDimensionsSystem : SystemBase {

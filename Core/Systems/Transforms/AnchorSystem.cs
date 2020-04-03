@@ -11,9 +11,9 @@ namespace UGUIDots.Transforms.Systems {
     /// <summary>
     /// Recomputes the anchors if the resolution changes.
     /// </summary>
-    [UpdateAfter(typeof(CanvasScalerSystem))]
     [UpdateInGroup(typeof(UITransformUpdateGroup))]
-    public unsafe class AnchorSystem : JobComponentSystem {
+    [DisableAutoCreation]
+    public unsafe class AnchorSystem : SystemBase {
 
         [BurstCompile]
         private struct RepositionToAnchorJob : IJobChunk {
@@ -131,8 +131,8 @@ namespace UGUIDots.Transforms.Systems {
             RequireSingletonForUpdate<ResolutionChangeEvt>();
         }
 
-        protected override JobHandle OnUpdate(JobHandle inputDeps) {
-            var anchorDeps   = new RepositionToAnchorJob {
+        protected override void OnUpdate() {
+            Dependency = new RepositionToAnchorJob {
                 Resolution   = new int2(Screen.width, Screen.height),
                 LTW          = GetComponentDataFromEntity<LocalToWorld>(true),
                 LTP          = GetComponentDataFromEntity<LocalToParent>(true),
@@ -142,10 +142,9 @@ namespace UGUIDots.Transforms.Systems {
                 Dimensions   = GetComponentDataFromEntity<Dimensions>(true),
                 EntityType   = GetArchetypeChunkEntityType(),
                 CmdBuffer    = cmdBufferSystem.CreateCommandBuffer().ToConcurrent()
-            }.Schedule(canvasQuery, inputDeps);
+            }.Schedule(canvasQuery, Dependency);
 
-            cmdBufferSystem.AddJobHandleForProducer(anchorDeps);
-            return anchorDeps;
+            cmdBufferSystem.AddJobHandleForProducer(Dependency);
         }
     }
 }

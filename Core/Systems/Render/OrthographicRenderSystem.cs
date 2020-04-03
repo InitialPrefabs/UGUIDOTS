@@ -32,7 +32,7 @@ namespace UGUIDots.Render.Systems {
                 ForEach((Mesh mesh, DynamicBuffer<SubmeshKeyElement> keys) => {
                     renderFeature.Pass.RenderInstructions.Enqueue(new RenderInstruction {
                         Start  = (SubmeshKeyElement*)keys.GetUnsafePtr(),
-                        Mesh   = mesh
+                        Mesh   = mesh,
                     }
                 );
             }).WithoutBurst().Run();

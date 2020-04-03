@@ -17,6 +17,7 @@ namespace UGUIDots.Conversions.Systems {
 
                 // Add anchoring if the min max anchors are equal (e.g. one of the presets)
                 if (transform.anchorMin == transform.anchorMax) {
+
                     // Adding the anchors - which is taking the anchored position
                     DstEntityManager.AddComponentData(entity, new Anchor {
                         Distance = transform.anchoredPosition,

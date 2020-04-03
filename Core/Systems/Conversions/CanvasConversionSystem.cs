@@ -29,7 +29,7 @@ namespace UGUIDots.Conversions.Systems {
                 var canvasScaler = canvas.GetComponent<CanvasScaler>();
 
                 // Remove unnecessary information
-                DstEntityManager.RemoveComponent<Anchor>(entity);
+                // DstEntityManager.RemoveComponent<Anchor>(entity);
                 DstEntityManager.RemoveComponent<Rotation>(entity);
                 DstEntityManager.RemoveComponent<Translation>(entity);
                 DstEntityManager.RemoveComponent<NonUniformScale>(entity);
