@@ -1,6 +1,5 @@
 using System;
 using UGUIDots.Render;
-using UGUIDots.Transforms;
 using Unity.Entities;
 using Unity.Transforms;
 using UnityEngine;
@@ -49,8 +48,8 @@ namespace UGUIDots.Conversions.Systems {
 
                 // Add the tags
                 // TODO: Clean up the tags
-                DstEntityManager.AddComponentData(entity, new BuildCanvasTag { });
-                DstEntityManager.AddComponentData(entity, new BatchCanvasTag { });
+                // DstEntityManager.AddComponentData(entity, new BuildCanvasTag { });
+                // DstEntityManager.AddComponentData(entity, new BatchCanvasTag { });
 
                 switch (canvasScaler.uiScaleMode) {
                     case CanvasScaler.ScaleMode.ScaleWithScreenSize:

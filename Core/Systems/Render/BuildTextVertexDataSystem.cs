@@ -1,4 +1,5 @@
-﻿using TMPro;
+﻿using System.Runtime.CompilerServices;
+using TMPro;
 using UGUIDots.Transforms;
 using Unity.Burst;
 using Unity.Collections;
@@ -35,6 +36,9 @@ namespace UGUIDots.Render.Systems {
             [ReadOnly] public NativeHashMap<int, Entity> GlyphMap;
             [ReadOnly] public BufferFromEntity<GlyphElement> GlyphData;
             [ReadOnly] public ComponentDataFromEntity<FontFaceInfo> FontFaces;
+
+            // TODO: Find out if this is better than giving each UI Element an AssociatedCanvas component
+            [ReadOnly] public ComponentDataFromEntity<Parent> Parents;
 
             [ReadOnly] public ArchetypeChunkEntityType EntityType;
             [ReadOnly] public ArchetypeChunkBufferType<CharElement> CharBufferType;
@@ -185,8 +189,17 @@ namespace UGUIDots.Render.Systems {
                     CmdBuffer.RemoveComponent<BuildUIElementTag>(textEntity.Index, textEntity);
 
                     // TODO: Signal that the canvas has to built.
+                    var canvas = GetRootCanvas(textEntity);
+                    CmdBuffer.AddComponent(canvas.Index, canvas, new BatchCanvasTag { });
                 }
+            }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private Entity GetRootCanvas(Entity current) {
+                if (Parents.Exists(current)) {
+                    return GetRootCanvas(Parents[current].Value);
+                }
+                return current;
             }
         }
 
@@ -229,6 +242,7 @@ namespace UGUIDots.Render.Systems {
                 GlyphMap           = glyphMap,
                 GlyphData          = GetBufferFromEntity<GlyphElement>(true),
                 FontFaces          = GetComponentDataFromEntity<FontFaceInfo>(true),
+                Parents            = GetComponentDataFromEntity<Parent>(true),
                 EntityType         = GetArchetypeChunkEntityType(),
                 CharBufferType     = GetArchetypeChunkBufferType<CharElement>(true),
                 TextOptionType     = GetArchetypeChunkComponentType<TextOptions>(true),

@@ -54,7 +54,7 @@ namespace UGUIDots.Render.Systems {
                 }
 
                 mesh.UploadMeshData(false);
-                cmdBuffer.RemoveComponent<BuildCanvasTag>(entity);
+                cmdBuffer.RemoveComponent<BatchCanvasTag>(entity);
             }).Run();
         }
     }

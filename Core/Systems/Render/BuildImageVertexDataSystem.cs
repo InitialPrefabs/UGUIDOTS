@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using UGUIDots.Transforms;
 using Unity.Burst;
 using Unity.Collections;
@@ -16,6 +17,9 @@ namespace UGUIDots.Render.Systems {
         private unsafe struct RebuildImgMeshJob : IJobChunk {
 
             public ProfilerMarker BuildMeshProfiler;
+
+            [ReadOnly]
+            public ComponentDataFromEntity<Parent> Parents;
 
             [ReadOnly]
             public ArchetypeChunkComponentType<LocalToWorld> LTWType;
@@ -60,7 +64,7 @@ namespace UGUIDots.Render.Systems {
                     var indices    = triangleBuffer[i];
                     var vertices   = vertexBuffer[i];
                     var color      = colors[i].Value.ToNormalizedFloat4();
-                    var entity     = entities[i];
+                    var imgEntity  = entities[i];
                     var spriteInfo = spriteData[i];
                     var resolution = resolutions[i].Value;
                     var position   = ltws[i].Position;
@@ -138,11 +142,21 @@ namespace UGUIDots.Render.Systems {
                     indices.Add(new LocalTriangleIndexElement { Value = 2 });
                     indices.Add(new LocalTriangleIndexElement { Value = 3 });
 
-                    CmdBuffer.RemoveComponent<BuildUIElementTag>(entity.Index, entity);
-
+                    CmdBuffer.RemoveComponent<BuildUIElementTag>(imgEntity.Index, imgEntity);
                     // TODO: Signal that the canvas has to be built.
+                    var canvas = GetRootCanvas(imgEntity);
+                    CmdBuffer.AddComponent(canvas.Index, canvas, new BatchCanvasTag { });
                 }
                 BuildMeshProfiler.End();
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private Entity GetRootCanvas(Entity current) {
+                if (Parents.Exists(current)) {
+                    return GetRootCanvas(Parents[current].Value);
+                }
+
+                return current;
             }
         }
 
@@ -167,6 +181,7 @@ namespace UGUIDots.Render.Systems {
         protected override void OnUpdate() {
             Dependency            = new RebuildImgMeshJob {
                 BuildMeshProfiler = new ProfilerMarker("BuildImageVertexDataSystem.RebuildImgMeshJob"),
+                Parents           = GetComponentDataFromEntity<Parent>(true),
                 LTWType           = GetArchetypeChunkComponentType<LocalToWorld>(true),
                 DimensionType     = GetArchetypeChunkComponentType<Dimensions>(true),
                 ColorType         = GetArchetypeChunkComponentType<AppliedColor>(true),
