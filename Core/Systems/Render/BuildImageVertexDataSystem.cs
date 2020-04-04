@@ -138,7 +138,9 @@ namespace UGUIDots.Render.Systems {
                     indices.Add(new LocalTriangleIndexElement { Value = 2 });
                     indices.Add(new LocalTriangleIndexElement { Value = 3 });
 
-                    CmdBuffer.AddComponent<CachedMeshTag>(entity.Index, entity);
+                    CmdBuffer.RemoveComponent<BuildUIElementTag>(entity.Index, entity);
+
+                    // TODO: Signal that the canvas has to be built.
                 }
                 BuildMeshProfiler.End();
             }
@@ -151,10 +153,11 @@ namespace UGUIDots.Render.Systems {
             graphicQuery = GetEntityQuery(new EntityQueryDesc {
                 All = new [] {
                     ComponentType.ReadOnly<Dimensions>(), ComponentType.ReadWrite<LocalVertexData>(),
-                    ComponentType.ReadWrite<LocalTriangleIndexElement>(), ComponentType.ReadOnly<LocalToWorld>()
+                    ComponentType.ReadWrite<LocalTriangleIndexElement>(), ComponentType.ReadOnly<LocalToWorld>(),
+                    ComponentType.ReadOnly<BuildUIElementTag>()
                 },
                 None = new [] {
-                    ComponentType.ReadOnly<CachedMeshTag>(), ComponentType.ReadOnly<CharElement>()
+                    ComponentType.ReadOnly<CharElement>()
                 }
             });
 

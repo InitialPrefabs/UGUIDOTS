@@ -40,6 +40,9 @@ namespace UGUIDots.Conversions.Systems {
                 // TODO: Does not handle image slicing
                 DstEntityManager.AddBuffer<LocalVertexData>(entity).ResizeUninitialized(4);
                 DstEntityManager.AddBuffer<LocalTriangleIndexElement>(entity).ResizeUninitialized(6);
+
+                // Mark that the image has to be built.
+                DstEntityManager.AddComponent<BuildUIElementTag>(entity);
             });
         }
     }

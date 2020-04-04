@@ -26,7 +26,7 @@ namespace UGUIDots.Transforms.Systems {
             Dependency = Entities.ForEach((Entity entity, ref Dimensions c1, in LocalToWorld c0, in Stretch c2) => {
                 var scale = c0.Scale().xy;
                 c1        = new Dimensions { Value = (int2)(resolution / scale) };
-                cmdBuffer.RemoveComponent<CachedMeshTag>(entity.Index, entity);
+                cmdBuffer.RemoveComponent<BuildUIElementTag>(entity.Index, entity);
             }).WithBurst().ScheduleParallel(Dependency);
 
             cmdBufferSystem.AddJobHandleForProducer(Dependency);

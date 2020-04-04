@@ -181,7 +181,10 @@ namespace UGUIDots.Render.Systems {
 
                     lines.Dispose();
                     var textEntity = entities[i];
-                    CmdBuffer.RemoveComponent<BuildTextTag>(textEntity.Index, textEntity);
+
+                    CmdBuffer.RemoveComponent<BuildUIElementTag>(textEntity.Index, textEntity);
+
+                    // TODO: Signal that the canvas has to built.
                 }
 
             }
@@ -204,7 +207,7 @@ namespace UGUIDots.Render.Systems {
                     ComponentType.ReadWrite<LocalTriangleIndexElement>(),
                     ComponentType.ReadOnly<CharElement>(),
                     ComponentType.ReadOnly<TextOptions>(),
-                    ComponentType.ReadOnly<BuildTextTag>()
+                    ComponentType.ReadOnly<BuildUIElementTag>()
                 }
             });
 

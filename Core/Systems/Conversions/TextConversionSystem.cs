@@ -85,7 +85,6 @@ namespace UGUIDots.Conversions.Systems {
             Entities.ForEach((TextMeshProUGUI c0) => {
                 var entity = GetPrimaryEntity(c0);
 
-                DstEntityManager.AddComponentData(entity, new BuildTextTag { });
                 DstEntityManager.AddComponentData(entity, new Dimensions   { Value = c0.rectTransform.Int2Size() });
                 DstEntityManager.AddComponentData(entity, new AppliedColor { Value = c0.color });
                 DstEntityManager.AddComponentData(entity, new TextFontID   { Value = c0.font.GetInstanceID() });
@@ -98,6 +97,9 @@ namespace UGUIDots.Conversions.Systems {
                 DstEntityManager.AddComponentData(entity, new LinkedMaterialEntity { 
                     Value = GetPrimaryEntity(c0.materialForRendering) 
                 });
+
+                // Marks that the text element needs to be built
+                DstEntityManager.AddComponent<BuildUIElementTag>(entity);
 
                 AddTextData(entity, c0.text);
             });

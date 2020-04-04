@@ -2,7 +2,20 @@ using Unity.Entities;
 
 namespace UGUIDots {
 
-    [UpdateInGroup(typeof(PresentationSystemGroup)), UpdateAfter(typeof(UITransformUpdateGroup))]
+    /**
+     * Update all transforms:
+     * UITransformUpdateGroup
+     * UITransformConsumerGroup
+     * UITransformProducerGroup
+     *
+     * Update mesh properties
+     * MeshUpdateGroup
+     * MeshBuildGroup
+     * MeshBatchGroup
+     * MeshRenderGroup
+     */
+
+    [UpdateInGroup(typeof(PresentationSystemGroup)), UpdateAfter(typeof(UITransformProducerGroup))]
     public class MeshUpdateGroup : ComponentSystemGroup { }
 
     [UpdateInGroup(typeof(PresentationSystemGroup)), UpdateAfter(typeof(MeshUpdateGroup))]
