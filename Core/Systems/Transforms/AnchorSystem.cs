@@ -12,7 +12,6 @@ namespace UGUIDots.Transforms.Systems {
     /// Recomputes the anchors if the resolution changes.
     /// </summary>
     [UpdateInGroup(typeof(UITransformUpdateGroup))]
-    [DisableAutoCreation]
     public unsafe class AnchorSystem : SystemBase {
 
         [BurstCompile]
@@ -71,7 +70,7 @@ namespace UGUIDots.Transforms.Systems {
                     var anchor  = Anchors[current];
 
                     int2 worldAnchor;
-                    if (Parents.Exists(parent)) {
+                    if (Parents.Exists(parent) && Dimensions.Exists(parent)) {
                         // Since the parent exists, we want to adjust "texture" space to "local space" in accordance to
                         // the pivot.
                         var dimension       = Dimensions[parent];

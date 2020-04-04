@@ -125,7 +125,7 @@ namespace UGUIDots.Transforms {
             }
 
             { // Top Row
-                if (min == new Vector2(0f, 0.1f)) {
+                if (min == new Vector2(0f, 1f)) {
                     anchor = AnchoredState.TopLeft;
                 }
 
