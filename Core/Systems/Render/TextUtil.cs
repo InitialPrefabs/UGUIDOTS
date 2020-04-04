@@ -159,11 +159,11 @@ namespace UGUIDots.Render {
             in float lineWidth) {
 
             switch (alignment) {
-                case var _ when (alignment & AnchoredState.LeftColumn) > 0:
+                case var _ when (alignment.IsAtColumn(AnchoredState.LeftColumn)):
                     return -extents.x;
-                case var _ when (alignment & AnchoredState.MiddleColumn) > 0:
+                case var _ when (alignment.IsAtColumn(AnchoredState.CenterColumn)):
                     return -lineWidth / 2;
-                case var _ when (alignment & AnchoredState.RightColumn) > 0:
+                case var _ when (alignment.IsAtColumn(AnchoredState.RightColumn)):
                     return extents.x - lineWidth;
                 default:
                     throw new System.ArgumentException("Invalid horizontal alignment, please use a valid TextAnchor!");
