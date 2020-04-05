@@ -38,6 +38,7 @@ namespace UGUIDots.Render.Systems {
                 mesh.SetVertexBufferData(vertices.AsNativeArray(), 0, 0, vertices.Length);
                 mesh.SetIndexBufferParams(indices.Length, IndexFormat.UInt16);
                 mesh.SetIndexBufferData(indices.AsNativeArray(), 0, 0, indices.Length);
+
                 mesh.subMeshCount = submeshDesc.Length;
 
                 for (int i = 0; i < submeshDesc.Length; i++) {

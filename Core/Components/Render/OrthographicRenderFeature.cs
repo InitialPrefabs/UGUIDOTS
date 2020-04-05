@@ -43,6 +43,9 @@ namespace UGUIDots.Render {
 
                 var mgr = World.DefaultGameObjectInjectionWorld.EntityManager;
 
+                // This is bad
+                // mgr.CompleteAllJobs();
+
                 while (RenderInstructions.Count > 0) {
                     var dequed = RenderInstructions.Dequeue();
                     var keys   = dequed.Start;

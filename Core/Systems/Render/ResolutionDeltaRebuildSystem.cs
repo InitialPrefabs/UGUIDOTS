@@ -1,9 +1,9 @@
-﻿using Unity.Entities;
+﻿using UGUIDots.Transforms.Systems;
+using Unity.Entities;
 using Unity.Jobs;
 
 namespace UGUIDots.Render.Systems {
 
-    [DisableAutoCreation]
     [UpdateInGroup(typeof(UITransformUpdateGroup))]
     public class ResolutionDeltaRebuildSystem : SystemBase {
 
@@ -11,17 +11,19 @@ namespace UGUIDots.Render.Systems {
 
         protected override void OnCreate() {
             cmdBufferSystem = World.GetOrCreateSystem<BeginPresentationEntityCommandBufferSystem>();
+            RequireSingletonForUpdate<ResolutionChangeEvt>();
         }
 
         protected override void OnUpdate() {
             var cmdBuffer = cmdBufferSystem.CreateCommandBuffer();
-            Dependency = Entities.ForEach((Entity e, in BuildUIElementTag c0) => {
-                cmdBuffer.RemoveComponent<BuildUIElementTag>(e);
+
+            Dependency = Entities.WithNone<BuildUIElementTag>().ForEach((Entity entity, in SpriteData c0) => {
+                cmdBuffer.AddComponent(entity, new BuildUIElementTag { });
             }).Schedule(Dependency);
 
-            Dependency = Entities.ForEach((Entity e) => {
-                cmdBuffer.AddComponent<BuildTextTag>(e);
-            }).WithNone<BuildTextTag>().Schedule(Dependency);
+            Dependency = Entities.WithNone<BuildUIElementTag>().ForEach((Entity entity, in DynamicBuffer<CharElement> b0) => {
+                cmdBuffer.AddComponent(entity, new BuildUIElementTag { });
+            }).Schedule(Dependency);
 
             cmdBufferSystem.AddJobHandleForProducer(Dependency);
         }
