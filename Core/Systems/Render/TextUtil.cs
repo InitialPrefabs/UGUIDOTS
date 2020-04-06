@@ -176,7 +176,7 @@ namespace UGUIDots.Render {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float SelectStylePadding(in TextOptions options, in FontFaceInfo faceInfo) {
             var isBold = options.Style == FontStyles.Bold;
-            return 1.25f + math.select(faceInfo.NormalStyle.x, faceInfo.BoldStyle.x, isBold) / 4f;
+            return 1.25f + (isBold ? faceInfo.BoldStyle.x / 4.0f : faceInfo.NormalStyle.x / 4.0f);
         }
     }
 }

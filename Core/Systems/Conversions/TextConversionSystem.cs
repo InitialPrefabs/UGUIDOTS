@@ -3,6 +3,7 @@ using UGUIDots.Render;
 using UGUIDots.Transforms;
 using Unity.Entities;
 using Unity.Mathematics;
+using UnityEngine;
 
 namespace UGUIDots.Conversions.Systems {
 

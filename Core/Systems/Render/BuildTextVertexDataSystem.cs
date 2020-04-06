@@ -88,7 +88,7 @@ namespace UGUIDots.Render.Systems {
                     }
 
                     var fontFace  = FontFaces[glyphEntity];
-                    var fontScale = textOption.Size > 0 ? (float)textOption.Size / fontFace.PointSize : 1f;
+                    var fontScale = textOption.Size > 0 ? ((float)textOption.Size / fontFace.PointSize) : 1f;
                     var glyphData = GlyphData[glyphEntity].AsNativeArray();
                     var extents   = dimensions.Extents() * ltw.Scale().xy;
 
@@ -96,7 +96,7 @@ namespace UGUIDots.Render.Systems {
                     var parentScale  = textOption.Size * new float2(1) / fontFace.PointSize;
                     var isBold       = textOption.Style == FontStyles.Bold;
 
-                    var styleSpaceMultiplier = 1f + (isBold ? fontFace.BoldStyle.y : fontFace.NormalStyle.y) * 0.01f;
+                    var styleSpaceMultiplier = 1f + (isBold ? fontFace.BoldStyle.y * 0.01f : fontFace.NormalStyle.y * 0.01f);
                     var padding = fontScale * styleSpaceMultiplier;
                     var lines = new NativeList<TextUtil.LineInfo>(Allocator.Temp);
 
@@ -180,7 +180,7 @@ namespace UGUIDots.Render.Systems {
                         indices.Add(new LocalTriangleIndexElement { Value = tr });
                         indices.Add(new LocalTriangleIndexElement { Value = br });
 
-                        start += new float2(glyph.Advance * padding * ltw.Scale().x, 0);
+                        start += new float2(glyph.Advance * padding, 0) * ltw.Scale().xy;
                     }
 
                     lines.Dispose();

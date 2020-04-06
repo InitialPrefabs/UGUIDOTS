@@ -19,6 +19,9 @@ namespace UGUIDots.Transforms.Systems {
 
             public int2 Resolution;
 
+            public ComponentDataFromEntity<LocalToParent> LTP;
+            public ComponentDataFromEntity<Translation> Translations;
+
             [ReadOnly]
             public ArchetypeChunkEntityType EntityType;
 
@@ -28,8 +31,6 @@ namespace UGUIDots.Transforms.Systems {
             [ReadOnly]
             public ComponentDataFromEntity<LocalToWorld> LTW;
 
-            [ReadOnly]
-            public ComponentDataFromEntity<LocalToParent> LTP;
 
             [ReadOnly]
             public ComponentDataFromEntity<Anchor> Anchors;
@@ -67,9 +68,14 @@ namespace UGUIDots.Transforms.Systems {
                         continue;
                     }
 
+                    // Get the current anchor
                     var anchor  = Anchors[current];
 
                     int2 worldAnchor;
+
+                    Debug.Log($"InitialScale: {initialScale}");
+
+                    // If the parent is a child 
                     if (Parents.Exists(parent) && Dimensions.Exists(parent)) {
                         // Since the parent exists, we want to adjust "texture" space to "local space" in accordance to
                         // the pivot.
@@ -85,14 +91,19 @@ namespace UGUIDots.Transforms.Systems {
                         worldAnchor = anchor.State.AnchoredTo(localResolution);
                     }
 
+
                     var distance   = anchor.Distance * initialScale;
                     var worldPos   = worldAnchor + distance;
                     var ltw        = LTW[current];
                     var m          = float4x4.TRS(new float3(worldPos, 0), ltw.Rotation, ltw.Scale());
                     var localSpace = new LocalToParent { Value = math.mul(parentInversed, m) };
 
-                    CmdBuffer.SetComponent(current.Index, current, localSpace);
-                    CmdBuffer.SetComponent(current.Index, current, new Translation { Value = localSpace.Position });
+                    // TODO: Run this on the main thread to make sure all the data is synced up temporarily
+                    // CmdBuffer.SetComponent(current.Index, current, localSpace);
+                    // CmdBuffer.SetComponent(current.Index, current, new Translation { Value = localSpace.Position });
+
+                    LTP[current] = localSpace;
+                    Translations[current] = new Translation { Value = localSpace.Position };
 
                     var adjustedScale = initialScale * ltw.Scale().xy;
 
@@ -131,19 +142,18 @@ namespace UGUIDots.Transforms.Systems {
         }
 
         protected override void OnUpdate() {
-            Dependency = new RepositionToAnchorJob {
+            new RepositionToAnchorJob {
                 Resolution   = new int2(Screen.width, Screen.height),
+                Translations = GetComponentDataFromEntity<Translation>(),
+                LTP          = GetComponentDataFromEntity<LocalToParent>(),
                 LTW          = GetComponentDataFromEntity<LocalToWorld>(true),
-                LTP          = GetComponentDataFromEntity<LocalToParent>(true),
                 ChildBuffers = GetBufferFromEntity<Child>(true),
                 Anchors      = GetComponentDataFromEntity<Anchor>(true),
                 Parents      = GetComponentDataFromEntity<Parent>(true),
                 Dimensions   = GetComponentDataFromEntity<Dimensions>(true),
                 EntityType   = GetArchetypeChunkEntityType(),
                 CmdBuffer    = cmdBufferSystem.CreateCommandBuffer().ToConcurrent()
-            }.Schedule(canvasQuery, Dependency);
-
-            cmdBufferSystem.AddJobHandleForProducer(Dependency);
+            }.Run(canvasQuery);
         }
     }
 }
