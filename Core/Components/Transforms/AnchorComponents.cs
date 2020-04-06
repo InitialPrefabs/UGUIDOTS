@@ -45,6 +45,7 @@ namespace UGUIDots.Transforms {
         /// Returns the adjusted anchored positions.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [System.Obsolete]
         public static float2 RecomputeAnchoredPosition(this Anchor anchor) {
             return anchor.State.AnchoredTo() - anchor.Distance;
         }
@@ -55,6 +56,7 @@ namespace UGUIDots.Transforms {
         /// <param name="state">The current anchored state of the element.</param>
         /// <returns>The relative screenspace position that the anchor is referencing.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [System.Obsolete]
         public static int2 AnchoredTo(this AnchoredState state) {
             var res = new int2(Screen.width, Screen.height);
             return state.AnchoredTo(res);

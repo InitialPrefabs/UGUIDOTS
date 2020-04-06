@@ -86,7 +86,7 @@ namespace UGUIDots.Conversions.Systems {
             Entities.ForEach((TextMeshProUGUI c0) => {
                 var entity = GetPrimaryEntity(c0);
 
-                DstEntityManager.AddComponentData(entity, new Dimensions   { Value = c0.rectTransform.Int2Size() });
+                // DstEntityManager.AddComponentData(entity, new Dimensions   { Value = c0.rectTransform.Int2Size() });
                 DstEntityManager.AddComponentData(entity, new AppliedColor { Value = c0.color });
                 DstEntityManager.AddComponentData(entity, new TextFontID   { Value = c0.font.GetInstanceID() });
                 DstEntityManager.AddComponentData(entity, new TextOptions  {

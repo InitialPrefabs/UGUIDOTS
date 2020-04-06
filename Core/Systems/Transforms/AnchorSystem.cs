@@ -31,7 +31,6 @@ namespace UGUIDots.Transforms.Systems {
             [ReadOnly]
             public ComponentDataFromEntity<LocalToWorld> LTW;
 
-
             [ReadOnly]
             public ComponentDataFromEntity<Anchor> Anchors;
 
@@ -69,23 +68,29 @@ namespace UGUIDots.Transforms.Systems {
                     }
 
                     // Get the current anchor
-                    var anchor  = Anchors[current];
+                    var anchor = Anchors[current];
 
                     int2 worldAnchor;
 
-                    Debug.Log($"InitialScale: {initialScale}");
+                    // TODO: Just compute the world anchors and figure out the local space based on that world anchor.
 
                     // If the parent is a child 
-                    if (Parents.Exists(parent) && Dimensions.Exists(parent)) {
+                    if (Parents.Exists(parent)) {
                         // Since the parent exists, we want to adjust "texture" space to "local space" in accordance to
                         // the pivot.
                         var dimension       = Dimensions[parent];
                         var localResolution = dimension.Int2Size();
                         var localAnchor     = anchor.State.AnchoredTo(localResolution) - dimension.Int2Center();
+
+
                         var currentLTP      = LTP[current];
                         var localLTP        = float4x4.TRS(new float3(localAnchor, 0), currentLTP.LocalRotation(), currentLTP.Scale());
                         var anchorLTW       = math.mul(parentLTW.Value, localLTP);
                         worldAnchor         = new int2((int)anchorLTW.c3.x, (int)anchorLTW.c3.y) / (int)anchorLTW.c3.w;
+
+                        var name = World.DefaultGameObjectInjectionWorld.EntityManager.GetName(current);
+                        // TODO: Figure out the local position...
+                        Debug.Log($"Name: {name}, Local Anchor: {(new LocalToParent { Value = localLTP }.Position)}, Local Res: {anchor.State.AnchoredTo(localResolution)}");
                     } else {
                         var localResolution = Resolution;
                         worldAnchor = anchor.State.AnchoredTo(localResolution);
