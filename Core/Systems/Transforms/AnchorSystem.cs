@@ -23,13 +23,13 @@ namespace UGUIDots.Transforms.Systems {
             public ComponentDataFromEntity<Translation> Translations;
 
             [ReadOnly]
+            public ComponentDataFromEntity<LocalToWorld> LTW;
+
+            [ReadOnly]
             public ArchetypeChunkEntityType EntityType;
 
             [ReadOnly]
             public BufferFromEntity<Child> ChildBuffers;
-
-            [ReadOnly]
-            public ComponentDataFromEntity<LocalToWorld> LTW;
 
             [ReadOnly]
             public ComponentDataFromEntity<Anchor> Anchors;
@@ -55,7 +55,7 @@ namespace UGUIDots.Transforms.Systems {
                 }
             }
 
-            private void RecurseChildren(in Entity parent, in LocalToWorld parentLTW, in float2 initialScale, 
+            private void RecurseChildren(in Entity parent, in LocalToWorld parentLTW, in float2 rootScale, 
                 in DynamicBuffer<Child> children) {
 
                 var parentInversed = math.inverse(parentLTW.Value);
@@ -69,52 +69,28 @@ namespace UGUIDots.Transforms.Systems {
 
                     // Get the current anchor
                     var anchor = Anchors[current];
+                    var ltp    = LTP[current];
+                    var ltw    = LTW[current];
 
-                    int2 worldAnchor;
+                    var anchoredPos = anchor.State.AnchoredTo(Resolution);
 
-                    // TODO: Just compute the world anchors and figure out the local space based on that world anchor.
+                    var adjustedWS    = anchoredPos + (anchor.Distance * rootScale);
+                    var localDistance = new float3(parentLTW.Position.xy - adjustedWS, 0);
 
-                    // If the parent is a child 
-                    if (Parents.Exists(parent)) {
-                        // Since the parent exists, we want to adjust "texture" space to "local space" in accordance to
-                        // the pivot.
-                        var dimension       = Dimensions[parent];
-                        var localResolution = dimension.Int2Size();
-                        var localAnchor     = anchor.State.AnchoredTo(localResolution) - dimension.Int2Center();
+                    var mWorldSpace = float4x4.TRS(new float3(adjustedWS, 0), ltw.Rotation, ltw.Scale());
+                    var mLocalSpace = new LocalToParent { Value = math.mul(parentInversed, mWorldSpace) };
 
+                    LTP[current] = mLocalSpace;
 
-                        var currentLTP      = LTP[current];
-                        var localLTP        = float4x4.TRS(new float3(localAnchor, 0), currentLTP.LocalRotation(), currentLTP.Scale());
-                        var anchorLTW       = math.mul(parentLTW.Value, localLTP);
-                        worldAnchor         = new int2((int)anchorLTW.c3.x, (int)anchorLTW.c3.y) / (int)anchorLTW.c3.w;
+                    ltw = new LocalToWorld { 
+                        Value = float4x4.TRS(new float3(adjustedWS, 0), ltw.Rotation, ltw.Scale()) 
+                    };
 
-                        var name = World.DefaultGameObjectInjectionWorld.EntityManager.GetName(current);
-                        // TODO: Figure out the local position...
-                        Debug.Log($"Name: {name}, Local Anchor: {(new LocalToParent { Value = localLTP }.Position)}, Local Res: {anchor.State.AnchoredTo(localResolution)}");
-                    } else {
-                        var localResolution = Resolution;
-                        worldAnchor = anchor.State.AnchoredTo(localResolution);
-                    }
-
-
-                    var distance   = anchor.Distance * initialScale;
-                    var worldPos   = worldAnchor + distance;
-                    var ltw        = LTW[current];
-                    var m          = float4x4.TRS(new float3(worldPos, 0), ltw.Rotation, ltw.Scale());
-                    var localSpace = new LocalToParent { Value = math.mul(parentInversed, m) };
-
-                    // TODO: Run this on the main thread to make sure all the data is synced up temporarily
-                    // CmdBuffer.SetComponent(current.Index, current, localSpace);
-                    // CmdBuffer.SetComponent(current.Index, current, new Translation { Value = localSpace.Position });
-
-                    LTP[current] = localSpace;
-                    Translations[current] = new Translation { Value = localSpace.Position };
-
-                    var adjustedScale = initialScale * ltw.Scale().xy;
+                    Translations[current] = new Translation { Value = mLocalSpace.Position };
 
                     if (ChildBuffers.Exists(current)) {
                         var grandChildren = ChildBuffers[current];
-                        RecurseChildren(in current, in ltw, in adjustedScale, in grandChildren);
+                        RecurseChildren(in current, in ltw, in rootScale, in grandChildren);
                     }
                 }
             }
