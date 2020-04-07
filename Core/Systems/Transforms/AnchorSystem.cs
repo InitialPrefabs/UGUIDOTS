@@ -21,7 +21,10 @@ namespace UGUIDots.Transforms.Systems {
 
             public int2 Resolution;
 
+            [ReadOnly]
             public ComponentDataFromEntity<LocalToParent> LTP;
+
+            [ReadOnly]
             public ComponentDataFromEntity<Translation> Translations;
 
             [ReadOnly]
@@ -44,6 +47,8 @@ namespace UGUIDots.Transforms.Systems {
 
             [ReadOnly]
             public ComponentDataFromEntity<LinkedMaterialEntity> LinkedMaterials;
+
+            public EntityCommandBuffer.Concurrent CmdBuffer;
 
             public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex) {
                 var entities = chunk.GetNativeArray(EntityType);
@@ -83,16 +88,19 @@ namespace UGUIDots.Transforms.Systems {
                     var adjustedWS    = anchoredPos + (anchor.Distance * rootScale);
                     var localDistance = new float3(parentLTW.Position.xy - adjustedWS, 0);
                     var mWorldSpace   = float4x4.TRS(new float3(adjustedWS, 0), ltw.Rotation, ltw.Scale());
-                    var mLocalSpace   = new LocalToParent { Value = math.mul(parentInversed, mWorldSpace) };
 
-                    // Update the LocalToParent and its local translation
-                    LTP[current] = mLocalSpace;
-                    Translations[current] = new Translation { Value = mLocalSpace.Position };
+                    // Get the local space and its associated translation
+                    var mLocalSpace   = new LocalToParent { Value = math.mul(parentInversed, mWorldSpace) };
+                    var translation   = new Translation { Value = mLocalSpace.Position };
 
                     // TODO: Update the local to world?
                     ltw = new LocalToWorld { 
                         Value = float4x4.TRS(new float3(adjustedWS, 0), ltw.Rotation, ltw.Scale()) 
                     };
+
+                    // Update the LocalToParent and its local translation
+                    CmdBuffer.SetComponent(current.Index, current, mLocalSpace);
+                    CmdBuffer.SetComponent(current.Index, current, translation);
 
                     if (ChildBuffers.Exists(current)) {
                         var grandChildren = ChildBuffers[current];
@@ -121,17 +129,9 @@ namespace UGUIDots.Transforms.Systems {
         }
 
         private EntityCommandBufferSystem cmdBufferSystem;
-        private EntityQuery anchorQuery, canvasQuery;
+        private EntityQuery canvasQuery;
 
         protected override void OnCreate() {
-            anchorQuery = GetEntityQuery(new EntityQueryDesc {
-                All = new[] {
-                    ComponentType.ReadWrite<LocalToWorld>(),
-                    ComponentType.ReadOnly<Anchor>(),
-                    ComponentType.ReadOnly<Parent>()
-                },
-            });
-
             canvasQuery = GetEntityQuery(new EntityQueryDesc {
                 All = new[] {
                     ComponentType.ReadOnly<ReferenceResolution>(),
@@ -147,10 +147,10 @@ namespace UGUIDots.Transforms.Systems {
         }
 
         protected override void OnUpdate() {
-            new RepositionToAnchorJob {
+            Dependency = new RepositionToAnchorJob {
                 Resolution      = new int2(Screen.width, Screen.height),
-                Translations    = GetComponentDataFromEntity<Translation>(),
-                LTP             = GetComponentDataFromEntity<LocalToParent>(),
+                Translations    = GetComponentDataFromEntity<Translation>(true),
+                LTP             = GetComponentDataFromEntity<LocalToParent>(true),
                 LTW             = GetComponentDataFromEntity<LocalToWorld>(true),
                 ChildBuffers    = GetBufferFromEntity<Child>(true),
                 Anchors         = GetComponentDataFromEntity<Anchor>(true),
@@ -158,7 +158,10 @@ namespace UGUIDots.Transforms.Systems {
                 Dimensions      = GetComponentDataFromEntity<Dimensions>(true),
                 EntityType      = GetArchetypeChunkEntityType(),
                 LinkedMaterials = GetComponentDataFromEntity<LinkedMaterialEntity>(true),
-            }.Run(canvasQuery);
+                CmdBuffer = cmdBufferSystem.CreateCommandBuffer().ToConcurrent(),
+            }.Schedule(canvasQuery, Dependency);
+
+            cmdBufferSystem.AddJobHandleForProducer(Dependency);
         }
     }
 }
