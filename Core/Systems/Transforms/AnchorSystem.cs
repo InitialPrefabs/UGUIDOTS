@@ -89,7 +89,7 @@ namespace UGUIDots.Transforms.Systems {
                     LTP[current] = mLocalSpace;
                     Translations[current] = new Translation { Value = mLocalSpace.Position };
 
-                    // TODO: Update the local to parent?
+                    // TODO: Update the local to world?
                     ltw = new LocalToWorld { 
                         Value = float4x4.TRS(new float3(adjustedWS, 0), ltw.Rotation, ltw.Scale()) 
                     };
