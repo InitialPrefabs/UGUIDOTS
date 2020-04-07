@@ -1,3 +1,4 @@
+using UGUIDots.Render;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -40,7 +41,8 @@ namespace UGUIDots.Transforms.Systems {
             [ReadOnly]
             public ComponentDataFromEntity<Dimensions> Dimensions;
 
-            public EntityCommandBuffer.Concurrent CmdBuffer;
+            [ReadOnly]
+            public ComponentDataFromEntity<LinkedMaterialEntity> LinkedMaterials;
 
             public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex) {
                 var entities = chunk.GetNativeArray(EntityType);
@@ -67,26 +69,30 @@ namespace UGUIDots.Transforms.Systems {
                         continue;
                     }
 
-                    // Get the current anchor
-                    var anchor = Anchors[current];
-                    var ltp    = LTP[current];
-                    var ltw    = LTW[current];
+                    // Get the current anchor, dimensions, and transforms
+                    var anchor     = Anchors[current];
+                    var dimensions = Dimensions[parent].Value;
+                    var ltp        = LTP[current];
+                    var ltw        = LTW[current];
 
-                    var anchoredPos = anchor.State.AnchoredTo(Resolution);
+                    // Find the world space position of the anchor
+                    var isParentVisual = Parents.Exists(parent) && LinkedMaterials.Exists(parent);
+                    var anchoredPos    = isParentVisual ? parentLTW.Position.xy : anchor.State.AnchoredTo(Resolution);
 
+                    // Get the actual world space and compute the local space.
                     var adjustedWS    = anchoredPos + (anchor.Distance * rootScale);
                     var localDistance = new float3(parentLTW.Position.xy - adjustedWS, 0);
+                    var mWorldSpace   = float4x4.TRS(new float3(adjustedWS, 0), ltw.Rotation, ltw.Scale());
+                    var mLocalSpace   = new LocalToParent { Value = math.mul(parentInversed, mWorldSpace) };
 
-                    var mWorldSpace = float4x4.TRS(new float3(adjustedWS, 0), ltw.Rotation, ltw.Scale());
-                    var mLocalSpace = new LocalToParent { Value = math.mul(parentInversed, mWorldSpace) };
-
+                    // Update the LocalToParent and its local translation
                     LTP[current] = mLocalSpace;
+                    Translations[current] = new Translation { Value = mLocalSpace.Position };
 
+                    // TODO: Update the local to parent?
                     ltw = new LocalToWorld { 
                         Value = float4x4.TRS(new float3(adjustedWS, 0), ltw.Rotation, ltw.Scale()) 
                     };
-
-                    Translations[current] = new Translation { Value = mLocalSpace.Position };
 
                     if (ChildBuffers.Exists(current)) {
                         var grandChildren = ChildBuffers[current];
@@ -124,16 +130,16 @@ namespace UGUIDots.Transforms.Systems {
 
         protected override void OnUpdate() {
             new RepositionToAnchorJob {
-                Resolution   = new int2(Screen.width, Screen.height),
-                Translations = GetComponentDataFromEntity<Translation>(),
-                LTP          = GetComponentDataFromEntity<LocalToParent>(),
-                LTW          = GetComponentDataFromEntity<LocalToWorld>(true),
-                ChildBuffers = GetBufferFromEntity<Child>(true),
-                Anchors      = GetComponentDataFromEntity<Anchor>(true),
-                Parents      = GetComponentDataFromEntity<Parent>(true),
-                Dimensions   = GetComponentDataFromEntity<Dimensions>(true),
-                EntityType   = GetArchetypeChunkEntityType(),
-                CmdBuffer    = cmdBufferSystem.CreateCommandBuffer().ToConcurrent()
+                Resolution      = new int2(Screen.width, Screen.height),
+                Translations    = GetComponentDataFromEntity<Translation>(),
+                LTP             = GetComponentDataFromEntity<LocalToParent>(),
+                LTW             = GetComponentDataFromEntity<LocalToWorld>(true),
+                ChildBuffers    = GetBufferFromEntity<Child>(true),
+                Anchors         = GetComponentDataFromEntity<Anchor>(true),
+                Parents         = GetComponentDataFromEntity<Parent>(true),
+                Dimensions      = GetComponentDataFromEntity<Dimensions>(true),
+                EntityType      = GetArchetypeChunkEntityType(),
+                LinkedMaterials = GetComponentDataFromEntity<LinkedMaterialEntity>(true),
             }.Run(canvasQuery);
         }
     }
