@@ -3,7 +3,6 @@ using UGUIDots.Render;
 using UGUIDots.Transforms;
 using Unity.Entities;
 using Unity.Mathematics;
-using UnityEngine;
 
 namespace UGUIDots.Conversions.Systems {
 
@@ -78,15 +77,12 @@ namespace UGUIDots.Conversions.Systems {
     /// <summary>
     /// Converts UGUI Text components by adding a buffer to chars to the entity, the dimensions, and
     /// applied color for shader updates.
-    ///
-    /// Initially components are marked dirty until the vertices are built.
     /// </summary>
     public class TMPTextConversionSystem : GameObjectConversionSystem {
         protected override void OnUpdate() {
             Entities.ForEach((TextMeshProUGUI c0) => {
                 var entity = GetPrimaryEntity(c0);
 
-                // DstEntityManager.AddComponentData(entity, new Dimensions   { Value = c0.rectTransform.Int2Size() });
                 DstEntityManager.AddComponentData(entity, new AppliedColor { Value = c0.color });
                 DstEntityManager.AddComponentData(entity, new TextFontID   { Value = c0.font.GetInstanceID() });
                 DstEntityManager.AddComponentData(entity, new TextOptions  {

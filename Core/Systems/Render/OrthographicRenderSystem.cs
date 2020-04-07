@@ -5,7 +5,6 @@ using static UGUIDots.Render.OrthographicRenderPass;
 
 namespace UGUIDots.Render.Systems {
 
-    [AlwaysSynchronizeSystem]
     [UpdateInGroup(typeof(MeshRenderGroup))]
     public class OrthographicRenderSystem : SystemBase {
 
@@ -29,8 +28,6 @@ namespace UGUIDots.Render.Systems {
         }
 
         protected unsafe override void OnUpdate() {
-            DynamicBuffer<int> ints = default;
-
             Entities.WithStoreEntityQueryInField(ref renderQuery).
 
                 ForEach((Mesh mesh, DynamicBuffer<SubmeshKeyElement> keys) => {

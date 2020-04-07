@@ -143,7 +143,8 @@ namespace UGUIDots.Render.Systems {
                     indices.Add(new LocalTriangleIndexElement { Value = 3 });
 
                     CmdBuffer.RemoveComponent<BuildUIElementTag>(imgEntity.Index, imgEntity);
-                    // TODO: Signal that the canvas has to be built.
+
+                    // Signal that the canvas has to be built.
                     var canvas = GetRootCanvas(imgEntity);
                     CmdBuffer.AddComponent(canvas.Index, canvas, new BatchCanvasTag { });
                 }

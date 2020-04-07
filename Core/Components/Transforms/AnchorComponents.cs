@@ -28,6 +28,10 @@ namespace UGUIDots.Transforms {
         RightColumn  = 0b0100
     }
 
+    /// <summary>
+    /// Attempts to mimic Unity's anchoring data. This stores an unscaled distance to an anchor 
+    /// relative to its aprents and the anchor state.
+    /// </summary>
     public struct Anchor : IComponentData {
         public AnchoredState State;
         public float2 Distance;
@@ -39,27 +43,6 @@ namespace UGUIDots.Transforms {
         internal static int ShiftRightBy(this AnchoredState state, int shift) {
             var value = (int)state;
             return value >> shift;
-        }
-
-        /// <summary>
-        /// Returns the adjusted anchored positions.
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        [System.Obsolete]
-        public static float2 RecomputeAnchoredPosition(this Anchor anchor) {
-            return anchor.State.AnchoredTo() - anchor.Distance;
-        }
-
-        /// <summary>
-        /// Returns the position that the anchor is anchored to based on the current resolution.
-        /// </summary>
-        /// <param name="state">The current anchored state of the element.</param>
-        /// <returns>The relative screenspace position that the anchor is referencing.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        [System.Obsolete]
-        public static int2 AnchoredTo(this AnchoredState state) {
-            var res = new int2(Screen.width, Screen.height);
-            return state.AnchoredTo(res);
         }
 
         /// <summary>
@@ -94,6 +77,11 @@ namespace UGUIDots.Transforms {
             }
         }
 
+        /// <summary>
+        /// Computes the relative anchor in local space given a resolution.
+        /// </summary>
+        /// <param name="res">The element's parent's current dimension</param><z
+        /// <returns>The anchor in local space</returns>
         public static int2 AnchoredToRelative(this AnchoredState state, int2 res) {
             switch (state) {
                 case AnchoredState.BottomLeft:
@@ -119,6 +107,9 @@ namespace UGUIDots.Transforms {
             }
         }
 
+        /// <summary>
+        /// Transforms a rect transform's anchor preset to an enum.
+        /// </summary>
         public static AnchoredState ToAnchor(this RectTransform transform) {
             var min = transform.anchorMin;
 
@@ -198,19 +189,31 @@ namespace UGUIDots.Transforms {
             }
         }
 
+        /// <summary>
+        /// Performs bitwise operation to check if an AnchorState is on a specific row.
+        /// </summary>
+        /// <param name="lhs">The left hand parameter to compare with</param>
+        /// <param name="rhs">The right hand parameter to compare to</param>
+        /// <returns>True, if they are on the same row<returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsRow(this AnchoredState lhs, AnchoredState rhs) {
+        public static bool IsAtRow(this AnchoredState lhs, AnchoredState rhs) {
             return (lhs & rhs) > 0;
         }
 
+        /// <summary>
+        /// Performs bit shifting and bitwise operation to check that an anchor is on the same column.
+        /// </summary>
+        /// <param name="column">The column to check against</param>
+        /// <param name="state">The column to check with</param>
+        /// <returns>True, if the column matches</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsAtColumn(this AnchoredState state, AnchoredState column) {
             switch (state) {
-                case var _ when IsRow(state, AnchoredState.TopRow):
+                case var _ when IsAtRow(state, AnchoredState.TopRow):
                     return (state.ShiftRightBy(2) & (int)column) > 0;
-                case var _ when IsRow(state, AnchoredState.MiddleRow):
+                case var _ when IsAtRow(state, AnchoredState.MiddleRow):
                     return (state.ShiftRightBy(1) & (int)column) > 0;
-                case var _ when IsRow(state, AnchoredState.BottomRow):
+                case var _ when IsAtRow(state, AnchoredState.BottomRow):
                     return (state & column) > 0;
                 default:
                     return false;

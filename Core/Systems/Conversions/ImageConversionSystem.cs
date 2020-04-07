@@ -6,7 +6,6 @@ using UnityEngine.UI;
 
 namespace UGUIDots.Conversions.Systems {
 
-    // TODO: Have a versioning system such that entities reference the correct blobs if more blobs are created.
     /// <summary>
     /// Converts images by associating the material to the Image based chunk.
     /// </summary>
@@ -25,7 +24,6 @@ namespace UGUIDots.Conversions.Systems {
                 DstEntityManager.AddComponentData(entity, new LinkedTextureEntity { Value = GetPrimaryEntity(texture) });
                 DstEntityManager.AddComponentData(entity, new LinkedMaterialEntity { Value = GetPrimaryEntity(material) });
                 DstEntityManager.AddComponentData(entity, new AppliedColor { Value = image.color });
-                // DstEntityManager.AddComponentData(entity, new Dimensions   { Value = rectSize });
 
                 var spriteTexture = image.sprite;
                 var spriteRes = spriteTexture != null ?

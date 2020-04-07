@@ -33,8 +33,6 @@ namespace UGUIDots.Conversions.Systems {
                 DstEntityManager.RemoveComponent<Translation>(entity);
                 DstEntityManager.RemoveComponent<NonUniformScale>(entity);
 
-                // DstEntityManager.AddSharedComponentData(entity, new CanvasSortOrder { Value = canvas.sortingOrder });
-
                 // Add the root mesh renderering data to the canvas as the root primary renderer
                 DstEntityManager.AddBuffer<RootVertexData>(entity);
                 DstEntityManager.AddBuffer<RootTriangleIndexElement>(entity);
@@ -45,11 +43,6 @@ namespace UGUIDots.Conversions.Systems {
                 // Add a collection of the submesh information
                 DstEntityManager.AddBuffer<SubmeshSliceElement>(entity);
                 DstEntityManager.AddBuffer<SubmeshKeyElement>(entity);
-
-                // Add the tags
-                // TODO: Clean up the tags
-                // DstEntityManager.AddComponentData(entity, new BuildCanvasTag { });
-                // DstEntityManager.AddComponentData(entity, new BatchCanvasTag { });
 
                 switch (canvasScaler.uiScaleMode) {
                     case CanvasScaler.ScaleMode.ScaleWithScreenSize:
