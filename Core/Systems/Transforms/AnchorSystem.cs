@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using UGUIDots.Render;
 using Unity.Burst;
 using Unity.Collections;
@@ -76,8 +77,7 @@ namespace UGUIDots.Transforms.Systems {
                     var ltw        = LTW[current];
 
                     // Find the world space position of the anchor
-                    var isParentVisual = Parents.Exists(parent) && LinkedMaterials.Exists(parent);
-                    var anchoredPos    = isParentVisual ? parentLTW.Position.xy : anchor.State.AnchoredTo(Resolution);
+                    var anchoredPos = GetAnchoredPosition(parent, in parentLTW, in rootScale, in anchor);
 
                     // Get the actual world space and compute the local space.
                     var adjustedWS    = anchoredPos + (anchor.Distance * rootScale);
@@ -99,6 +99,24 @@ namespace UGUIDots.Transforms.Systems {
                         RecurseChildren(in current, in ltw, in rootScale, in grandChildren);
                     }
                 }
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private float2 GetAnchoredPosition(Entity parent, in LocalToWorld parentLTW, in float2 scale, in Anchor anchor) {
+                var isParentVisual = Parents.Exists(parent) && LinkedMaterials.Exists(parent);
+
+                if (isParentVisual) {
+                    // Get the local space of the dimensions we're working with in screen space.
+                    // So w/ a 100x100 dimension, the mid left will give 0, 50.
+                    var dimensions     = Dimensions[parent].Value;
+                    var relativeAnchor = anchor.State.AnchoredToRelative(dimensions) * scale;
+
+                    // Get the parent's matrix
+                    return parentLTW.Position.xy + relativeAnchor;
+                }
+
+                // The default is a position returned in world space.
+                return anchor.State.AnchoredTo(Resolution);
             }
         }
 

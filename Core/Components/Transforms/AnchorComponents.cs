@@ -68,6 +68,7 @@ namespace UGUIDots.Transforms {
         /// <param name="state">The current state of the anchor.</param>
         /// <param name="res">The current resolution we want to consider.</param>
         /// <returns>The relative screenspace position that the anchor is referencing.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int2 AnchoredTo(this AnchoredState state, int2 res) {
             switch (state) {
                 case AnchoredState.BottomLeft:
@@ -89,7 +90,32 @@ namespace UGUIDots.Transforms {
                 case AnchoredState.TopRight:
                     return res;
                 default:
-                    throw new System.ArgumentException($"{state} is not a valid state to anchor to!");
+                    throw new System.ArgumentException($"{state} is not a valid anchor!");
+            }
+        }
+
+        public static int2 AnchoredToRelative(this AnchoredState state, int2 res) {
+            switch (state) {
+                case AnchoredState.BottomLeft:
+                    return -res / 2;
+                case AnchoredState.MiddleLeft:
+                    return new int2(-res.x / 2, 0);
+                case AnchoredState.TopLeft:
+                    return new int2(-res.x / 2, res.y / 2);
+                case AnchoredState.BottomCenter:
+                    return new int2(0, -res.y / 2);
+                case AnchoredState.MiddleCenter:
+                    return new int2(0, 0);
+                case AnchoredState.TopCenter:
+                    return new int2(0, res.y / 2);
+                case AnchoredState.BottomRight:
+                    return new int2(res.x / 2, -res.y / 2);
+                case AnchoredState.MiddleRight:
+                    return new int2(res.x / 2, 0);
+                case AnchoredState.TopRight:
+                    return res / 2;
+                default:
+                    throw new System.ArgumentException($"{state} is not a valid anchor!");
             }
         }
 
