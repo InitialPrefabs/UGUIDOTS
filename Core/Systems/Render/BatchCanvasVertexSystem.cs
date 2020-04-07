@@ -12,7 +12,7 @@ namespace UGUIDots.Render.Systems {
     public class BatchCanvasVertexSystem : SystemBase {
 
         [BurstCompile]
-        private struct BuildSubMeshBufferJob : IJobChunk {
+        private struct BatchSubMeshJob : IJobChunk {
 
             [ReadOnly]
             public ComponentDataFromEntity<LinkedMaterialEntity> MaterialKeys;
@@ -35,8 +35,8 @@ namespace UGUIDots.Render.Systems {
 
                 for (int i = 0; i < chunk.Count; i++) {
                     var batchedSubMesh = submeshes[i];
-                    var renderer       = renders[i];
-                    var span           = batchedSpans[i];
+                    var renderer       = renders[i].AsNativeArray();
+                    var span           = batchedSpans[i].AsNativeArray();
 
                     batchedSubMesh.Clear();
 
@@ -57,7 +57,7 @@ namespace UGUIDots.Render.Systems {
         }
 
         [BurstCompile]
-        private struct BuildCanvasJob : IJobChunk {
+        private struct BatchCanvasJob : IJobChunk {
 
             public ArchetypeChunkBufferType<RootVertexData>           CanvasVertexType;
             public ArchetypeChunkBufferType<RootTriangleIndexElement> CanvasIndexType;
@@ -86,7 +86,7 @@ namespace UGUIDots.Render.Systems {
                 var triangleAccessor = chunk.GetBufferAccessor(CanvasIndexType);
                 var batchedRenders   = chunk.GetBufferAccessor(RenderElementType);
                 var batchedSpans     = chunk.GetBufferAccessor(SpanType);
-                var submeshes        = chunk.GetBufferAccessor(SubMeshType);
+                var submeshDescriptors        = chunk.GetBufferAccessor(SubMeshType);
 
                 for (int i             = 0; i < chunk.Count; i++) {
                     var entity         = entities[i];
@@ -94,15 +94,17 @@ namespace UGUIDots.Render.Systems {
                     var rootTriangles  = triangleAccessor[i];
                     var renderElements = batchedRenders[i].AsNativeArray();
                     var spans          = batchedSpans[i].AsNativeArray();
-                    var submesh = submeshes[i];
+                    var submesh        = submeshDescriptors[i];
 
                     rootVertices.Clear();
                     rootTriangles.Clear();
+                    submesh.Clear();
 
                     PopulateRootCanvas(in renderElements, in spans, ref rootVertices, ref rootTriangles, ref submesh);
 
                     // The canvas does not have to be rebatched.
                     CommandBuffer.RemoveComponent<BatchCanvasTag>(entity.Index, entity);
+                    CommandBuffer.AddComponent<BuildCanvasTag>(entity.Index, entity);
                 }
             }
 
@@ -176,7 +178,7 @@ namespace UGUIDots.Render.Systems {
         protected override void OnUpdate() {
             var renderType   = GetArchetypeChunkBufferType<RenderElement>(true);
             var spanType     = GetArchetypeChunkBufferType<BatchedSpanElement>(true);
-            Dependency       = new BuildSubMeshBufferJob {
+            Dependency       = new BatchSubMeshJob {
                 MaterialKeys = GetComponentDataFromEntity<LinkedMaterialEntity>(true),
                 TextureKeys  = GetComponentDataFromEntity<LinkedTextureEntity>(true),
                 RenderType   = renderType,
@@ -184,7 +186,7 @@ namespace UGUIDots.Render.Systems {
                 SubMeshType  = GetArchetypeChunkBufferType<SubmeshKeyElement>()
             }.Schedule(unbatchedCanvasGroup, Dependency);
 
-            Dependency            = new BuildCanvasJob {
+            Dependency            = new BatchCanvasJob {
                 CanvasVertexType  = GetArchetypeChunkBufferType<RootVertexData>(),
                 CanvasIndexType   = GetArchetypeChunkBufferType<RootTriangleIndexElement>(),
                 SubMeshType       = GetArchetypeChunkBufferType<SubmeshSliceElement>(),

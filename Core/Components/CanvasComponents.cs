@@ -1,4 +1,3 @@
-using System;
 using Unity.Entities;
 using Unity.Mathematics;
 
@@ -19,12 +18,12 @@ namespace UGUIDots {
     }
 
     /// <summary>
-    /// Marks the Canvas root entity to rebuild all the submeshes.
+    /// Marks the Canvas root entity to rebuild its current mesh based on the vertex/index buffer.
     /// </summary>
     public struct BuildCanvasTag : IComponentData { }
 
     /// <summary>
-    /// Marks the Canvas root entity's to be rebatched.
+    /// Marks the vertex/index buffers need to be copied into the mesh.
     /// </summary>
     public struct BatchCanvasTag : IComponentData { }
 }

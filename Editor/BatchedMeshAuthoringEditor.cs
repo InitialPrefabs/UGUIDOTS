@@ -25,7 +25,8 @@ namespace UGUIDots.EditorTools {
         }
 
         private void DrawBatchLabel() {
-            EditorGUILayout.LabelField($"There are currently {batcher.Batches.Length} batch(es).");
+            var batches = batcher.Batches;
+            EditorGUILayout.LabelField($"There are currently {(batches != null ? batches.Length : 0)} batch(es).");
         }
 
         private void DrawBatchButton() {

@@ -1,4 +1,5 @@
-﻿using TMPro;
+﻿using System.Runtime.CompilerServices;
+using TMPro;
 using UGUIDots.Transforms;
 using Unity.Burst;
 using Unity.Collections;
@@ -35,6 +36,9 @@ namespace UGUIDots.Render.Systems {
             [ReadOnly] public NativeHashMap<int, Entity> GlyphMap;
             [ReadOnly] public BufferFromEntity<GlyphElement> GlyphData;
             [ReadOnly] public ComponentDataFromEntity<FontFaceInfo> FontFaces;
+
+            // TODO: Find out if this is better than giving each UI Element an AssociatedCanvas component
+            [ReadOnly] public ComponentDataFromEntity<Parent> Parents;
 
             [ReadOnly] public ArchetypeChunkEntityType EntityType;
             [ReadOnly] public ArchetypeChunkBufferType<CharElement> CharBufferType;
@@ -84,7 +88,7 @@ namespace UGUIDots.Render.Systems {
                     }
 
                     var fontFace  = FontFaces[glyphEntity];
-                    var fontScale = textOption.Size > 0 ? (float)textOption.Size / fontFace.PointSize : 1f;
+                    var fontScale = textOption.Size > 0 ? ((float)textOption.Size / fontFace.PointSize) : 1f;
                     var glyphData = GlyphData[glyphEntity].AsNativeArray();
                     var extents   = dimensions.Extents() * ltw.Scale().xy;
 
@@ -92,7 +96,7 @@ namespace UGUIDots.Render.Systems {
                     var parentScale  = textOption.Size * new float2(1) / fontFace.PointSize;
                     var isBold       = textOption.Style == FontStyles.Bold;
 
-                    var styleSpaceMultiplier = 1f + (isBold ? fontFace.BoldStyle.y : fontFace.NormalStyle.y) * 0.01f;
+                    var styleSpaceMultiplier = 1f + (isBold ? fontFace.BoldStyle.y * 0.01f : fontFace.NormalStyle.y * 0.01f);
                     var padding = fontScale * styleSpaceMultiplier;
                     var lines = new NativeList<TextUtil.LineInfo>(Allocator.Temp);
 
@@ -176,14 +180,26 @@ namespace UGUIDots.Render.Systems {
                         indices.Add(new LocalTriangleIndexElement { Value = tr });
                         indices.Add(new LocalTriangleIndexElement { Value = br });
 
-                        start += new float2(glyph.Advance * padding * ltw.Scale().x, 0);
+                        start += new float2(glyph.Advance * padding, 0) * ltw.Scale().xy;
                     }
 
                     lines.Dispose();
                     var textEntity = entities[i];
-                    CmdBuffer.RemoveComponent<BuildTextTag>(textEntity.Index, textEntity);
-                }
 
+                    CmdBuffer.RemoveComponent<BuildUIElementTag>(textEntity.Index, textEntity);
+
+                    // TODO: Signal that the canvas has to built.
+                    var canvas = GetRootCanvas(textEntity);
+                    CmdBuffer.AddComponent(canvas.Index, canvas, new BatchCanvasTag { });
+                }
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private Entity GetRootCanvas(Entity current) {
+                if (Parents.Exists(current)) {
+                    return GetRootCanvas(Parents[current].Value);
+                }
+                return current;
             }
         }
 
@@ -204,7 +220,7 @@ namespace UGUIDots.Render.Systems {
                     ComponentType.ReadWrite<LocalTriangleIndexElement>(),
                     ComponentType.ReadOnly<CharElement>(),
                     ComponentType.ReadOnly<TextOptions>(),
-                    ComponentType.ReadOnly<BuildTextTag>()
+                    ComponentType.ReadOnly<BuildUIElementTag>()
                 }
             });
 
@@ -226,6 +242,7 @@ namespace UGUIDots.Render.Systems {
                 GlyphMap           = glyphMap,
                 GlyphData          = GetBufferFromEntity<GlyphElement>(true),
                 FontFaces          = GetComponentDataFromEntity<FontFaceInfo>(true),
+                Parents            = GetComponentDataFromEntity<Parent>(true),
                 EntityType         = GetArchetypeChunkEntityType(),
                 CharBufferType     = GetArchetypeChunkBufferType<CharElement>(true),
                 TextOptionType     = GetArchetypeChunkComponentType<TextOptions>(true),

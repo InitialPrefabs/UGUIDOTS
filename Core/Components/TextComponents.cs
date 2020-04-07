@@ -12,6 +12,8 @@ namespace UGUIDots {
     /// <summary>
     /// Marks an entity with the text component to be rebuilt.
     /// </summary>
+    // TODO: I don't quite like adding a build text tag - it's cumbersome and hard to remember.
+    [Obsolete("Use the BuildUIElementTag instead")]
     public struct BuildTextTag : IComponentData { }
 
     /// <summary>

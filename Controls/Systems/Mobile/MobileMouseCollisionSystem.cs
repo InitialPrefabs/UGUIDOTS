@@ -12,7 +12,7 @@ namespace UGUIDots.Controls.Systems {
 
         protected unsafe override void OnUpdate() {
 
-            var touches = new NativeArray<TouchElement>(10, Allocator.TempJob);
+            var touches = new NativeArray<TouchElement>(10, Allocator.Temp);
 
             Entities.ForEach((DynamicBuffer<TouchElement> b0) => {
                 UnsafeUtility.MemCpy(touches.GetUnsafePtr(), b0.GetUnsafePtr(), 

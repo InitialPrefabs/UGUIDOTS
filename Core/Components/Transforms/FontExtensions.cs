@@ -59,7 +59,7 @@ namespace UGUIDots {
                 LineHeight             = info.lineHeight,
                 NormalStyle            = normalStyle,
                 BoldStyle              = boldStyle,
-                AtlasSize = atlasSize
+                AtlasSize              = atlasSize
             };
         }
     }
