@@ -1,5 +1,20 @@
 # Change Log
 
+## 0.0.7 - 2020-04-07
+### Added
+* Added `AddMeshTag` which signals that an entity needs to have a mesh added to the entity
+* Added `BuildUIElementTag` to signal that the vertex/index buffers need to be regenerated
+* Added `VisualAssetConverionSystem` to declare and convert Textures and Entities into their own assets
+
+### Changed
+* Changes the RectTransformConversionSystem to attach relative dimensions on all elements in the hierarchy
+* Changes `AnchorState` enum to be explicit with the preset corner to allow for easy debugging in the EntityDebugger
+* Fixed `AnchorSystem` from targetting non renderered visual elements
+* Fixed `AnchorSystem` to target the relative parent's dimension when computing a new anchor when the resolution changes
+* Fixed the `CanvasScalerSystem` to scale the canvas only on a resolution change
+* Removes `BuildTextTag`, `CachedMeshTag` in favor of `BuildUIElementTag`
+* Removes the `TextureKey` and `MaterialKey` in favor of `LinkedTextureEntity` and `LinkedMaterialEntity`
+
 ## 0.0.6 - 2020-03-24
 ### Added
 * `MessageUpdateGroup` was added so data can be processed before consumption
