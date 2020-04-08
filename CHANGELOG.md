@@ -1,5 +1,8 @@
 # Change Log
 
+## 0.0.8 - 2020-04-08
+* No visible changes between v0.0.7 and v0.0.8. This is due to me forgetting to update package.json.
+
 ## 0.0.7 - 2020-04-07
 ### Added
 * Added `AddMeshTag` which signals that an entity needs to have a mesh added to the entity

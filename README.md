@@ -53,7 +53,7 @@ and needed by the `MeshRenderSystem` to enqueue GPU instructions to render the U
 
 ## Sample Scene
 
-Open RectTransformConversionTest.unity to see how scenes are set up.
+Please see the Sample repository [here](https://github.com/InitialPrefabs/UGUIDots.Samples).
 
 ## Dependencies
 
