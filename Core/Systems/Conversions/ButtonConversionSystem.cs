@@ -3,6 +3,7 @@ using UnityEngine.UI;
 
 namespace UGUIDots.Conversions.Systems {
 
+    [UpdateInGroup(typeof(GameObjectConversionGroup))]
     [UpdateAfter(typeof(ImageConversionSystem))]
     public class ButtonConversionSystem : GameObjectConversionSystem {
         protected override void OnUpdate() {

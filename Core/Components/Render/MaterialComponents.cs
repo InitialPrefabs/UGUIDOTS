@@ -4,11 +4,12 @@ using UnityEngine;
 
 namespace UGUIDots.Render {
 
+    [Serializable]
     public struct SharedMaterial : ISharedComponentData, IEquatable<SharedMaterial> {
         public Material Value;
 
         public override int GetHashCode() {
-            return Value != null ? Value.GetHashCode() : 0;
+            return !ReferenceEquals(null, Value) ? Value.GetHashCode() : 0;
         }
 
         public bool Equals(SharedMaterial other) {

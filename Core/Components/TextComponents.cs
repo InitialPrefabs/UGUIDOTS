@@ -10,11 +10,6 @@ using UnityEngine.TextCore;
 namespace UGUIDots {
 
     /// <summary>
-    /// Marks an entity with the text component to be rebuilt.
-    /// </summary>
-    public struct BuildTextTag : IComponentData { }
-
-    /// <summary>
     /// Stores a buffer of character values
     /// </summary>
     public struct CharElement : IBufferElementData {

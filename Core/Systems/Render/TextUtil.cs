@@ -159,11 +159,11 @@ namespace UGUIDots.Render {
             in float lineWidth) {
 
             switch (alignment) {
-                case var _ when (alignment & AnchoredState.LeftColumn) > 0:
+                case var _ when (alignment.IsAtColumn(AnchoredState.LeftColumn)):
                     return -extents.x;
-                case var _ when (alignment & AnchoredState.MiddleColumn) > 0:
+                case var _ when (alignment.IsAtColumn(AnchoredState.CenterColumn)):
                     return -lineWidth / 2;
-                case var _ when (alignment & AnchoredState.RightColumn) > 0:
+                case var _ when (alignment.IsAtColumn(AnchoredState.RightColumn)):
                     return extents.x - lineWidth;
                 default:
                     throw new System.ArgumentException("Invalid horizontal alignment, please use a valid TextAnchor!");
@@ -176,7 +176,7 @@ namespace UGUIDots.Render {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float SelectStylePadding(in TextOptions options, in FontFaceInfo faceInfo) {
             var isBold = options.Style == FontStyles.Bold;
-            return 1.25f + math.select(faceInfo.NormalStyle.x, faceInfo.BoldStyle.x, isBold) / 4f;
+            return 1.25f + (isBold ? faceInfo.BoldStyle.x / 4.0f : faceInfo.NormalStyle.x / 4.0f);
         }
     }
 }

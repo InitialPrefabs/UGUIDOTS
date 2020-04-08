@@ -43,19 +43,22 @@ namespace UGUIDots.Render {
 
                 var mgr = World.DefaultGameObjectInjectionWorld.EntityManager;
 
+                // This is bad
+                // mgr.CompleteAllJobs();
+
                 while (RenderInstructions.Count > 0) {
                     var dequed = RenderInstructions.Dequeue();
                     var keys   = dequed.Start;
                     var mesh   = dequed.Mesh;
 
                     for (int i = 0; i < mesh.subMeshCount; i++) {
-                        var mat        = mgr.GetComponentObject<Material>(keys[i].MaterialEntity);
+                        var mat        = mgr.GetSharedComponentData<SharedMaterial>(keys[i].MaterialEntity).Value;
                         var textureKey = keys[i].TextureEntity;
 
                         _tempBlock.Clear();
                         if (textureKey != Entity.Null) {
-                            _tempBlock.SetTexture(ShaderIDConstants.MainTex, 
-                                mgr.GetComponentObject<Texture2D>(textureKey));
+                            var texture = mgr.GetSharedComponentData<SharedTexture>(textureKey).Value;
+                            _tempBlock.SetTexture(ShaderIDConstants.MainTex, texture);
                         }
 
                         var m = Matrix4x4.identity;

@@ -79,19 +79,4 @@ namespace UGUIDots {
             return new float4(color.r / 255f, color.g / 255f, color.b / 255f, color.a / 255f);
         }
     }
-
-    /// <summary>
-    /// Stores the key to the texture that needs to be displayed.
-    /// </summary>
-    [System.Obsolete]
-    public struct TextureKey : IComponentData {
-        public short Value;
-    }
-
-    /// <summary>
-    /// Sotres the entity that is linked
-    /// </summary>
-    public struct LinkedTextureEntity : IComponentData {
-        public Entity Value;
-    }
 }
