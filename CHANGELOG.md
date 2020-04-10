@@ -1,5 +1,10 @@
 # Change Log
 
+## 0.0.9 - 2020-04-10
+### Changed
+* Updated entities dependency to 0.9.0-preview.6
+* Moved mobile logic to the if define preprocessor in the `InputDataAuthoring`.
+
 ## 0.0.8 - 2020-04-08
 * No visible changes between v0.0.7 and v0.0.8. This is due to me forgetting to update package.json.
 
