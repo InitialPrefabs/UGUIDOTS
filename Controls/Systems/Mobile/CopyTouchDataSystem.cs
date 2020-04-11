@@ -10,6 +10,7 @@ namespace UGUIDots.Controls.Systems {
     public class CopyTouchDataSystem : SystemBase {
 
         protected override void OnUpdate() {
+            // TODO: Fix the input buffer.
             Entities.ForEach((DynamicBuffer<TouchElement> b0) => {
                 var touchBuffer = b0.AsNativeArray();
                 for (int i = 0; i < Input.touchCount; i++) {
