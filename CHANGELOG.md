@@ -1,5 +1,10 @@
 # Change Log
 
+## 0.0.10 - 2020-04-11
+### Changed
+* Split `InputDataAuthoring` into 2 modules for Mobile and Standalone.
+* Fixed a bug with the `CopyTouchDataSystem` where the data wasn't copied from the touch module into the TouchElement buffer.
+
 ## 0.0.9 - 2020-04-10
 ### Changed
 * Updated entities dependency to 0.9.0-preview.6
