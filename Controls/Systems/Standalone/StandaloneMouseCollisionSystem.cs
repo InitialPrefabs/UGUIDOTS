@@ -26,17 +26,20 @@ namespace UGUIDots.Controls.Systems {
             var clickUp   = Input.GetKeyUp(keycode);
             var clickHeld = Input.GetKey(keycode);
 
-            var mouseInfo = new NativeArray<MouseInfo>(1, Allocator.TempJob);
-            mouseInfo[0]  = new MouseInfo { Position = mousePos, Pressed = new bool2(clickDown, clickUp) };
+            var mouse = new MouseInfo {
+                Position = mousePos,
+                Pressed = new bool2(clickDown, clickUp)
+            };
 
-            Dependency = Entities.WithReadOnly(mouseInfo).WithNone<ButtonDisabledTag>().
-                ForEach((ref ClickState c0, ref ButtonVisual c1, in Dimensions c2, in LocalToWorld c3, in ButtonClickType c4) => {
+            Dependency = Entities.WithNone<ButtonDisabledTag>().ForEach((ref ClickState c0, ref ButtonVisual c1, 
+                in Dimensions c2, in LocalToWorld c3, in ButtonClickType c4) => {
+
                 var aabb = new AABB {
                     Center  = c3.Position,
                     Extents = new float3(c2.Extents(), c3.Position.z)
                 };
 
-                if (aabb.Contains(mouseInfo[0].Position)) {
+                if (aabb.Contains(mouse.Position)) {
                     switch (c4.Value) {
                         case ClickType.PressDown:
                             c0.Value = clickDown;
@@ -55,7 +58,7 @@ namespace UGUIDots.Controls.Systems {
                 } else {
                     c1.Value = ButtonVisualState.None;
                 }
-            }).WithDeallocateOnJobCompletion(mouseInfo).ScheduleParallel(Dependency);
+            }).ScheduleParallel(Dependency);
         }
     }
 }
