@@ -1,5 +1,6 @@
 using System;
 using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace UGUIDots.Render {
@@ -14,6 +15,21 @@ namespace UGUIDots.Render {
 
         public bool Equals(SharedMaterial other) {
             return other.Value == Value;
+        }
+    }
+
+    public struct Float4MaterialPropertyParam : IBufferElementData {
+        public readonly int ID;
+        public float4 Value;
+
+        public Float4MaterialPropertyParam(int id, float4 value) {
+            ID = id;
+            Value = value;
+        }
+
+        public Float4MaterialPropertyParam(int id) {
+            ID = id;
+            Value = default;
         }
     }
 
