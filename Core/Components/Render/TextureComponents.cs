@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace UGUIDots.Render {
 
+    // TODO: Change this to a managed component data to avoid chunk splitting
     [Serializable]
     public struct SharedTexture : ISharedComponentData, IEquatable<SharedTexture> {
 
