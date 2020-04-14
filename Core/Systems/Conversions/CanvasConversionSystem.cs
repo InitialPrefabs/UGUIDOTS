@@ -91,7 +91,6 @@ namespace UGUIDots.Conversions.Systems {
 
             for (int i = 0; i < parent.childCount; i++) {
                 var child = parent.GetChild(i);
-                Debug.Log(child.name);
 
                 if (child.TryGetComponent(out Image image)) {
                     var imgEntity = GetPrimaryEntity(image);

@@ -12,7 +12,6 @@ namespace UGUIDots.Render {
     public struct RootVertexData : IBufferElementData {
         public float3 Position;
         public float3 Normal;
-        public float4 Color;
         public float2 UV1;
         public float2 UV2;
 
@@ -20,7 +19,6 @@ namespace UGUIDots.Render {
             return new RootVertexData {
                 Position = value.Position,
                 Normal   = value.Normal,
-                Color    = value.Color,
                 UV1      = value.UV1,
                 UV2      = value.UV2
             };
@@ -34,7 +32,6 @@ namespace UGUIDots.Render {
     public struct LocalVertexData : IBufferElementData {
         public float3 Position;
         public float3 Normal;
-        public float4 Color;
         public float2 UV1;
         public float2 UV2;
     }
@@ -73,7 +70,6 @@ namespace UGUIDots.Render {
         public static readonly VertexAttributeDescriptor[] VertexDescriptors = new [] {
             new VertexAttributeDescriptor(VertexAttribute.Position,  VertexAttributeFormat.Float32, 3),
             new VertexAttributeDescriptor(VertexAttribute.Normal,    VertexAttributeFormat.Float32, 3),
-            new VertexAttributeDescriptor(VertexAttribute.Color,     VertexAttributeFormat.Float32, 4),
             new VertexAttributeDescriptor(VertexAttribute.TexCoord0, VertexAttributeFormat.Float32, 2),
             new VertexAttributeDescriptor(VertexAttribute.TexCoord1, VertexAttributeFormat.Float32, 2)
         };
