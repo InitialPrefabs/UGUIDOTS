@@ -42,6 +42,10 @@ namespace UGUIDots.Render.Systems {
 
                     for (int k = 0; k < span.Length; k++) {
                         var current = span[k].Value;
+
+                        // When we build the keys - we only care about the first rendered element's material
+                        // and texture, because we assume via batching that the first element's material and
+                        // and texture are representative of the entire batch.
                         var element = renderer[current.x].Value;
 
                         var materialKey = MaterialKeys.Exists(element) ? MaterialKeys[element].Value : Entity.Null;

@@ -10,8 +10,7 @@ namespace UGUIDots.Render {
 
         public unsafe struct RenderInstruction {
             public SubmeshKeyElement* Start;
-            public Float4MaterialPropertyParam* PropertyParam;
-            public int PropertyParamSize;
+            public MaterialPropertyBatch Batch;
             public Mesh Mesh;
         };
 
@@ -45,26 +44,27 @@ namespace UGUIDots.Render {
 
                 var mgr = World.DefaultGameObjectInjectionWorld.EntityManager;
 
-                // This is bad
-                // mgr.CompleteAllJobs();
-
                 while (RenderInstructions.Count > 0) {
                     var dequed = RenderInstructions.Dequeue();
                     var keys   = dequed.Start;
                     var mesh   = dequed.Mesh;
+                    var batch = dequed.Batch.Value;
 
                     for (int i = 0; i < mesh.subMeshCount; i++) {
                         var mat        = mgr.GetSharedComponentData<SharedMaterial>(keys[i].MaterialEntity).Value;
                         var textureKey = keys[i].TextureEntity;
+                        var prop       = batch[i];
 
-                        _tempBlock.Clear();
+                        // TODO: Figure out when to clear the property blocks
+                        // _tempBlock.Clear();
                         if (textureKey != Entity.Null) {
                             var texture = mgr.GetSharedComponentData<SharedTexture>(textureKey).Value;
-                            _tempBlock.SetTexture(ShaderIDConstants.MainTex, texture);
+                            prop.SetTexture(ShaderIDConstants.MainTex, texture);
                         }
 
+
                         var m = Matrix4x4.identity;
-                        cmd.DrawMesh(mesh, m, mat, i, -1, _tempBlock);
+                        cmd.DrawMesh(mesh, m, mat, i, -1, batch[i]);
                     }
                 }
             }

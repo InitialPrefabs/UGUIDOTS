@@ -45,22 +45,6 @@ namespace UGUIDots.Render {
         }
     }
 
-    [System.Obsolete]
-    public struct Float4MaterialPropertyParam : IBufferElementData {
-        public readonly int ID;
-        public float4 Value;
-
-        public Float4MaterialPropertyParam(int id, float4 value) {
-            ID = id;
-            Value = value;
-        }
-
-        public Float4MaterialPropertyParam(int id) {
-            ID = id;
-            Value = default;
-        }
-    }
-
     public struct LinkedMaterialEntity : IComponentData {
         public Entity Value;
     }
