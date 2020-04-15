@@ -10,6 +10,8 @@ namespace UGUIDots.Render {
 
         public unsafe struct RenderInstruction {
             public SubmeshKeyElement* Start;
+            public Float4MaterialPropertyParam* PropertyParam;
+            public int PropertyParamSize;
             public Mesh Mesh;
         };
 

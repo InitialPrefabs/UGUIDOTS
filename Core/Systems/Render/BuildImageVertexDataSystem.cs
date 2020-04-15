@@ -30,8 +30,8 @@ namespace UGUIDots.Render.Systems {
             [ReadOnly]
             public ArchetypeChunkBufferType<CharElement> CharType;
 
-            // [ReadOnly]
-            // public ArchetypeChunkComponentType<AppliedColor> ColorType;
+            [ReadOnly]
+            public ArchetypeChunkComponentType<AppliedColor> ColorType;
 
             [ReadOnly]
             public ArchetypeChunkEntityType EntityType;
@@ -53,7 +53,7 @@ namespace UGUIDots.Render.Systems {
                 var dimensions     = chunk.GetNativeArray(DimensionType);
                 var vertexBuffer   = chunk.GetBufferAccessor(VertexType);
                 var triangleBuffer = chunk.GetBufferAccessor(TriangleType);
-                // var colors         = chunk.GetNativeArray(ColorType);
+                var colors         = chunk.GetNativeArray(ColorType);
                 var entities       = chunk.GetNativeArray(EntityType);
                 var spriteData     = chunk.GetNativeArray(SpriteDataType);
                 var resolutions    = chunk.GetNativeArray(SpriteResType);
@@ -63,7 +63,7 @@ namespace UGUIDots.Render.Systems {
                     var dimension  = dimensions[i];
                     var indices    = triangleBuffer[i];
                     var vertices   = vertexBuffer[i];
-                    // var color      = colors[i].Value.ToNormalizedFloat4();
+                    var color      = colors[i].Value.ToNormalizedFloat4();
                     var imgEntity  = entities[i];
                     var spriteInfo = spriteData[i];
                     var resolution = resolutions[i].Value;
@@ -107,28 +107,28 @@ namespace UGUIDots.Render.Systems {
                     vertices.Add(new LocalVertexData {
                         Position = new float3(v.xy, 0),
                         Normal   = right,
-                        // Color    = color,
+                        Color    = color,
                         UV1      = outer.xy,
                         UV2      = new float2(1)
                     });
                     vertices.Add(new LocalVertexData {
                         Position = new float3(v.xw, 0),
                         Normal   = right,
-                        // Color    = color,
+                        Color    = color,
                         UV1      = outer.xw,
                         UV2      = new float2(1)
                     });
                     vertices.Add(new LocalVertexData {
                         Position = new float3(v.zw, 0),
                         Normal   = right,
-                        // Color    = color,
+                        Color    = color,
                         UV1      = outer.zw,
                         UV2      = new float2(1)
                     });
                     vertices.Add(new LocalVertexData {
                         Position = new float3(v.zy, 0),
                         Normal   = right,
-                        // Color    = color,
+                        Color    = color,
                         UV1      = outer.zy,
                         UV2      = new float2(1)
                     });
@@ -185,7 +185,7 @@ namespace UGUIDots.Render.Systems {
                 Parents           = GetComponentDataFromEntity<Parent>(true),
                 LTWType           = GetArchetypeChunkComponentType<LocalToWorld>(true),
                 DimensionType     = GetArchetypeChunkComponentType<Dimensions>(true),
-                // ColorType         = GetArchetypeChunkComponentType<AppliedColor>(true),
+                ColorType         = GetArchetypeChunkComponentType<AppliedColor>(true),
                 VertexType        = GetArchetypeChunkBufferType<LocalVertexData>(),
                 TriangleType      = GetArchetypeChunkBufferType<LocalTriangleIndexElement>(),
                 CharType          = GetArchetypeChunkBufferType<CharElement>(true),

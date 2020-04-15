@@ -44,7 +44,7 @@ namespace UGUIDots.Render.Systems {
             [ReadOnly] public ArchetypeChunkBufferType<CharElement> CharBufferType;
             [ReadOnly] public ArchetypeChunkComponentType<TextOptions> TextOptionType;
             [ReadOnly] public ArchetypeChunkComponentType<TextFontID> TxtFontIDType;
-            // [ReadOnly] public ArchetypeChunkComponentType<AppliedColor> ColorType;
+            [ReadOnly] public ArchetypeChunkComponentType<AppliedColor> ColorType;
             [ReadOnly] public ArchetypeChunkComponentType<LocalToWorld> LTWType;
             [ReadOnly] public ArchetypeChunkComponentType<Dimensions> DimensionType;
 
@@ -60,7 +60,7 @@ namespace UGUIDots.Render.Systems {
                 var textOptions           = chunk.GetNativeArray(TextOptionType);
                 var txtFontIDs            = chunk.GetNativeArray(TxtFontIDType);
                 var entities              = chunk.GetNativeArray(EntityType);
-                // var colors                = chunk.GetNativeArray(ColorType);
+                var colors                = chunk.GetNativeArray(ColorType);
                 var ltws                  = chunk.GetNativeArray(LTWType);
                 var dimensionsChunk       = chunk.GetNativeArray(DimensionType);
 
@@ -70,7 +70,7 @@ namespace UGUIDots.Render.Systems {
                     var indices    = triangleIndexAccessor[i];
                     var fontID     = txtFontIDs[i].Value;
                     var textOption = textOptions[i];
-                    // var color      = colors[i];
+                    var color      = colors[i];
                     var dimensions = dimensionsChunk[i];
                     var ltw        = ltws[i];
 
@@ -137,33 +137,33 @@ namespace UGUIDots.Render.Systems {
                         var uv2   = new float2(glyph.Scale) * math.select(canvasScale, -canvasScale, isBold);
                         var right = new float3(1, 0, 0);
 
-                        // var vertexColor = color.Value.ToNormalizedFloat4();
+                        var vertexColor = color.Value.ToNormalizedFloat4();
 
                         vertices.Add(new LocalVertexData {
                             Position = new float3(xPos, yPos, 0),
                             Normal   = right,
-                            // Color    = vertexColor,
+                            Color    = vertexColor,
                             UV1      = uv1.c0,
                             UV2      = uv2
                         });
                         vertices.Add(new LocalVertexData {
                             Position = new float3(xPos, yPos + size.y, 0),
                             Normal   = right,
-                            // Color    = vertexColor,
+                            Color    = vertexColor,
                             UV1      = uv1.c1,
                             UV2      = uv2
                         });
                         vertices.Add(new LocalVertexData {
                             Position = new float3(xPos + size.x, yPos + size.y, 0),
                             Normal   = right,
-                            // Color    = vertexColor,
+                            Color    = vertexColor,
                             UV1      = uv1.c2,
                             UV2      = uv2
                         });
                         vertices.Add(new LocalVertexData {
                             Position = new float3(xPos + size.x, yPos, 0),
                             Normal   = right,
-                            // Color    = vertexColor,
+                            Color    = vertexColor,
                             UV1      = uv1.c3,
                             UV2      = uv2
                         });
@@ -247,7 +247,7 @@ namespace UGUIDots.Render.Systems {
                 CharBufferType     = GetArchetypeChunkBufferType<CharElement>(true),
                 TextOptionType     = GetArchetypeChunkComponentType<TextOptions>(true),
                 TxtFontIDType      = GetArchetypeChunkComponentType<TextFontID>(true),
-                // ColorType          = GetArchetypeChunkComponentType<AppliedColor>(true),
+                ColorType          = GetArchetypeChunkComponentType<AppliedColor>(true),
                 LTWType            = GetArchetypeChunkComponentType<LocalToWorld>(true),
                 DimensionType      = GetArchetypeChunkComponentType<Dimensions>(true),
                 MeshVertexDataType = GetArchetypeChunkBufferType<LocalVertexData>(),

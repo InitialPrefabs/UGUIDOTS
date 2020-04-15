@@ -6,9 +6,7 @@ using Unity.Jobs;
 using Unity.Transforms;
 
 namespace UGUIDots.Render.Systems {
-
     [UpdateInGroup(typeof(MeshUpdateGroup))]
-    [DisableAutoCreation]
     public class UpdateLocalMeshDataSystem : SystemBase {
 
         [BurstCompile]
@@ -40,7 +38,7 @@ namespace UGUIDots.Render.Systems {
 
                     for (int k = 0; k < vertices.Length; k++) {
                         var cpy     = vertices[k];
-                        // cpy.Color   = color.Value.ToNormalizedFloat4();
+                        cpy.Color   = color.Value.ToNormalizedFloat4();
                         vertices[k] = cpy;
                     }
 
