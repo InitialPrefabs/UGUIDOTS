@@ -2,9 +2,18 @@
 {
     Properties
     {
-        _MainTex("Texture", 2D) = "white" {}
+        [PerRendererData] _MainTex("Texture", 2D) = "white" {}
         _BaseColor("Color", color) = (1.0, 1.0, 1.0, 1.0)
         _Translation("Translation", vector) = (0.0, 0.0, 0.0)
+
+        // TODO: Add links
+
+        [IntRange] _StencilComp ("Stencil Comparison", Range(0, 7)) = 0
+        [IntRange] _Stencil ("Stencil Ref", Range(0, 255)) = 0
+        [IntRange] _StencilOp ("Stencil Operation", Range(0, 7)) = 0
+        [IntRange] _StencilWriteMask ("Stencil Write Mask", Range(0, 255)) = 255
+        [IntRange] _StencilReadMask ("Stencil Read Mask", Range(0, 255)) = 255
+        _ColorMask ("Color Mask", Float) = 15
 
         _Cutoff ("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
         [Toggle(_CLIPPING)] _Clipping ("Alpha Clipping", Float) = 1
@@ -15,10 +24,30 @@
 
     SubShader
     {
+        Tags 
+        {
+            "Queue"="Transparent"
+            "IgnoreProjector"="True"
+            "RenderType"="Transparent"
+            "PreviewType"="Plane"
+            "CanUseSpriteAtlas"="True"
+        }
+
+        Stencil
+        {
+            Ref [_Stencil]
+            Comp [_StencilComp]
+            Pass [_StencilOp]
+            ReadMask [_StencilReadMask]
+            WriteMask [_StencilWriteMask]
+        }
+
         Pass 
         {
             Blend [_SrcBlend] [_DstBlend]
             ZWrite [_ZWrite]
+            ZTest [unity_GUIZTestMode]
+            ColorMask [_ColorMask]
 
             HLSLPROGRAM
             #pragma shader_feature _CLIPPING

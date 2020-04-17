@@ -47,17 +47,13 @@ namespace UGUIDots.Render.Authoring {
 
                 if (Batches[i].Elements[0].TryGetComponent(out Image image)) {
                     var texture = image.sprite != null ? image.sprite.texture : Texture2D.whiteTexture;
-                    Debug.Log($" Setting {image} to {texture.name}");
                     block.SetTexture(ShaderIDConstants.MainTex, texture);
 
                     for (int k = 0; k < Batches[i].Elements.Length; k++) {
                         var associativeEntity = conversionSystem.GetPrimaryEntity(Batches[i].Elements[k]);
-
-                        Debug.Log($"Setting {Batches[i].Elements[k]} to {i}");
                         dstManager.AddComponentData(associativeEntity, new MaterialPropertyIndex { Value = (ushort)i });
                     }
                 }
-
 
                 propertyBatch.Value[i] = new MaterialPropertyBlock();
             }
