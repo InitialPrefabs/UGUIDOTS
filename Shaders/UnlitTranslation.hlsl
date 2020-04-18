@@ -39,10 +39,7 @@ Varyings UnlitPassVertex(Attributes input)
 
     float4 baseST = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _MainTex_ST);
     output.baseUV = input.baseUV * baseST.xy + baseST.zw;
-
-    // TODO: Fix the color blends
-    // Pass the mesh color
-    output.color = input.color;
+    output.color  = input.color;
 
     return output;
 }

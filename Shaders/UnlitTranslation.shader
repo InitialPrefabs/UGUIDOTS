@@ -6,8 +6,11 @@
         _BaseColor("Color", color) = (1.0, 1.0, 1.0, 1.0)
         _Translation("Translation", vector) = (0.0, 0.0, 0.0)
 
-        // TODO: Add links
 
+        /* 
+         * Stencil Operation should follow this: https://docs.unity3d.com/ScriptReference/Rendering.StencilOp.html
+         * Stencil Compare should follow this: https://docs.unity3d.com/ScriptReference/Rendering.CompareFunction.html
+         */
         [IntRange] _StencilComp ("Stencil Comparison", Range(0, 7)) = 0
         [IntRange] _Stencil ("Stencil Ref", Range(0, 255)) = 0
         [IntRange] _StencilOp ("Stencil Operation", Range(0, 7)) = 0
