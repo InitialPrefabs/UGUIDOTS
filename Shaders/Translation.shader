@@ -1,11 +1,10 @@
-﻿Shader "UGUIDOTS/Unlit/UnlitTranslationShader"
+﻿Shader "UGUIDOTS/Unlit/Translation"
 {
     Properties
     {
         [PerRendererData] _MainTex("Texture", 2D) = "white" {}
         _BaseColor("Color", color) = (1.0, 1.0, 1.0, 1.0)
         _Translation("Translation", vector) = (0.0, 0.0, 0.0)
-
 
         /* 
          * Stencil Operation should follow this: https://docs.unity3d.com/ScriptReference/Rendering.StencilOp.html
@@ -57,7 +56,7 @@
             #pragma multi_compile_instancing
             #pragma vertex UnlitPassVertex
             #pragma fragment UnlitPassFragment
-            #include "UnlitTranslation.hlsl"
+            #include "Translation.hlsl"
             ENDHLSL
         }
     }
