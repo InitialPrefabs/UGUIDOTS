@@ -7,10 +7,12 @@ TEXTURE2D(_MainTex);
 SAMPLER(sampler_MainTex);
 
 UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
+    UNITY_DEFINE_INSTANCED_PROP(float, _Fill);
+    UNITY_DEFINE_INSTANCED_PROP(float, _FillType);
+    UNITY_DEFINE_INSTANCED_PROP(float4, _UVBound);
     UNITY_DEFINE_INSTANCED_PROP(float4, _Translation);
     UNITY_DEFINE_INSTANCED_PROP(float4, _MainTex_ST);
     UNITY_DEFINE_INSTANCED_PROP(float4, _BaseColor);
-    UNITY_DEFINE_INSTANCED_PROP(float, _Cutoff);
 UNITY_INSTANCING_BUFFER_END(UnityPerMaterial);
 
 struct Attributes 
@@ -51,8 +53,33 @@ float4 UnlitPassFragment(Varyings input) : SV_TARGET
     float4 baseColor = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _BaseColor);
     float4 base      = baseMap * input.color;
 
-#if defined (_CLIPPING)
-    clip(base.a - UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Cutoff));
+#if defined (_FILL)
+    float fill = 1 - UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Fill);
+    float type = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _FillType);
+
+    float increment;
+
+    if (type == 0) 
+    {
+        increment = step(input.baseUV.x, fill * baseMap.x);
+    }
+
+    if (type == 1) 
+    {
+        increment = step(1 - fill * baseMap.x, input.baseUV.x);
+    }
+
+    if (type == 2) 
+    {
+        increment = step(input.baseUV.y, fill * baseMap.y);
+    }
+
+    if (type == 3) 
+    {
+        increment = step(1 - fill * baseMap.y, input.baseUV.y);
+    }
+
+    clip(base.a - increment - 0.1);
 #endif
 
     return base;
