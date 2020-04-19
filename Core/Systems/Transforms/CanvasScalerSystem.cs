@@ -8,9 +8,6 @@ using UnityEngine;
 
 namespace UGUIDots.Transforms.Systems {
 
-    // TODO: Figure out how to spawn an entity with just a tag component.
-    public struct ResolutionChangeEvt : IComponentData { public byte Value; }
-
     [UpdateInGroup(typeof(UITransformConsumerGroup))]
     public class ConsumeChangeEvtSystem : SystemBase {
 
