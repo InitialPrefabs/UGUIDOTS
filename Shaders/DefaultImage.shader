@@ -1,4 +1,4 @@
-﻿Shader "UGUIDOTS/Unlit/Translation"
+﻿Shader "UGUIDOTS/Unlit/DefaultImage"
 {
     Properties
     {
@@ -60,8 +60,10 @@
             #pragma multi_compile_instancing
             #pragma vertex UnlitPassVertex
             #pragma fragment UnlitPassFragment
-            #include "Translation.hlsl"
+            #include "DefaultImage.hlsl"
             ENDHLSL
         }
     }
+
+    CustomEditor "UGUIDots.DefaultImageEditor"
 }

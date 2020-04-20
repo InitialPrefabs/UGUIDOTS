@@ -28,8 +28,8 @@ Material:
     - _ColorMask: 15
     - _Cutoff: 0.2
     - _DstBlend: 10
-    - _Fill: 0
-    - _FillType: 0
+    - _Fill: 1
+    - _FillType: 1
     - _SrcBlend: 5
     - _Stencil: 0
     - _StencilComp: 0
