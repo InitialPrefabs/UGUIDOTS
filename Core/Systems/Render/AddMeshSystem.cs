@@ -3,6 +3,7 @@ using Unity.Entities;
 using UnityEngine;
 
 namespace UGUIDots.Render.Systems {
+
     [UpdateInGroup(typeof(InitializationSystemGroup))]
     public class AddMeshSystem : SystemBase {
 

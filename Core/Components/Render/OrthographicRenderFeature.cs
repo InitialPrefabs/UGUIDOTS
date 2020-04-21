@@ -57,11 +57,12 @@ namespace UGUIDots.Render {
 
                         // TODO: Figure out when to clear the property blocks
                         // _tempBlock.Clear();
+                        /*
                         if (textureKey != Entity.Null) {
                             var texture = mgr.GetSharedComponentData<SharedTexture>(textureKey).Value;
                             prop.SetTexture(ShaderIDConstants.MainTex, texture);
                         }
-
+                        */
 
                         var m = Matrix4x4.identity;
                         cmd.DrawMesh(mesh, m, mat, i, -1, batch[i]);

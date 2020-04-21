@@ -3,6 +3,10 @@ using Unity.Entities;
 namespace UGUIDots {
 
     /**
+     * Update material property blocks
+     * ResetMaterialGroup
+     * UpdateMaterialGroup
+     *
      * Update all transforms:
      * UITransformUpdateGroup
      * UITransformConsumerGroup
@@ -28,7 +32,7 @@ namespace UGUIDots {
     public class MeshRenderGroup : ComponentSystemGroup { }
 
     // Logic based group
-    [UpdateInGroup(typeof(PresentationSystemGroup))]
+    [UpdateInGroup(typeof(PresentationSystemGroup)), UpdateAfter(typeof(UpdateMaterialGroup))]
     public class UITransformUpdateGroup : ComponentSystemGroup { }
 
     // Consumer based group
@@ -38,4 +42,10 @@ namespace UGUIDots {
     // Producer based group
     [UpdateInGroup(typeof(PresentationSystemGroup)), UpdateAfter(typeof(UITransformConsumerGroup))]
     public class UITransformProducerGroup : ComponentSystemGroup { }
+
+    [UpdateInGroup(typeof(PresentationSystemGroup))]
+    public class ResetMaterialGroup : ComponentSystemGroup { }
+
+    [UpdateInGroup(typeof(PresentationSystemGroup)), UpdateAfter(typeof(ResetMaterialGroup))]
+    public class UpdateMaterialGroup : ComponentSystemGroup { }
 }

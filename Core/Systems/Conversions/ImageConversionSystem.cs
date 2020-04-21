@@ -41,7 +41,57 @@ namespace UGUIDots.Conversions.Systems {
 
                 // Mark that the image has to be built.
                 DstEntityManager.AddComponent<BuildUIElementTag>(entity);
+
+                var type = image.type;
+
+                switch (type) {
+                    case Image.Type.Simple:
+                        break;
+                    case Image.Type.Filled:
+                        SetFill(image, entity);
+                        break;
+                    default:
+                        throw new System.NotSupportedException("Only Simple/Filled Image types are supported so far!");
+                }
             });
+        }
+
+        private void SetFill(Image image, Entity entity) {
+            var fillMethod = image.fillMethod;
+            switch (fillMethod) {
+                case Image.FillMethod.Vertical:
+                    if (image.fillOrigin == (int)Image.OriginVertical.Bottom) {
+                        DstEntityManager.AddComponentData(entity, new FillAmount {
+                            Amount = image.fillAmount,
+                            Type = FillType.BottomToTop,
+                        });
+                    }
+
+                    if (image.fillOrigin == (int) Image.OriginVertical.Top) {
+                        DstEntityManager.AddComponentData(entity, new FillAmount {
+                            Amount = image.fillAmount,
+                            Type = FillType.TopToBottom,
+                        });
+                    }
+                    break;
+                case Image.FillMethod.Horizontal:
+                    if (image.fillOrigin == (int)Image.OriginHorizontal.Left) {
+                        DstEntityManager.AddComponentData(entity, new FillAmount {
+                            Amount = image.fillAmount,
+                            Type = FillType.LeftToRight
+                        });
+                    }
+
+                    if (image.fillOrigin == (int)Image.OriginHorizontal.Right) {
+                        DstEntityManager.AddComponentData(entity, new FillAmount {
+                            Amount = image.fillAmount,
+                            Type = FillType.RightToLeft,
+                        });
+                    }
+                    break;
+                default:
+                    throw new System.NotSupportedException("Radial support is not implemented yet.");
+            }
         }
     }
 }

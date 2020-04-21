@@ -1,3 +1,5 @@
+using Unity.Entities;
+
 namespace UGUIDots.Render {
 
     /// <summary>
@@ -9,5 +11,13 @@ namespace UGUIDots.Render {
         LeftToRight = 1,
         BottomToTop = 2,
         TopToBottom = 3,
+    }
+
+    /// <summary>
+    /// Stores a normalized value between 0 and 1 that shows how much of the image is filled.
+    /// </summary>
+    public struct FillAmount : IComponentData {
+        public float Amount;
+        public FillType Type;
     }
 }

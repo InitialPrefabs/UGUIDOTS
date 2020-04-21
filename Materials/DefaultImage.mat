@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: DefaultUnlitTranslation
+  m_Name: DefaultImage
   m_Shader: {fileID: 4800000, guid: 2d2c9acbbe318614684bfdc4c256d8b0, type: 3}
   m_ShaderKeywords: _CLIPPING _FILL _TOGGLE_FILL
   m_LightmapFlags: 4

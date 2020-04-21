@@ -64,6 +64,4 @@
             ENDHLSL
         }
     }
-
-    CustomEditor "UGUIDots.DefaultImageEditor"
 }
