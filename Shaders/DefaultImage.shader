@@ -10,8 +10,6 @@
         _Fill("Fill", Range(0, 1)) = 1
         [Enum(UGUIDots.Render.FillType)] _FillType ("Fill Type", Float) = 0
 
-        _UVBound("UV Bounds", Vector) = (0.0, 0.0, 1.0, 1.0)
-
         /* 
          * Stencil Operation should follow this: https://docs.unity3d.com/ScriptReference/Rendering.StencilOp.html
          * Stencil Compare should follow this: https://docs.unity3d.com/ScriptReference/Rendering.CompareFunction.html

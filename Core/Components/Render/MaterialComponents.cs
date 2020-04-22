@@ -23,6 +23,11 @@ namespace UGUIDots.Render {
     /// </summary>
     public struct MaterialPropertyIndex : IComponentData {
         public ushort Value;
+
+        public static implicit operator ushort(MaterialPropertyIndex value) => value.Value;
+        public static implicit operator MaterialPropertyIndex(ushort value) => new MaterialPropertyIndex { 
+            Value = value 
+        };
     }
 
     /// <summary>

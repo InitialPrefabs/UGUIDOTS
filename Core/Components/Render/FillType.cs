@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using Unity.Entities;
 
 namespace UGUIDots.Render {
@@ -19,5 +20,13 @@ namespace UGUIDots.Render {
     public struct FillAmount : IComponentData {
         public float Amount;
         public FillType Type;
+    }
+
+    public static class FillExtensions {
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int FillTypeAsInt(ref this FillAmount value) {
+            return (int)value.Type;
+        }
     }
 }
