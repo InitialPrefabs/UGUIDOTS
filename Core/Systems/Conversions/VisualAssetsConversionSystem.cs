@@ -47,14 +47,14 @@ namespace UGUIDots.Conversions.Systems {
 
             var linkedTexture = GetPrimaryEntity(texture);
 
-            DstEntityManager.AddSharedComponentData(linkedTexture, new SharedTexture { Value = texture });
+            DstEntityManager.AddComponentData(linkedTexture, new SharedTexture { Value = texture });
         }
 
         private void CreateMaterialEntity(Image img) {
             var mat = img.material != null ? img.material : Canvas.GetDefaultCanvasMaterial();
             var linkedMaterial = GetPrimaryEntity(mat);
 
-            DstEntityManager.AddSharedComponentData(linkedMaterial, new SharedMaterial { Value = mat });
+            DstEntityManager.AddComponentData(linkedMaterial, new SharedMaterial { Value = mat });
         }
 
         private void CreateMaterialEntity(TextMeshProUGUI text) {
@@ -62,7 +62,7 @@ namespace UGUIDots.Conversions.Systems {
                 Canvas.GetDefaultCanvasMaterial();
 
             var linkedMaterial = GetPrimaryEntity(mat);
-            DstEntityManager.AddSharedComponentData(linkedMaterial, new SharedMaterial { Value = mat });
+            DstEntityManager.AddComponentData(linkedMaterial, new SharedMaterial { Value = mat });
         }
     }
 }

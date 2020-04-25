@@ -40,6 +40,7 @@ Grabs all `TextMeshProUGUI`s and adds the following components to the linked ent
 | MeshDataSpan | Stores the slice of vertex and index spans of the submesh that the text belongs to |
 | AppliedColor | The general color of the text |
 | BuildUIElementTag | Optionally added if you want to reconstruct the root mesh |
+| MaterialPropertyIndex | Stores the index used to access the Material Property |
 
 ### Storing Mesh Data
 All letters of a mesh are built to the same vertex buffer, this batches all potential meshes such that there is only 1

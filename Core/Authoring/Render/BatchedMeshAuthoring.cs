@@ -3,6 +3,7 @@ using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace UGUIDots.Render.Authoring {
 
@@ -20,6 +21,7 @@ namespace UGUIDots.Render.Authoring {
             var renderEntities = new NativeList<RenderElement>(Allocator.Temp);
             var batchSpans     = new NativeList<BatchedSpanElement>(Allocator.Temp);
 
+            // Flat map the batch of render elements to a single array.
             int startIndex = 0;
             for (int i = 0; i < Batches.Length; i++) {
                 var currentBatch = Batches[i].Elements;
@@ -33,6 +35,30 @@ namespace UGUIDots.Render.Authoring {
                 batchSpans.Add(new int2(startIndex, currentBatch.Length));
                 startIndex += currentBatch.Length;
             }
+
+            // Build the material property batch by only taking the first element of the BatchedElements.
+            // This is due to the first elementing being representative of the entire batch.
+            var propertyBatch = new MaterialPropertyBatch {
+                Value = new MaterialPropertyBlock[Batches.Length]
+            };
+
+            for (int i = 0; i < Batches.Length; i++) {
+                var block = new MaterialPropertyBlock();
+
+                if (Batches[i].Elements[0].TryGetComponent(out Image image)) {
+                    var texture = image.sprite != null ? image.sprite.texture : Texture2D.whiteTexture;
+                    block.SetTexture(ShaderIDConstants.MainTex, texture);
+
+                    for (int k = 0; k < Batches[i].Elements.Length; k++) {
+                        var associativeEntity = conversionSystem.GetPrimaryEntity(Batches[i].Elements[k]);
+                        dstManager.AddComponentData(associativeEntity, new MaterialPropertyIndex { Value = (ushort)i });
+                    }
+                }
+
+                propertyBatch.Value[i] = new MaterialPropertyBlock();
+            }
+
+            dstManager.AddComponentData(entity, propertyBatch);
 
             unsafe {
                 var renderBatches = dstManager.AddBuffer<RenderElement>(entity);

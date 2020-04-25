@@ -1,5 +1,18 @@
 # Change Log
 
+## 0.1.0 - 2020-04-25
+### Added
+* Added support for MaterialPropertyBlocks in the `RenderInstruction` struct
+* Added a `DefaultImage` shader to handle image fill amounts and element translation
+* Added `ResetMaterialGroup` to clear all property blocks
+* Added `UpdateMaterialGroup` to have a system group that runs after the `ResetMaterialGroup` to apply custom properties
+* Added a `HierarchyUtils` class for a common recursive operation to grab the root element
+* Added constant Shader IDs to the `ShaderIDConstants` for Translation/Fill
+
+### Changed
+* `SharedTexture` and `SharedMaterial` are now managed `IComponentData` instead
+* Removes the `_tempBlock` material property from the `OrthographicRenderPass`
+
 ## 0.0.10 - 2020-04-11
 ### Changed
 * Split `InputDataAuthoring` into 2 modules for Mobile and Standalone.

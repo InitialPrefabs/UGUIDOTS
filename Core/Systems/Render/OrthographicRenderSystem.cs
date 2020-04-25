@@ -30,10 +30,11 @@ namespace UGUIDots.Render.Systems {
         protected unsafe override void OnUpdate() {
             Entities.WithStoreEntityQueryInField(ref renderQuery).
 
-                ForEach((Mesh mesh, DynamicBuffer<SubmeshKeyElement> keys) => {
+                ForEach((Mesh mesh, MaterialPropertyBatch batch, DynamicBuffer<SubmeshKeyElement> keys) => {
                     renderFeature.Pass.RenderInstructions.Enqueue(new RenderInstruction {
-                        Start  = (SubmeshKeyElement*)keys.GetUnsafePtr(),
-                        Mesh   = mesh,
+                        Start = (SubmeshKeyElement*)keys.GetUnsafePtr(),
+                        Batch = batch,
+                        Mesh  = mesh,
                     }
                 );
             }).WithoutBurst().Run();

@@ -10,19 +10,18 @@ namespace UGUIDots.Render {
 
         public unsafe struct RenderInstruction {
             public SubmeshKeyElement* Start;
+            public MaterialPropertyBatch Batch;
             public Mesh Mesh;
         };
 
         public Queue<RenderInstruction> RenderInstructions { get; private set; }
 
-        private string                profilerTag;
-        private MaterialPropertyBlock _tempBlock;
+        private string profilerTag;
 
         public OrthographicRenderPass(OrthographicRenderSettings settings) {
             profilerTag          = settings.ProfilerTag;
             base.renderPassEvent = settings.RenderPassEvt;
             RenderInstructions   = new Queue<RenderInstruction>();
-            _tempBlock           = new MaterialPropertyBlock();
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData) {
@@ -30,8 +29,9 @@ namespace UGUIDots.Render {
                 return;
             }
 
-            // TODO: Need a better way to handle finding the camera
             var cmd = CommandBufferPool.Get(profilerTag);
+
+            // TODO: Figure out how to use the profiling scope instead of the profiling sample.
             using (new ProfilingSample(cmd, profilerTag)) {
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
@@ -43,26 +43,17 @@ namespace UGUIDots.Render {
 
                 var mgr = World.DefaultGameObjectInjectionWorld.EntityManager;
 
-                // This is bad
-                // mgr.CompleteAllJobs();
-
                 while (RenderInstructions.Count > 0) {
                     var dequed = RenderInstructions.Dequeue();
                     var keys   = dequed.Start;
                     var mesh   = dequed.Mesh;
+                    var batch  = dequed.Batch.Value;
 
                     for (int i = 0; i < mesh.subMeshCount; i++) {
-                        var mat        = mgr.GetSharedComponentData<SharedMaterial>(keys[i].MaterialEntity).Value;
+                        var mat        = mgr.GetComponentData<SharedMaterial>(keys[i].MaterialEntity).Value;
                         var textureKey = keys[i].TextureEntity;
-
-                        _tempBlock.Clear();
-                        if (textureKey != Entity.Null) {
-                            var texture = mgr.GetSharedComponentData<SharedTexture>(textureKey).Value;
-                            _tempBlock.SetTexture(ShaderIDConstants.MainTex, texture);
-                        }
-
-                        var m = Matrix4x4.identity;
-                        cmd.DrawMesh(mesh, m, mat, i, -1, _tempBlock);
+                        var prop       = batch[i];
+                        cmd.DrawMesh(mesh, Matrix4x4.identity, mat, i, -1, batch[i]);
                     }
                 }
             }

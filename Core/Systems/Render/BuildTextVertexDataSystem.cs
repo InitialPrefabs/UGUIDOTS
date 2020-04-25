@@ -36,10 +36,7 @@ namespace UGUIDots.Render.Systems {
             [ReadOnly] public NativeHashMap<int, Entity> GlyphMap;
             [ReadOnly] public BufferFromEntity<GlyphElement> GlyphData;
             [ReadOnly] public ComponentDataFromEntity<FontFaceInfo> FontFaces;
-
-            // TODO: Find out if this is better than giving each UI Element an AssociatedCanvas component
             [ReadOnly] public ComponentDataFromEntity<Parent> Parents;
-
             [ReadOnly] public ArchetypeChunkEntityType EntityType;
             [ReadOnly] public ArchetypeChunkBufferType<CharElement> CharBufferType;
             [ReadOnly] public ArchetypeChunkComponentType<TextOptions> TextOptionType;
@@ -188,7 +185,6 @@ namespace UGUIDots.Render.Systems {
 
                     CmdBuffer.RemoveComponent<BuildUIElementTag>(textEntity.Index, textEntity);
 
-                    // TODO: Signal that the canvas has to built.
                     var canvas = GetRootCanvas(textEntity);
                     CmdBuffer.AddComponent(canvas.Index, canvas, new BatchCanvasTag { });
                 }

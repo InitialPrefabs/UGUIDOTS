@@ -21,14 +21,14 @@ namespace UGUIDots.Conversions.Systems {
 #if UNITY_EDITOR
                 UnityEditor.EditorGUIUtility.PingObject(canvas);
 #endif
-                    throw new NotSupportedException($"{canvas.name} is child of {parent.name}, this is not supported!");
+                    throw new NotSupportedException($"{canvas.name} is child of {parent.name}, this will not be " + 
+                        "supported!");
                 }
 
                 var entity       = GetPrimaryEntity(canvas);
                 var canvasScaler = canvas.GetComponent<CanvasScaler>();
 
                 // Remove unnecessary information
-                // DstEntityManager.RemoveComponent<Anchor>(entity);
                 DstEntityManager.RemoveComponent<Rotation>(entity);
                 DstEntityManager.RemoveComponent<Translation>(entity);
                 DstEntityManager.RemoveComponent<NonUniformScale>(entity);
@@ -56,11 +56,11 @@ namespace UGUIDots.Conversions.Systems {
                                 Value =  canvasScaler.matchWidthOrHeight
                             });
                         } else {
-                            throw new NotSupportedException($"{canvasScaler.screenMatchMode} is not supported!");
+                            throw new NotSupportedException($"{canvasScaler.screenMatchMode} is not supported yet.");
                         }
                         break;
                     default:
-                        throw new NotSupportedException($"{canvasScaler.uiScaleMode} is not supported!");
+                        throw new NotSupportedException($"{canvasScaler.uiScaleMode} is not supported yet.");
                 }
             });
         }

@@ -5,9 +5,13 @@ using UnityEngine;
 namespace UGUIDots.Render {
 
     [Serializable]
-    public struct SharedTexture : ISharedComponentData, IEquatable<SharedTexture> {
+    public class SharedTexture : IComponentData, IEquatable<SharedTexture> {
 
         public Texture Value;
+
+        public override bool Equals(object obj) {
+            return Equals((SharedTexture)obj);
+        }
 
         public bool Equals(SharedTexture other) {
             return other.Value == Value;
@@ -21,7 +25,7 @@ namespace UGUIDots.Render {
     }
 
     /// <summary>
-    /// Stpres the entity that is linked with a Texture
+    /// Stpres the entity that is linked with a Texture.
     /// </summary>
     public struct LinkedTextureEntity : IComponentData {
         public Entity Value;
