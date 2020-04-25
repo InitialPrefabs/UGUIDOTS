@@ -6,8 +6,12 @@ namespace UGUIDots.Render {
 
     // TODO: Turn this into a managed component data instead to avoid unnecessary chunk splitting
     [Serializable]
-    public struct SharedMaterial : ISharedComponentData, IEquatable<SharedMaterial> {
+    public class SharedMaterial : IComponentData, IEquatable<SharedMaterial> {
         public Material Value;
+
+        public override bool Equals(object obj) {
+            return Equals((SharedMaterial)obj);
+        }
 
         public override int GetHashCode() {
             return !ReferenceEquals(null, Value) ? Value.GetHashCode() : 0;
@@ -49,6 +53,9 @@ namespace UGUIDots.Render {
         }
     }
 
+    /// <summary>
+    /// Stores the associative entity that is representative of the material.
+    /// </summary>
     public struct LinkedMaterialEntity : IComponentData {
         public Entity Value;
     }

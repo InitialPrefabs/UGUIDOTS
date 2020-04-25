@@ -16,14 +16,12 @@ namespace UGUIDots.Render {
 
         public Queue<RenderInstruction> RenderInstructions { get; private set; }
 
-        private string                profilerTag;
-        private MaterialPropertyBlock _tempBlock;
+        private string profilerTag;
 
         public OrthographicRenderPass(OrthographicRenderSettings settings) {
             profilerTag          = settings.ProfilerTag;
             base.renderPassEvent = settings.RenderPassEvt;
             RenderInstructions   = new Queue<RenderInstruction>();
-            _tempBlock           = new MaterialPropertyBlock();
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData) {
@@ -31,8 +29,9 @@ namespace UGUIDots.Render {
                 return;
             }
 
-            // TODO: Need a better way to handle finding the camera
             var cmd = CommandBufferPool.Get(profilerTag);
+
+            // TODO: Figure out how to use the profiling scope instead of the profiling sample.
             using (new ProfilingSample(cmd, profilerTag)) {
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
@@ -51,21 +50,10 @@ namespace UGUIDots.Render {
                     var batch = dequed.Batch.Value;
 
                     for (int i = 0; i < mesh.subMeshCount; i++) {
-                        var mat        = mgr.GetSharedComponentData<SharedMaterial>(keys[i].MaterialEntity).Value;
+                        var mat        = mgr.GetComponentData<SharedMaterial>(keys[i].MaterialEntity).Value;
                         var textureKey = keys[i].TextureEntity;
                         var prop       = batch[i];
-
-                        // TODO: Figure out when to clear the property blocks
-                        // _tempBlock.Clear();
-                        /*
-                        if (textureKey != Entity.Null) {
-                            var texture = mgr.GetSharedComponentData<SharedTexture>(textureKey).Value;
-                            prop.SetTexture(ShaderIDConstants.MainTex, texture);
-                        }
-                        */
-
-                        var m = Matrix4x4.identity;
-                        cmd.DrawMesh(mesh, m, mat, i, -1, batch[i]);
+                        cmd.DrawMesh(mesh, Matrix4x4.identity, mat, i, -1, batch[i]);
                     }
                 }
             }

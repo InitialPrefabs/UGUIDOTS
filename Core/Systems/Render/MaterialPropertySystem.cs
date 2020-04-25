@@ -31,7 +31,7 @@ namespace UGUIDots.Render.Systems {
 
                     if (linkedTextures.Exists(renderEntity)) {
                         var textureEntity = linkedTextures[renderEntity].Value;
-                        var texture       = EntityManager.GetSharedComponentData<SharedTexture>(textureEntity);
+                        var texture       = EntityManager.GetComponentData<SharedTexture>(textureEntity);
 
                         c0.Value[i].SetTexture(ShaderIDConstants.MainTex, texture.Value);
                     }
