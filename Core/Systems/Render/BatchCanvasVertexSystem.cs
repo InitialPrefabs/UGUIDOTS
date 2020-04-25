@@ -149,8 +149,7 @@ namespace UGUIDots.Render.Systems {
                 }
             }
 
-            // TODO: Support text because the offset only assumes you have 6 vertices per image - does not  take into
-            // account 9 slicing
+            // TODO: Support 9 slicing because the offset only assumes you have 6 vertices per image
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             void AddAdjustedIndex(int offset, ref DynamicBuffer<RootTriangleIndexElement> indices,
                 in NativeArray<LocalTriangleIndexElement> localTriangles) {

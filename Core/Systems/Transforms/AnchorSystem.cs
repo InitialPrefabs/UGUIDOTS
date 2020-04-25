@@ -79,7 +79,7 @@ namespace UGUIDots.Transforms.Systems {
                     var anchor     = Anchors[current];
                     var dimensions = Dimensions[parent].Value;
                     var ltp        = LTP[current];
-                    var ltw        = LTW[current];
+                    var worldSpace        = LTW[current];
 
                     // Find the world space position of the anchor
                     var anchoredPos = GetAnchoredPosition(parent, in parentLTW, in rootScale, in anchor);
@@ -87,24 +87,24 @@ namespace UGUIDots.Transforms.Systems {
                     // Get the actual world space and compute the local space.
                     var adjustedWS    = anchoredPos + (anchor.Distance * rootScale);
                     var localDistance = new float3(parentLTW.Position.xy - adjustedWS, 0);
-                    var mWorldSpace   = float4x4.TRS(new float3(adjustedWS, 0), ltw.Rotation, ltw.Scale());
+                    var mWorldSpace   = float4x4.TRS(new float3(adjustedWS, 0), worldSpace.Rotation, worldSpace.Scale());
 
                     // Get the local space and its associated translation
-                    var mLocalSpace   = new LocalToParent { Value = math.mul(parentInversed, mWorldSpace) };
-                    var translation   = new Translation { Value = mLocalSpace.Position };
+                    var localSpace   = new LocalToParent { Value = math.mul(parentInversed, mWorldSpace) };
+                    var translation   = new Translation { Value = localSpace.Position };
 
-                    // TODO: Update the local to world?
-                    ltw = new LocalToWorld { 
-                        Value = float4x4.TRS(new float3(adjustedWS, 0), ltw.Rotation, ltw.Scale()) 
+                    worldSpace = new LocalToWorld { 
+                        Value = float4x4.TRS(new float3(adjustedWS, 0), worldSpace.Rotation, worldSpace.Scale()) 
                     };
 
                     // Update the LocalToParent and its local translation
-                    CmdBuffer.SetComponent(current.Index, current, mLocalSpace);
+                    CmdBuffer.SetComponent(current.Index, current, localSpace);
                     CmdBuffer.SetComponent(current.Index, current, translation);
+                    CmdBuffer.SetComponent(current.Index, current, worldSpace);
 
                     if (ChildBuffers.Exists(current)) {
                         var grandChildren = ChildBuffers[current];
-                        RecurseChildren(in current, in ltw, in rootScale, in grandChildren);
+                        RecurseChildren(in current, in worldSpace, in rootScale, in grandChildren);
                     }
                 }
             }

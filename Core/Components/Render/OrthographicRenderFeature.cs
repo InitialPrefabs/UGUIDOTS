@@ -47,7 +47,7 @@ namespace UGUIDots.Render {
                     var dequed = RenderInstructions.Dequeue();
                     var keys   = dequed.Start;
                     var mesh   = dequed.Mesh;
-                    var batch = dequed.Batch.Value;
+                    var batch  = dequed.Batch.Value;
 
                     for (int i = 0; i < mesh.subMeshCount; i++) {
                         var mat        = mgr.GetComponentData<SharedMaterial>(keys[i].MaterialEntity).Value;
