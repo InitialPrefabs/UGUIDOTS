@@ -15,4 +15,4 @@ in orthographic view. This happens every render frame.
 
 ## Limitations
 Currently, there is no way to add multiple `GraphicsCommandBuffer` - as adding multiple command buffers would mean
-parallel context execution on the render side. I still need to figure this out.
+parallel context execution on the render side.

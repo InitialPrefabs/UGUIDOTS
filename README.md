@@ -27,6 +27,9 @@ The [wiki](Wiki/Home.md) is currently being worked on and contains basic informa
 ## Changelog
 General purpose change log can be found [here](CHANGELOG.md).
 
+## Contributions
+If you would like to help contribute to the development of UGUIDots, please see the contribution guidelines [here](CONTRIBUTING.md).
+
 ## TODO
 
 Support for the following will come over time - depends on the needs for my own game.
