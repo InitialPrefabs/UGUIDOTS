@@ -6,9 +6,9 @@
   "unity":       "2020.1",
   "description": "Low level library to augment Unity's UI and make it DOTS compliant",
   "dependencies" : {
-    "com.unity.entities" : "0.9.0-preview.6",
+    "com.unity.entities" : "0.9.1-preview.14",
     "com.unity.ugui" : "1.0.0",
     "com.unity.render-pipelines.universal": "9.0.0-preview.14",
-    "com.unity.textmeshpro": "3.0.0-preview.8"
+    "com.unity.textmeshpro": "3.0.0-preview.11"
   }
 }

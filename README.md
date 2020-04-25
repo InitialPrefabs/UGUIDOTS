@@ -86,16 +86,13 @@ Please see the Sample repository [here](https://github.com/InitialPrefabs/UGUIDo
 
 Grab these from Unity's package manager.
 
-* Burst 1.3.0
-* Entities 0.8.0-preview-8
-* Jobs 0.2.7-preview-11
-* Collections 0.7.0-preview-2
+* Burst 1.3.0-preview.10
+* Entities 0.9.1-preview.15
+* Jobs 0.2.8-preview.3
+* Collections 0.7.1-preview.3
 * UGUI 1.0.0
-
-### Note
-Regarding Entities 0.8.0-preview-8 there is an issue regarding the preprocessor defines for Android. Please follow the 
-instructions in this [Unity forum post](https://forum.unity.com/threads/entities-0-8-compile-error-in-android-platform.846583/) 
-to resolve it.
+* Universal RP 0.9.0-preview.14
+* TextMeshPro 0.3.0-preview.11
 
 ## Limitations
 Development is still underway - so not all of the features Unity has by default is supported. Similarly - there are certain
