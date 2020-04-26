@@ -50,10 +50,14 @@ namespace UGUIDots.Render {
                     var batch  = dequed.Batch.Value;
 
                     for (int i = 0; i < mesh.subMeshCount; i++) {
-                        var mat        = mgr.GetComponentData<SharedMaterial>(keys[i].MaterialEntity).Value;
-                        var textureKey = keys[i].TextureEntity;
-                        var prop       = batch[i];
-                        cmd.DrawMesh(mesh, Matrix4x4.identity, mat, i, -1, batch[i]);
+                        var matEntity = keys[i].MaterialEntity;
+
+                        // TODO: I would like for the data to already be there without this check - need to revise soon
+                        if (mgr.HasComponent<SharedMaterial>(matEntity)) {
+                            var mat  = mgr.GetComponentData<SharedMaterial>(matEntity).Value;
+                            var prop = batch[i];
+                            cmd.DrawMesh(mesh, Matrix4x4.identity, mat, i, -1, prop);
+                        }
                     }
                 }
             }
