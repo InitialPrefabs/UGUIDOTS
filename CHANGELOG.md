@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.1.0 - 2020-04-26
+### Added
+* Adds a check to ensure that the rendered element has a SharedMaterial attached.
+
 ## 0.1.0 - 2020-04-25
 ### Added
 * Added support for MaterialPropertyBlocks in the `RenderInstruction` struct
