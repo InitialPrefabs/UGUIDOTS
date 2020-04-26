@@ -10,3 +10,4 @@ be kept up to date to help lower the barrier of entry for new developers. :)
 * [Image](Image.md)
 * [Text](Text.md)
 * [Rendering](Rendering.md)
+* [Shaders](Shaders.md}
