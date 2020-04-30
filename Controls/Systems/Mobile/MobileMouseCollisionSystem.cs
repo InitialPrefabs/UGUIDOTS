@@ -1,5 +1,4 @@
-﻿using Unity.Collections.LowLevel.Unsafe;
-using Unity.Mathematics;
+﻿using Unity.Mathematics;
 using Unity.Entities;
 using Unity.Transforms;
 using UnityEngine;
@@ -11,12 +10,11 @@ namespace UGUIDots.Controls.Systems {
 
         protected unsafe override void OnUpdate() {
 
-            // TODO: This constantly allocates 10 elements every update, check if there is a better way
-            var touches = stackalloc TouchElement[10];
+            var touches = stackalloc TouchElement[1];
             var size    = stackalloc int[1];
 
             Entities.ForEach((DynamicBuffer<TouchElement> b0) => {
-                UnsafeUtility.MemCpy(touches, b0.GetUnsafePtr(), UnsafeUtility.SizeOf<TouchElement>() * b0.Length);
+                touches = (TouchElement*)b0.GetUnsafePtr();
                 size[0] = b0.Length;
             }).WithNativeDisableUnsafePtrRestriction(touches).WithNativeDisableUnsafePtrRestriction(size).Run();
 
@@ -46,7 +44,8 @@ namespace UGUIDots.Controls.Systems {
                         c1.Value  = onTop ? ButtonVisualState.Pressed : ButtonVisualState.Hover;
                         break;
                     } else {
-                        c1.Value  = ButtonVisualState.None;
+                        c0.Value = false;
+                        c1.Value = ButtonVisualState.None;
                     }
                 }
             }).Run();
