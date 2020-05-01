@@ -11,12 +11,12 @@ This is a **low level library** which augments on top of Unity's UI and does not
 replacement - so the workflow of authoring UI designs in games largely remains the same.
 
 ## Why do this?
-A DOTS compliant UI is still underway (which will be based off of UIElements). Until then, I need a UI solution, that 
-most designers can get familiar with - without building too many custom tooling. Similarly - one that has the 
-performance capabilities for both mobile and desktops. That said supported platforms are primarily for:
+A DOTS compliant UI is still underway (which will be based off of UIElements). Until then, I need a UI solution the 
+works with the Scriptable Render Pipeline - without building too many custom tooling. Similarly - one that has the 
+performance capabilities and low overhead for both mobile and desktops. That said supported platforms are primarily for:
 
 * Android
-* iOS
+* iOS (? - currently hard for me to test)
 * Linux 64 bit
 * macOS
 * Windows 64 bit
@@ -70,11 +70,23 @@ Download the latest [release](https://github.com/InitialPrefabs/UGUIDots/release
 
 ## QuickStart
 
-All UGUI elements are converted into their entities format via the ConversionSystems (depends on what is currently supported).
-When entering play mode, the root Canvases are destroyed and render instructions are pushed into an Orthographic Render Pass.
+Below are the basic steps to get the package working in game.
 
-You will need a gameObject with the `RenderComandProxy` proxy attached. This is where the RenderPipelineFeature is stored
-and needed by the `MeshRenderSystem` to enqueue GPU instructions to render the UI.
+### Setting up the Render Command
+* Set up project to use the Universal Render Pipeline
+* Add the RenderCommandAuthoring component with a scriptable render feature to a GameObject.
+* Add the `ConvertToEntity` component to the `RenderCommandAuthoring` GameObject
+
+### Converting GameObjects to Entities
+* Design your UI normally using the WYSWYG editor in Unity
+* Add the BatchedMeshAuthoring component to your root canvas
+* Build the batch on the BatchedMeshAuthoring component
+* Add the `ConvertToEntity` component to convert the GameObject hierarchy to its Entities' format
+
+### Setting up input
+* Add the `MobileMouseInputAuthoring` component to a GameObject for Mobile support
+* Add the `StandaloneInputAuthoring` component to a GameObject for Windows/macOS/\*nix support
+* Put the GameObject into a subscene _or_ add  the `ConvertToEntity` component to it
 
 ## Sample Repository
 
@@ -82,7 +94,7 @@ Please see the Sample repository [here](https://github.com/InitialPrefabs/UGUIDo
 
 ## Dependencies
 
-* Unity 2019.3fx
+* Unity 2020.1bx
 
 Grab these from Unity's package manager.
 

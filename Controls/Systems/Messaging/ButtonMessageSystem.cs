@@ -23,8 +23,6 @@ namespace UGUIDots.Controls.Messaging.Systems {
         }
     }
 
-    // TODO: Support the ButtonMessagePersistentPayload component which has a different life span
-    // TODO: Change the job to an IJobChunk
     [UpdateInGroup(typeof(MessagingProductionGroup))]
     public class ButtonMessageProducerSystem : SystemBase {
 
