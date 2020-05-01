@@ -19,15 +19,17 @@ mark a button, add the following to the GameObject:
 ### ButtonTypeAuthoring
 The `ButtonTypeAuthoring` component defines the kind of button. 
 
-There are currently two kinds of buttons
+There are currently three kinds of buttons
 * ReleaseUp
 * PressDown
+* Held
 
 Clicks are registered based on its type. A button type which is `ReleaseUp` will mean that a click is registered when 
 the mouse is let go. This is similar to current button behaviors found in desktop operating systems (Window, macOS, \*nix). 
 A button type of `PressDown` means that the moment the mouse is pressed - the button will respond. This is recommended 
 if you have a something that is very time sensitive and need to have a click registered (e.g. mobile UI that requires 
-rapid tapping).
+rapid tapping). A button type of `Held` means that as long as the cursor is on top of the button then, a click is 
+registered.
 
 ### Button Behavior Script
 The Button Behavior Script is your own authored behavior that you attach to the Button GameObject. Because UGUIDots does 
