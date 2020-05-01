@@ -1,6 +1,18 @@
 # Change Log
 
-## 0.1.0 - 2020-04-26
+## 0.1.2
+### Added
+* Documentation on how buttons work (marked as experimental)
+* Added TestFixtures to regressively add tests on all the systems
+* Added Mobile unit tests to check if the button state is correct
+
+### Fixed
+* Fixed the MobileMouseCollisionSystem button logic from continuously producing a request every frame
+
+### Removed
+* `ButtonMessagePersistentPayload` in favor of producing an entity each frame
+
+## 0.1.1 - 2020-04-26
 ### Added
 * Adds a check to ensure that the rendered element has a SharedMaterial attached.
 

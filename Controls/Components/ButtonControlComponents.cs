@@ -29,13 +29,6 @@ namespace UGUIDots.Controls {
     }
 
     /// <summary>
-    /// Stores the entity that needs to be produced and remain persistent until the button is released.
-    /// </summary>
-    public struct ButtonMessagePersistentPayload : ISystemStateComponentData {
-        public Entity Value;
-    }
-
-    /// <summary>
     /// Stores the touch state element recorded by Unity.
     /// </summary>
     public struct TouchElement : IBufferElementData {
