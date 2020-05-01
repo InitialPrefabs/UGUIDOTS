@@ -71,7 +71,7 @@ The pipeline of how buttons work is as followed:
 * Process messaging entity to do some action (see below)
 * Consume messaging entity
 
-To support this pipeline, there are ComponentSystemGroups provided to plugin your system for processing stage.
+To support this pipeline, there are ComponentSystemGroups provided to implement your system in to process the message.
 
 ```
 MessagingUpdateGroup <- where systems will update in to process the created messaging entity
