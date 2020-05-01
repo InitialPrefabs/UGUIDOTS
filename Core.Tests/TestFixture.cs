@@ -41,7 +41,7 @@ namespace UGUIDots {
 
         [TearDown]
         public virtual void TearDown() {
-            if (manager != null && manager.IsCreated) {
+            if (manager != default && manager.IsCreated) {
                 while (world.Systems.Count > 0) {
                     world.DestroySystem(world.Systems[0]);
                 }
@@ -53,7 +53,7 @@ namespace UGUIDots {
 
                 World.DefaultGameObjectInjectionWorld = previousWorld;
                 previousWorld = null;
-                manager = null;
+                manager = default;
             }
         }
     }

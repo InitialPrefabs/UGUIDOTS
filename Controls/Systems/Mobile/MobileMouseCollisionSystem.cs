@@ -36,11 +36,18 @@ namespace UGUIDots.Controls.Systems {
                             case var _ when ClickType.ReleaseUp == c4.Value && touch.Phase == TouchPhase.Ended:
                                 c0.Value = true;
                                 break;
+                            case var _ when ClickType.Held == c4.Value && touch.Phase == TouchPhase.Began ||
+                                (touch.Phase & (TouchPhase.Moved | TouchPhase.Stationary)) > 0:
+                                c0.Value = true;
+                                break;
                             default:
+                                c0.Value = false;
                                 break;
                         }
 
-                        var onTop = (touch.Phase & (TouchPhase.Began | TouchPhase.Stationary | TouchPhase.Moved)) > 0;
+                        var onTop = touch.Phase == TouchPhase.Began || 
+                            (touch.Phase & (TouchPhase.Stationary | TouchPhase.Moved)) > 0;
+
                         c1.Value  = onTop ? ButtonVisualState.Pressed : ButtonVisualState.Hover;
                         break;
                     } else {

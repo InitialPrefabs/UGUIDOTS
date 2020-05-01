@@ -1,19 +1,23 @@
 {
     "name": "Controls.Tests",
     "references": [
+        "UGUIDots.Core",
+        "Core.Tests",
         "UGUIDots.Controls",
         "UGUIDots.Controls.Mobile",
         "UGUIDots.Controls.Standalone",
         "Unity.Entities",
         "Unity.Entities.Hybrid",
-        "Core.Tests",
+        "Unity.Mathematics",
         "Unity.Transforms",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],
-    "includePlatforms": [],
+    "includePlatforms": [
+        "Editor"
+    ],
     "excludePlatforms": [],
-    "allowUnsafeCode": false,
+    "allowUnsafeCode": true,
     "overrideReferences": true,
     "precompiledReferences": [
         "nunit.framework.dll"
