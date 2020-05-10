@@ -25,7 +25,8 @@ namespace UGUIDots.Render {
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData) {
-            if (RenderInstructions.Count <= 0) {
+            // Skip attempting to render the context if the camera is a RT camera
+            if (RenderInstructions.Count <= 0 || renderingData.cameraData.targetTexture) {
                 return;
             }
 
