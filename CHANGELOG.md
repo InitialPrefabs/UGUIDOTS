@@ -1,5 +1,10 @@
 # Change Log
 
+## 0.1.3
+### Fixed
+* Fixed issue regarding render texture cameras
+* Fixed instancing declaration error in the shaders
+
 ## 0.1.2
 ### Added
 * Documentation on how buttons work (marked as experimental)

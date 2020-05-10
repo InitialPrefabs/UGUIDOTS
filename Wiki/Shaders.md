@@ -17,7 +17,6 @@ of the `MaterialPropertyBatch` in the root canvas.
 
 By accessing the index, you are able to retrieve the associated material property and manipulate any properties.
 
-
 ## DefaultImage Material
 The `DefaultImage` material is very similar to the DefaultUI material, except that it allows for translation and fill.
 
