@@ -103,7 +103,7 @@ Grab these from Unity's package manager.
 * Jobs 0.2.8-preview.3
 * Collections 0.7.1-preview.3
 * UGUI 1.0.0
-* Universal RP 0.9.0-preview.14
+* Universal RP 9.0.0-preview.14
 * TextMeshPro 0.3.0-preview.11
 
 ## Limitations

@@ -28,7 +28,7 @@ attached to them:
 Currently, canvases that use ***Constant Pixel Size*** and ***Constant Physical Size*** are not supported.
 
 ## Building the Canvas
-Build the canvas is a multi step process - which will be covered over the course of the next few frames.
+Building the canvas is a multi step process - which will be covered over the course of the next few frames.
 
 ***This is experiemental and will likely change in the near future.****
 
@@ -38,7 +38,7 @@ Build the canvas is a multi step process - which will be covered over the course
   b. Those systems will recurse to the root canvas and mark that the canvas has to consolidate all children elements 
     by adding the `BatchCanvasTag`.
 2. Canvases that have the `BatchCanvasTag` recurse through the children and build the `RootVertexData` and 
-`RootTriangleIndexElement` together.
+`RootTriangleIndexElement` by consolidating its children's local vertices.
   a. After processing these canvases, the canvas is then marked to be built using the `BuildCanvasTag`
 3. Canvases marked with the `BuildCanvasTag` have their `RootVertexData` and `RootTriangleDataElement` copied into its
  associative Mesh.
@@ -47,7 +47,7 @@ Build the canvas is a multi step process - which will be covered over the course
 Meshes are batched and made up of various submeshes similar to Unity's default UI system. This allows meshes with the 
 same material and texture to be constructed together and issued with a single draw call.
 
-To see how meshes and submeshes are built - please see the `BatchCanvasMeshSystem` and `BuildCanvasMeshSystem`.
+To see how meshes and submeshes are built and batched together - please see the `BatchCanvasMeshSystem` and `BuildCanvasMeshSystem`.
 
 ## Rendering
 
@@ -59,8 +59,8 @@ The canvas will have a managed `Mesh` component added via the `AddMeshTag`. The 
 consume the `AddMeshTag`, and subsequently add the managed Mesh to the Canvas.
 
 ### Why do this?
-The theory behind this is that we can store many canvases into a particular chunk - alongside the mesh data. This allows
-a singular archetype to be queried and read simply iterating on all the chunks instead of jumping between archetypes to
+The theory behind this is that we can store many canvases into a particular chunk, alongside its mesh data. This allows
+a singular archetype to be queried and read simply iterating on the chunks instead of jumping between archetypes to
 render the UI.
 
 ## Batching
@@ -79,3 +79,19 @@ An example of the `BatchedMeshAuthoring` component.
 ## Recomputating the Canvas
 Generally, the canvas should _only_ be rebuilt if you need to add more elements to the UI or if the resolution of the 
 screen changes.
+
+### Screen Resolution Changes
+When the screen resolution changes, an entity with a `ResolutionChangeEvt` component is produced. The existance of this 
+messaging entity, allows certain systems to run such as
+
+* AnchorSystem
+* CanvasScalerSystem
+
+The `AnchorSystem` will run to recompute the anchored position of each rendered element. This ensures that the relative 
+distance between each anchored element remains relatively consistent as the screen resolution changes.
+
+The `CanvasScalerSystem` ensures that elements are scaled to match the exact resolution of the Screen space. Imagine an 
+image that fills the entire screen size at set resolution of 1920 x 1080. If the resolution then changes to 2560 x 1440, 
+then the image has to be resized such that it fills the background completely.
+
+This follows the same logarithmic scale used in Unity's `CanvasScaler`.
