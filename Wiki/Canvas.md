@@ -33,16 +33,16 @@ Building the canvas is a multi step process - which will be covered over the cou
 ***This is experiemental and will likely change in the near future.****
 
 1. Children entities must be marked to be built.
-  a. `BuildImageVertexDataSystem` and `BuildTextVertexDataSystem` will run if there is a `BuildUIElementTag` on the entity.
+    * `BuildImageVertexDataSystem` and `BuildTextVertexDataSystem` will run if there is a `BuildUIElementTag` on the entity.
     This allows local vertex data to be built.
-  b. Those systems will recurse to the root canvas and mark that the canvas has to consolidate all children elements 
+    * Those systems will recurse to the root canvas and mark that the canvas has to consolidate all children elements 
     by adding the `BatchCanvasTag`.
 2. Canvases that have the `BatchCanvasTag` recurse through the children and build the `RootVertexData` and 
 `RootTriangleIndexElement` by consolidating its children's local vertices.
-  a. After processing these canvases, the canvas is then marked to be built using the `BuildCanvasTag`
+    * After processing these canvases, the canvas is then marked to be built using the `BuildCanvasTag`
 3. Canvases marked with the `BuildCanvasTag` have their `RootVertexData` and `RootTriangleDataElement` copied into its
  associative Mesh.
-  a. Subsequently the `BatchedCanvasTag` is removed and the mesh is prepared for rendering
+    * Subsequently the `BatchedCanvasTag` is removed and the mesh is prepared for rendering
 
 Meshes are batched and made up of various submeshes similar to Unity's default UI system. This allows meshes with the 
 same material and texture to be constructed together and issued with a single draw call.
