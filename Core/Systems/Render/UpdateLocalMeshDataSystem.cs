@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using UGUIDots.Transforms;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -11,6 +12,9 @@ namespace UGUIDots.Render.Systems {
 
         [BurstCompile]
         private struct UpdateLocalVertexJob : IJobChunk {
+
+            [ReadOnly]
+            public ComponentDataFromEntity<Disabled> Disabled;
 
             [ReadOnly]
             public ArchetypeChunkComponentType<AppliedColor> AppliedColorType;
@@ -32,28 +36,22 @@ namespace UGUIDots.Render.Systems {
                 var entities      = chunk.GetNativeArray(EntityType);
 
                 for (int i = 0; i < chunk.Count; i++) {
-                    var color    = colors[i];
-                    var vertices = vertexBuffers[i].AsNativeArray();
                     var entity   = entities[i];
+                    if (!Disabled.Exists(entity)) {
 
-                    for (int k = 0; k < vertices.Length; k++) {
-                        var cpy     = vertices[k];
-                        cpy.Color   = color.Value.ToNormalizedFloat4();
-                        vertices[k] = cpy;
+                        var color    = colors[i];
+                        var vertices = vertexBuffers[i].AsNativeArray();
+
+                        for (int k = 0; k < vertices.Length; k++) {
+                            var cpy     = vertices[k];
+                            cpy.Color   = color.Value.ToNormalizedFloat4();
+                            vertices[k] = cpy;
+                        }
                     }
 
-                    var root = GetRoot(in Parents, in entity);
+                    var root = HierarchyUtils.GetRoot(entity, Parents);
                     CanvasMap.TryAdd(root, entity);
                 }
-            }
-
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            private Entity GetRoot(in ComponentDataFromEntity<Parent> parents, in Entity entity) {
-                if (!parents.Exists(entity)) {
-                    return entity;
-                }
-
-                return GetRoot(in parents, parents[entity].Value);
             }
         }
 
@@ -102,7 +100,8 @@ namespace UGUIDots.Render.Systems {
                 CanvasMap        = map.AsParallelWriter(),
                 AppliedColorType = GetArchetypeChunkComponentType<AppliedColor>(true),
                 LocalVertexType  = GetArchetypeChunkBufferType<LocalVertexData>(false),
-                EntityType       = GetArchetypeChunkEntityType()
+                EntityType       = GetArchetypeChunkEntityType(),
+                Disabled         = GetComponentDataFromEntity<Disabled>(false)
             }.Schedule(childrenUIQuery, Dependency);
 
             Dependency        = new ScheduleRootVertexUpdate {

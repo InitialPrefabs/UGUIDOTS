@@ -17,7 +17,7 @@ namespace UGUIDots.Render.Systems {
             var cmdBuffer = cmdBufferSystem.CreateCommandBuffer().ToConcurrent();
 
             Dependency = Entities.WithNone<ButtonDisabledTag>().
-                ForEach((Entity entity, in AppliedColor c0, in ColorStates c1,  in ButtonVisual c3) => {
+                ForEach((Entity entity, in AppliedColor c0, in ColorStates c1, in ButtonVisual c3) => {
 
                 bool delta = true;
                 Color32 color = default;

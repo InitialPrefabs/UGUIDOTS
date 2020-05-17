@@ -3,6 +3,7 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Transforms;
+using UnityEngine;
 
 namespace UGUIDots.Render.Systems {
 
@@ -42,18 +43,6 @@ namespace UGUIDots.Render.Systems {
                     CmdBuffer.RemoveComponent<UpdateVertexColorTag>(entity.Index, entity);
                     CmdBuffer.AddComponent<BuildCanvasTag>(entity.Index, entity);
                 }
-            }
-
-            public void Execute(Entity entity, int index, DynamicBuffer<RootVertexData> b0) {
-                if (!ChildrenBuffer.Exists(entity)) {
-                    return;
-                }
-
-                var rootVertices = b0.AsNativeArray();
-                RecurseUpdateChildren(entity, ref rootVertices);
-
-                CmdBuffer.RemoveComponent<UpdateVertexColorTag>(index, entity);
-                CmdBuffer.AddComponent<BuildCanvasTag>(index, entity);
             }
 
             private void RecurseUpdateChildren(Entity root, ref NativeArray<RootVertexData> rootVertices) {
@@ -103,7 +92,7 @@ namespace UGUIDots.Render.Systems {
                 LocalVertexDatas = GetBufferFromEntity<LocalVertexData>(true),
                 CmdBuffer        = cmdBufferSystem.CreateCommandBuffer().ToConcurrent(),
                 EntityType       = GetArchetypeChunkEntityType(),
-                RootVertexType = GetArchetypeChunkBufferType<RootVertexData>(false),
+                RootVertexType   = GetArchetypeChunkBufferType<RootVertexData>(false),
             }.Schedule(canvasUpdateQuery, Dependency);
 
             cmdBufferSystem.AddJobHandleForProducer(Dependency);
