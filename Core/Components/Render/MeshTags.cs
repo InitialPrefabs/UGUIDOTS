@@ -9,9 +9,13 @@ namespace UGUIDots.Render {
 
     public struct UpdateVertexColorTag : IComponentData { }
 
-    public struct NonInteractableTag : IComponentData { }
-
+    /// <summary>
+    /// Marks that an element is not rendering.
+    /// </summary>
     public struct DisableRenderingTag : IComponentData { }
 
+    /// <summary>
+    /// Marks that the element should render.
+    /// </summary>
     public struct EnableRenderingTag : IComponentData { }
 }

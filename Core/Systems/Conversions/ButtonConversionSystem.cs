@@ -19,7 +19,6 @@ namespace UGUIDots.Conversions.Systems {
                 if (!button.interactable) {
                     DstEntityManager.AddComponentData(entity, new ButtonDisabledTag { });
                     DstEntityManager.SetComponentData(entity, new AppliedColor { Value = colorBlock.disabledColor });
-                    DstEntityManager.RemoveComponent<NonInteractableTag>(entity);
                 } else {
                     DstEntityManager.SetComponentData(entity, new AppliedColor { Value = colorBlock.normalColor });
                 }
