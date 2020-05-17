@@ -9,6 +9,7 @@ namespace UGUIDots.Transforms.Systems {
     /// Forces an update of the children entities when the parent entity has a disabled tag.
     /// </summary>
     [UpdateInGroup(typeof(PresentationSystemGroup))]
+    [DisableAutoCreation]
     public class ReactiveDisableHierarchySystem : JobComponentSystem {
 
         private struct DisableChildrenJob : IJobChunk {

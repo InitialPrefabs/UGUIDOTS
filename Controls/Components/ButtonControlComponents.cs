@@ -6,6 +6,13 @@ using UnityEngine;
 namespace UGUIDots.Controls {
 
     /// <summary>
+    /// The entity which is targetted to be disabled.
+    /// </summary>
+    public struct CloseTarget : IComponentData {
+        public Entity Value;
+    }
+
+    /// <summary>
     /// The type of the button behaviour.
     /// </summary>
     public enum ClickType : byte {

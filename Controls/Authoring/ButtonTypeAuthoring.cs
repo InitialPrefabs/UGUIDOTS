@@ -2,6 +2,7 @@ using Unity.Entities;
 using UnityEngine;
 
 namespace UGUIDots.Controls.Authoring {
+
     public class ButtonTypeAuthoring : MonoBehaviour, IConvertGameObjectToEntity {
 
         public ClickType Type = ClickType.ReleaseUp;

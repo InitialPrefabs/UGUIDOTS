@@ -8,4 +8,10 @@ namespace UGUIDots.Render {
     public struct BuildUIElementTag : IComponentData { }
 
     public struct UpdateVertexColorTag : IComponentData { }
+
+    public struct NonInteractableTag : IComponentData { }
+
+    public struct DisableRenderingTag : IComponentData { }
+
+    public struct EnableRenderingTag : IComponentData { }
 }
