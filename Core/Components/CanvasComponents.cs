@@ -1,7 +1,22 @@
+using System;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Mathematics;
 
 namespace UGUIDots {
+
+    public struct ChildrenActiveMetadata : ISystemStateComponentData, IDisposable {
+        public UnsafeHashMap<Entity, bool> Value;
+
+        public void Dispose() {
+            Value.Dispose();
+        }
+
+        public void Dispose(JobHandle jobDeps) {
+            Value.Dispose(jobDeps);
+        }
+    }
 
     /// <summary>
     /// If the canvas is set to the ScaleWithScreenSize, then this component should be attached to the Canvas component.
