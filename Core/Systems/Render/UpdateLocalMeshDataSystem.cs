@@ -3,9 +3,7 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
-using Unity.Mathematics;
 using Unity.Transforms;
-using UnityEngine;
 
 namespace UGUIDots.Render.Systems {
     [UpdateInGroup(typeof(MeshUpdateGroup))]
@@ -38,13 +36,15 @@ namespace UGUIDots.Render.Systems {
 
                 for (int i = 0; i < chunk.Count; i++) {
                     var entity   = entities[i];
-                    var color    = colors[i].Value.ToNormalizedFloat4();
                     var vertices = vertexBuffers[i].AsNativeArray();
 
-                    for (int k = 0; k < vertices.Length; k++) {
-                        var cpy     = vertices[k];
-                        cpy.Color   = NonInteractables.Exists(entity) ? default : color;
-                        vertices[k] = cpy;
+                    bool exists = NonInteractables.Exists(entity);
+                    var color   = exists ? default : colors[i].Value.ToNormalizedFloat4();
+
+                    for (int m = 0; m < vertices.Length; m++) {
+                        var cpy     = vertices[m];
+                        cpy.Color   = color;
+                        vertices[m] = cpy;
                     }
 
                     var root = HierarchyUtils.GetRoot(entity, Parents);
@@ -90,7 +90,7 @@ namespace UGUIDots.Render.Systems {
         }
 
         protected override void OnUpdate() {
-            var map = new NativeHashMap<Entity, Entity>(canvasQuery.CalculateEntityCount() * 2, Allocator.TempJob);
+            var map       = new NativeHashMap<Entity, Entity>(canvasQuery.CalculateEntityCount() * 2, Allocator.TempJob);
             var cmdBuffer = cmdBufferSystem.CreateCommandBuffer();
 
             Dependency           = new UpdateLocalVertexJob {
@@ -100,15 +100,15 @@ namespace UGUIDots.Render.Systems {
                 LocalVertexType  = GetArchetypeChunkBufferType<LocalVertexData>(false),
                 EntityType       = GetArchetypeChunkEntityType(),
                 NonInteractables = GetComponentDataFromEntity<NonInteractableTag>(true)
-            }.Schedule(childrenUIQuery, Dependency);
+            }.ScheduleParallel(childrenUIQuery, Dependency);
 
             Dependency        = new ScheduleRootVertexUpdate {
                 CommandBuffer = cmdBuffer,
                 CanvasMap     = map,
             }.Schedule(Dependency);
 
-            cmdBufferSystem.AddJobHandleForProducer(Dependency);
             Dependency = map.Dispose(Dependency);
+            cmdBufferSystem.AddJobHandleForProducer(Dependency);
         }
     }
 }

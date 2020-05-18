@@ -134,7 +134,6 @@ namespace UGUIDots.Render.Systems {
                         rootVertices.AddRange(childVertices);
                         AddAdjustedIndex(entityCount, ref rootIndices, in childIndices);
 
-
                         CommandBuffer.AddComponent<MeshDataSpan>(childEntity.Index, childEntity);
                         CommandBuffer.SetComponent(childEntity.Index, childEntity, new MeshDataSpan {
                             VertexSpan = new int2(startVertexIndex, childVertices.Length),
@@ -179,8 +178,9 @@ namespace UGUIDots.Render.Systems {
         }
 
         protected override void OnUpdate() {
-            var renderType   = GetArchetypeChunkBufferType<RenderElement>(true);
-            var spanType     = GetArchetypeChunkBufferType<BatchedSpanElement>(true);
+            var renderType = GetArchetypeChunkBufferType<RenderElement>(true);
+            var spanType   = GetArchetypeChunkBufferType<BatchedSpanElement>(true);
+
             Dependency       = new BatchSubMeshJob {
                 MaterialKeys = GetComponentDataFromEntity<LinkedMaterialEntity>(true),
                 TextureKeys  = GetComponentDataFromEntity<LinkedTextureEntity>(true),

@@ -52,16 +52,18 @@ namespace UGUIDots.Controls.Messaging.Systems {
             }
 
             private void RecurseChildrenAndDisabled(Entity entity) {
-                if (Children.Exists(entity)) {
-                    var children = Children[entity].AsNativeArray();
+                if (!Children.Exists(entity)) {
+                    return;
+                }
 
-                    for (int i = 0; i < children.Length; i++) {
-                        var child = children[i].Value;
+                var children = Children[entity].AsNativeArray();
 
-                        // CmdBuffer.AddComponent(child, new UpdateVertexColorTag { });
-                        CmdBuffer.AddComponent<NonInteractableTag>(child);
-                        RecurseChildrenAndDisabled(child);
-                    }
+                for (int i = 0; i < children.Length; i++) {
+                    var child = children[i].Value;
+
+                    CmdBuffer.AddComponent<NonInteractableTag>(child);
+                    CmdBuffer.AddComponent<UpdateVertexColorTag>(child);
+                    RecurseChildrenAndDisabled(child);
                 }
             }
         }
