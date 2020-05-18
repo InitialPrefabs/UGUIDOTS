@@ -5,6 +5,7 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Transforms;
+using UnityEngine;
 
 namespace UGUIDots.Transforms.Systems {
 
@@ -15,7 +16,7 @@ namespace UGUIDots.Transforms.Systems {
     [UpdateBefore(typeof(UpdateMeshSliceSystem))]
     public class ReactiveDisableHierarchySystem : SystemBase {
 
-        private struct ZeroAlphaJob {
+        private struct MarkVertexToUpdate {
 
             public EntityCommandBuffer CmdBuffer;
 
@@ -28,43 +29,29 @@ namespace UGUIDots.Transforms.Systems {
             public BufferFromEntity<LocalVertexData> LocalVertices;
 
             public void Execute(Entity entity) {
-                // CmdBuffer.RemoveComponent<DisableRenderingTag>(entity);
-                // if (Parents.Exists(entity)) {
-                //     var root = HierarchyUtils.GetRoot(entity, Parents);
-                //     CmdBuffer.AddComponent<UpdateVertexColorTag>(root);
-                // } else {
-                //     // We know that this is the root
-                //     CmdBuffer.AddComponent<UpdateVertexColorTag>(entity);
-                // }
-
-                if (LocalVertices.Exists(entity)) {
-                    var vertices = LocalVertices[entity].AsNativeArray();
-                    UpdateVertices(vertices);
-                }
-
+                CmdBuffer.RemoveComponent<DisableRenderingTag>(entity);
                 if (Children.Exists(entity)) {
-                    var children = Children[entity].AsNativeArray();
-
-                    UpdateAlphaOfChildren(children);
+                    MarkChildWithTag(Children[entity].AsNativeArray());
                 }
             }
 
-            public void UpdateAlphaOfChildren(NativeArray<Child> children) {
+            public void MarkChildWithTag(NativeArray<Child> children) {
                 for (int i = 0; i < children.Length; i++) {
                     var child = children[i].Value;
 
                     if (LocalVertices.Exists(child)) {
-                        var vertices = LocalVertices[child].AsNativeArray();
-                        UpdateVertices(vertices);
+                        // var vertices = LocalVertices[child].AsNativeArray();
+                        // UpdateVertices(vertices);
 
-                        CmdBuffer.AddComponent<UpdateVertexColorTag>(child);
+                        Debug.Log("Added to child");
+                        CmdBuffer.AddComponent(child, new UpdateVertexColorTag { });
                     }
 
                     if (Children.Exists(child)) {
                         // Recurse into this
                         var childrenArray = Children[child].AsNativeArray();
 
-                        UpdateAlphaOfChildren(childrenArray);
+                        MarkChildWithTag(childrenArray);
                     }
                 }
             }
@@ -92,7 +79,7 @@ namespace UGUIDots.Transforms.Systems {
             var parents       = GetComponentDataFromEntity<Parent>(true);
             var cmdBuffer     = cmdBufferSystem.CreateCommandBuffer();
 
-            var alphaJob      = new ZeroAlphaJob {
+            var alphaJob      = new MarkVertexToUpdate {
                 CmdBuffer     = cmdBuffer,
                 Children      = children,
                 Parents       = parents,
@@ -101,7 +88,7 @@ namespace UGUIDots.Transforms.Systems {
 
             Dependency = Entities.ForEach((Entity entity) => {
                 alphaJob.Execute(entity);
-            }).WithAll<DisableRenderingTag, Disabled>().Schedule(Dependency);
+            }).WithAll<NonInteractableTag, DisableRenderingTag>().Schedule(Dependency);
 
             cmdBufferSystem.AddJobHandleForProducer(Dependency);
         }

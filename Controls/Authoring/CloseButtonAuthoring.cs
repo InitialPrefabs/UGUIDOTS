@@ -21,6 +21,10 @@ namespace UGUIDots.Controls.Authoring {
             });
 
             dstManager.AddComponentData(entity, new ButtonMessageFramePayload { Value = msg });
+
+#if UNITY_EDITOR
+            dstManager.SetName(msg, "Close Target Msg");
+#endif
         }
     }
 }

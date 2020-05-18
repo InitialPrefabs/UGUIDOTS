@@ -13,6 +13,11 @@ namespace UGUIDots.Render {
     public struct UpdateVertexColorTag : IComponentData { }
 
     /// <summary>
+    /// Marks an element to be not be interactable, an alternative to Disabled without the limitations.
+    /// </summary>
+    public struct NonInteractableTag : IComponentData { }
+
+    /// <summary>
     /// Marks that an element is not rendering.
     /// </summary>
     public struct DisableRenderingTag : IComponentData { }

@@ -10,7 +10,6 @@ namespace UGUIDots.Render.Systems {
     [UpdateInGroup(typeof(MeshUpdateGroup))]
     public class UpdateMeshSliceSystem : SystemBase {
 
-        [RequireComponentTag(typeof(UpdateVertexColorTag))]
         [BurstCompile]
         private struct UpdateMeshSliceJob : IJobChunk {
 

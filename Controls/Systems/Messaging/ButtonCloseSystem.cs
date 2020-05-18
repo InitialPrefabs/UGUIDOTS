@@ -14,7 +14,7 @@ namespace UGUIDots.Controls.Messaging.Systems {
             public EntityCommandBuffer CmdBuffer;
 
             [ReadOnly]
-            public ComponentDataFromEntity<Disabled> Disabled;
+            public ComponentDataFromEntity<NonInteractableTag> NonInteractable;
 
             [ReadOnly]
             public ComponentDataFromEntity<Parent> Parents;
@@ -36,13 +36,15 @@ namespace UGUIDots.Controls.Messaging.Systems {
                     activeStates.Value[targetEntity] = isActive;
                 }
 
+                /*
                 if (isActive && Disabled.Exists(targetEntity)) {
                     CmdBuffer.RemoveComponent<Disabled>(targetEntity);
                     CmdBuffer.AddComponent(targetEntity, new EnableRenderingTag { });
                 }
+                */
 
-                if (!isActive && !Disabled.Exists(targetEntity)) {
-                    CmdBuffer.AddComponent<Disabled>(targetEntity);
+                if (!isActive && !NonInteractable.Exists(targetEntity)) {
+                    CmdBuffer.AddComponent<NonInteractableTag>(targetEntity);
                     CmdBuffer.AddComponent<DisableRenderingTag>(targetEntity);
 
                     RecurseChildrenAndDisabled(targetEntity);
@@ -56,7 +58,8 @@ namespace UGUIDots.Controls.Messaging.Systems {
                     for (int i = 0; i < children.Length; i++) {
                         var child = children[i].Value;
 
-                        CmdBuffer.AddComponent<Disabled>(child);
+                        // CmdBuffer.AddComponent(child, new UpdateVertexColorTag { });
+                        CmdBuffer.AddComponent<NonInteractableTag>(child);
                         RecurseChildrenAndDisabled(child);
                     }
                 }
@@ -70,12 +73,12 @@ namespace UGUIDots.Controls.Messaging.Systems {
         }
 
         protected override void OnUpdate() {
-            var job       = new ToggleJob {
-                CmdBuffer = cmdBufferSystem.CreateCommandBuffer(),
-                Disabled  = GetComponentDataFromEntity<Disabled>(true),
-                Parents   = GetComponentDataFromEntity<Parent>(true),
-                Metadata  = GetComponentDataFromEntity<ChildrenActiveMetadata>(false),
-                Children  = GetBufferFromEntity<Child>(true)
+            var job = new ToggleJob {
+                CmdBuffer       = cmdBufferSystem.CreateCommandBuffer(),
+                NonInteractable = GetComponentDataFromEntity<NonInteractableTag>(true),
+                Parents         = GetComponentDataFromEntity<Parent>(true),
+                Metadata        = GetComponentDataFromEntity<ChildrenActiveMetadata>(false),
+                Children        = GetBufferFromEntity<Child>(true)
             };
 
             Dependency = Entities.WithAll<ButtonMessageRequest>().ForEach((in CloseTarget c0) => {

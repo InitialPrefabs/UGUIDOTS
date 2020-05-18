@@ -1,10 +1,11 @@
-using System.Runtime.CompilerServices;
 using UGUIDots.Transforms;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
+using Unity.Mathematics;
 using Unity.Transforms;
+using UnityEngine;
 
 namespace UGUIDots.Render.Systems {
     [UpdateInGroup(typeof(MeshUpdateGroup))]
@@ -14,7 +15,7 @@ namespace UGUIDots.Render.Systems {
         private struct UpdateLocalVertexJob : IJobChunk {
 
             [ReadOnly]
-            public ComponentDataFromEntity<Disabled> Disabled;
+            public ComponentDataFromEntity<NonInteractableTag> NonInteractables;
 
             [ReadOnly]
             public ArchetypeChunkComponentType<AppliedColor> AppliedColorType;
@@ -37,16 +38,13 @@ namespace UGUIDots.Render.Systems {
 
                 for (int i = 0; i < chunk.Count; i++) {
                     var entity   = entities[i];
-                    if (!Disabled.Exists(entity)) {
+                    var color    = colors[i].Value.ToNormalizedFloat4();
+                    var vertices = vertexBuffers[i].AsNativeArray();
 
-                        var color    = colors[i];
-                        var vertices = vertexBuffers[i].AsNativeArray();
-
-                        for (int k = 0; k < vertices.Length; k++) {
-                            var cpy     = vertices[k];
-                            cpy.Color   = color.Value.ToNormalizedFloat4();
-                            vertices[k] = cpy;
-                        }
+                    for (int k = 0; k < vertices.Length; k++) {
+                        var cpy     = vertices[k];
+                        cpy.Color   = NonInteractables.Exists(entity) ? default : color;
+                        vertices[k] = cpy;
                     }
 
                     var root = HierarchyUtils.GetRoot(entity, Parents);
@@ -101,7 +99,7 @@ namespace UGUIDots.Render.Systems {
                 AppliedColorType = GetArchetypeChunkComponentType<AppliedColor>(true),
                 LocalVertexType  = GetArchetypeChunkBufferType<LocalVertexData>(false),
                 EntityType       = GetArchetypeChunkEntityType(),
-                Disabled         = GetComponentDataFromEntity<Disabled>(false)
+                NonInteractables = GetComponentDataFromEntity<NonInteractableTag>(true)
             }.Schedule(childrenUIQuery, Dependency);
 
             Dependency        = new ScheduleRootVertexUpdate {
