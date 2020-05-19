@@ -3,7 +3,9 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
+using Unity.Mathematics;
 using Unity.Transforms;
+using UnityEngine;
 
 namespace UGUIDots.Render.Systems {
     [UpdateInGroup(typeof(MeshUpdateGroup))]
@@ -11,6 +13,8 @@ namespace UGUIDots.Render.Systems {
 
         [BurstCompile]
         private struct UpdateLocalVertexJob : IJobChunk {
+
+            public float3 Offset;
 
             [ReadOnly]
             public ComponentDataFromEntity<NonInteractableTag> NonInteractables;
@@ -38,12 +42,14 @@ namespace UGUIDots.Render.Systems {
                     var entity   = entities[i];
                     var vertices = vertexBuffers[i].AsNativeArray();
 
-                    bool exists = NonInteractables.Exists(entity);
-                    var color   = exists ? default : colors[i].Value.ToNormalizedFloat4();
+                    var exists = NonInteractables.Exists(entity);
+                    var vertexOffset = math.select(default, Offset, exists);
+                    var color   = colors[i].Value.ToNormalizedFloat4();
 
                     for (int m = 0; m < vertices.Length; m++) {
                         var cpy     = vertices[m];
                         cpy.Color   = color;
+                        cpy.Position += vertexOffset;
                         vertices[m] = cpy;
                     }
 
@@ -94,6 +100,7 @@ namespace UGUIDots.Render.Systems {
             var cmdBuffer = cmdBufferSystem.CreateCommandBuffer();
 
             Dependency           = new UpdateLocalVertexJob {
+                Offset           = new float3(Screen.height, Screen.width, 0) * 2,
                 Parents          = GetComponentDataFromEntity<Parent>(),
                 CanvasMap        = map.AsParallelWriter(),
                 AppliedColorType = GetArchetypeChunkComponentType<AppliedColor>(true),
