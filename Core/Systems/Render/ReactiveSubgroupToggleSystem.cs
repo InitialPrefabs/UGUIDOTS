@@ -1,10 +1,9 @@
 ﻿using Unity.Entities;
-using Unity.Transforms;
 
 namespace UGUIDots.Render.Systems {
 
     /// <summary>
-    /// Removes the NonInteractableTag and actually marks the subgroup as disabled.
+    /// Removes the DisabledTag and actually marks the subgroup as disabled.
     /// </summary>
     [UpdateInGroup(typeof(PresentationSystemGroup))]
     public class ReactiveSubgroupToggleSystem : SystemBase {
@@ -18,20 +17,12 @@ namespace UGUIDots.Render.Systems {
             var cmdBuffer = cmdBufferSystem.CreateCommandBuffer().ToConcurrent();
 
             Dependency = Entities.WithAll<DisableRenderingTag, Disabled>().ForEach(
-                (Entity entity, int entityInQueryIndex, DynamicBuffer<Child> b0) => {
-
-                var children = b0.AsNativeArray();
-
-                for (int i = 0; i < children.Length; i++) {
-                    var current = children[i].Value;
-
-                    cmdBuffer.RemoveComponent<Disabled>(current.Index, current);
-                    cmdBuffer.AddComponent<Disabled>(current.Index, current);
-                }
-
-                cmdBuffer.AddComponent<Disabled>(entityInQueryIndex, entity);
-                cmdBuffer.RemoveComponent<Disabled>(entityInQueryIndex, entity);
+                (Entity entity, int entityInQueryIndex) => {
                 cmdBuffer.RemoveComponent<DisableRenderingTag>(entityInQueryIndex, entity);
+            }).ScheduleParallel(Dependency);
+
+            Dependency = Entities.WithAll<EnableRenderingTag>().ForEach((Entity entity, int entityInQueryIndex) => {
+                cmdBuffer.RemoveComponent<EnableRenderingTag>(entityInQueryIndex, entity);
             }).ScheduleParallel(Dependency);
 
             cmdBufferSystem.AddJobHandleForProducer(Dependency);

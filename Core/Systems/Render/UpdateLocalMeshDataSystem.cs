@@ -17,7 +17,10 @@ namespace UGUIDots.Render.Systems {
             public float3 Offset;
 
             [ReadOnly]
-            public ComponentDataFromEntity<NonInteractableTag> NonInteractables;
+            public ArchetypeChunkComponentType<Disabled> DisabledType;
+
+            [ReadOnly]
+            public ArchetypeChunkComponentType<EnableRenderingTag> EnableRenderingType;
 
             [ReadOnly]
             public ArchetypeChunkComponentType<AppliedColor> AppliedColorType;
@@ -25,36 +28,76 @@ namespace UGUIDots.Render.Systems {
             [ReadOnly]
             public ArchetypeChunkEntityType EntityType;
 
-            public ArchetypeChunkBufferType<LocalVertexData> LocalVertexType;
-
             [ReadOnly]
             public ComponentDataFromEntity<Parent> Parents;
 
             [WriteOnly]
             public NativeHashMap<Entity, Entity>.ParallelWriter CanvasMap;
 
+            public ArchetypeChunkBufferType<LocalVertexData> LocalVertexType;
+
             public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex) {
-                var colors        = chunk.GetNativeArray(AppliedColorType);
-                var vertexBuffers = chunk.GetBufferAccessor(LocalVertexType);
-                var entities      = chunk.GetNativeArray(EntityType);
+                var colors         = chunk.GetNativeArray(AppliedColorType);
+                var vertexBuffers  = chunk.GetBufferAccessor(LocalVertexType);
+                var entities       = chunk.GetNativeArray(EntityType);
+                var isDisabled     = chunk.Has(DisabledType);
+                var isNewlyEnabled = chunk.Has(EnableRenderingType);
 
-                for (int i = 0; i < chunk.Count; i++) {
-                    var entity   = entities[i];
-                    var vertices = vertexBuffers[i].AsNativeArray();
+                // If disabled by hiding
+                if (isDisabled && !isNewlyEnabled) {
+                    for (int i = 0; i < chunk.Count; i++) {
+                        var entity   = entities[i];
+                        var vertices = vertexBuffers[i].AsNativeArray();
+                        var color    = colors[i].Value.ToNormalizedFloat4();
 
-                    var exists = NonInteractables.Exists(entity);
-                    var vertexOffset = math.select(default, Offset, exists);
-                    var color   = colors[i].Value.ToNormalizedFloat4();
+                        for (int m = 0; m < vertices.Length; m++) {
+                            var cpy       = vertices[m];
+                            cpy.Color     = color;
+                            cpy.Position += Offset;
+                            vertices[m]   = cpy;
+                        }
 
-                    for (int m = 0; m < vertices.Length; m++) {
-                        var cpy     = vertices[m];
-                        cpy.Color   = color;
-                        cpy.Position += vertexOffset;
-                        vertices[m] = cpy;
+                        var root = HierarchyUtils.GetRoot(entity, Parents);
+                        CanvasMap.TryAdd(root, entity);
                     }
+                }
 
-                    var root = HierarchyUtils.GetRoot(entity, Parents);
-                    CanvasMap.TryAdd(root, entity);
+                // If this has been rendered to begin with
+                if (!isDisabled && !isNewlyEnabled) {
+                    for (int i       = 0; i < chunk.Count; i++) {
+                        var entity   = entities[i];
+                        var vertices = vertexBuffers[i].AsNativeArray();
+                        var color    = colors[i].Value.ToNormalizedFloat4();
+
+                        for (int m = 0; m < vertices.Length; m++) {
+                            var cpy     = vertices[m];
+                            cpy.Color   = color;
+                            vertices[m] = cpy;
+                        }
+
+                        var root = HierarchyUtils.GetRoot(entity, Parents);
+                        CanvasMap.TryAdd(root, entity);
+                    }
+                }
+
+                // If the chunk is newly renabled
+                if (!isDisabled && isNewlyEnabled) {
+                    for (int i = 0; i < chunk.Count; i++) {
+                        var entity   = entities[i];
+                        var vertices = vertexBuffers[i].AsNativeArray();
+                        var color    = colors[i].Value.ToNormalizedFloat4();
+
+                        for (int m = 0; m < vertices.Length; m++) {
+                            var cpy       = vertices[m];
+                            cpy.Color     = color;
+                            cpy.Position -= Offset;
+                            vertices[m]   = cpy;
+
+                        }
+
+                        var root = HierarchyUtils.GetRoot(entity, Parents);
+                        CanvasMap.TryAdd(root, entity);
+                    }
                 }
             }
         }
@@ -87,7 +130,8 @@ namespace UGUIDots.Render.Systems {
                 All = new [] {
                     ComponentType.ReadOnly<UpdateVertexColorTag>(), ComponentType.ReadOnly<MeshDataSpan>(),
                     ComponentType.ReadWrite<LocalVertexData>(), ComponentType.ReadOnly<AppliedColor>()
-                }
+                },
+                Options = EntityQueryOptions.IncludeDisabled
             });
 
             cmdBufferSystem = World.GetOrCreateSystem<BeginPresentationEntityCommandBufferSystem>();
@@ -99,14 +143,15 @@ namespace UGUIDots.Render.Systems {
             var map       = new NativeHashMap<Entity, Entity>(canvasQuery.CalculateEntityCount() * 2, Allocator.TempJob);
             var cmdBuffer = cmdBufferSystem.CreateCommandBuffer();
 
-            Dependency           = new UpdateLocalVertexJob {
-                Offset           = new float3(Screen.height, Screen.width, 0) * 2,
-                Parents          = GetComponentDataFromEntity<Parent>(),
-                CanvasMap        = map.AsParallelWriter(),
-                AppliedColorType = GetArchetypeChunkComponentType<AppliedColor>(true),
-                LocalVertexType  = GetArchetypeChunkBufferType<LocalVertexData>(false),
-                EntityType       = GetArchetypeChunkEntityType(),
-                NonInteractables = GetComponentDataFromEntity<NonInteractableTag>(true)
+            Dependency              = new UpdateLocalVertexJob {
+                Offset              = new float3(Screen.height, Screen.width, 0) * 2,
+                CanvasMap           = map.AsParallelWriter(),
+                Parents             = GetComponentDataFromEntity<Parent>(),
+                AppliedColorType    = GetArchetypeChunkComponentType<AppliedColor>(true),
+                LocalVertexType     = GetArchetypeChunkBufferType<LocalVertexData>(false),
+                EntityType          = GetArchetypeChunkEntityType(),
+                EnableRenderingType = GetArchetypeChunkComponentType<EnableRenderingTag>(true),
+                DisabledType        = GetArchetypeChunkComponentType<Disabled>(true)
             }.ScheduleParallel(childrenUIQuery, Dependency);
 
             Dependency        = new ScheduleRootVertexUpdate {
