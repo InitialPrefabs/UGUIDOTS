@@ -17,11 +17,13 @@ namespace UGUIDots.Render {
         public Queue<RenderInstruction> RenderInstructions { get; private set; }
 
         private string profilerTag;
+        private ProfilingSampler sampler;
 
         public OrthographicRenderPass(OrthographicRenderSettings settings) {
             profilerTag          = settings.ProfilerTag;
             base.renderPassEvent = settings.RenderPassEvt;
             RenderInstructions   = new Queue<RenderInstruction>();
+            sampler              = new ProfilingSampler(settings.ProfilerTag);
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData) {
@@ -32,8 +34,7 @@ namespace UGUIDots.Render {
 
             var cmd = CommandBufferPool.Get(profilerTag);
 
-            // TODO: Figure out how to use the profiling scope instead of the profiling sample.
-            using (new ProfilingSample(cmd, profilerTag)) {
+            using (new ProfilingScope(cmd, sampler)) {
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 

@@ -1,4 +1,5 @@
 using System;
+using Unity.Burst;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Jobs;
@@ -13,6 +14,7 @@ namespace UGUIDots {
             Value.Dispose();
         }
 
+        [BurstDiscard]
         public void Dispose(JobHandle jobDeps) {
             Value.Dispose(jobDeps);
         }
