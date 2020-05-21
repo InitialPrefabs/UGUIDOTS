@@ -43,8 +43,9 @@ namespace UGUIDots.Render.Systems {
                 var isDisabled     = chunk.Has(DisabledType);
                 var isNewlyEnabled = chunk.Has(EnableRenderingType);
 
-                // If disabled by hiding
+                // If newly disabled
                 if (isDisabled && !isNewlyEnabled) {
+                    Debug.Log($"Disabling by shoving with {Offset}");
                     for (int i = 0; i < chunk.Count; i++) {
                         var entity   = entities[i];
                         var vertices = vertexBuffers[i].AsNativeArray();
@@ -52,7 +53,7 @@ namespace UGUIDots.Render.Systems {
 
                         for (int m = 0; m < vertices.Length; m++) {
                             var cpy       = vertices[m];
-                            cpy.Color     = color;
+                            cpy.Color     = default;
                             cpy.Position += Offset;
                             vertices[m]   = cpy;
                         }
@@ -82,6 +83,7 @@ namespace UGUIDots.Render.Systems {
 
                 // If the chunk is newly renabled
                 if (!isDisabled && isNewlyEnabled) {
+                    Debug.Log($"Enabled by -{Offset}");
                     for (int i = 0; i < chunk.Count; i++) {
                         var entity   = entities[i];
                         var vertices = vertexBuffers[i].AsNativeArray();
@@ -92,7 +94,6 @@ namespace UGUIDots.Render.Systems {
                             cpy.Color     = color;
                             cpy.Position -= Offset;
                             vertices[m]   = cpy;
-
                         }
 
                         var root = HierarchyUtils.GetRoot(entity, Parents);
@@ -144,7 +145,7 @@ namespace UGUIDots.Render.Systems {
             var cmdBuffer = cmdBufferSystem.CreateCommandBuffer();
 
             Dependency              = new UpdateLocalVertexJob {
-                Offset              = new float3(Screen.height, Screen.width, 0) * 2,
+                Offset              = new float3(Screen.width, Screen.height, 0) * 2,
                 CanvasMap           = map.AsParallelWriter(),
                 Parents             = GetComponentDataFromEntity<Parent>(),
                 AppliedColorType    = GetArchetypeChunkComponentType<AppliedColor>(true),

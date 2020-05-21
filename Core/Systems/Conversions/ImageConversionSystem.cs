@@ -51,7 +51,7 @@ namespace UGUIDots.Conversions.Systems {
                         SetFill(image, entity);
                         break;
                     default:
-                        throw new System.NotSupportedException("Only Simple/Filled Image types are supported so far!");
+                        throw new System.NotSupportedException($"Only Simple/Filled Image types are supported so far for {image.name}");
                 }
             });
         }

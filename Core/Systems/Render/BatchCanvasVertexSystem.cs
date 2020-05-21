@@ -123,8 +123,13 @@ namespace UGUIDots.Render.Systems {
                     var subMeshVertexStart = rootVertices.Length;
                     var subMeshIndexStart  = rootIndices.Length;
 
-                    for (int k = currentSpan.x; k < currentSpan.y + currentSpan.x; k++, entityCount++) {
+                    for (int k = currentSpan.x; k < currentSpan.y + currentSpan.x; k++) {
                         var childEntity   = renders[k].Value;
+
+                        if (!MeshVertices.Exists(childEntity) || !TriangleIndices.Exists(childEntity)) {
+                            continue;
+                        }
+
                         var childVertices = MeshVertices[childEntity].AsNativeArray().Reinterpret<RootVertexData>();
                         var childIndices  = TriangleIndices[childEntity].AsNativeArray();
 
@@ -139,6 +144,8 @@ namespace UGUIDots.Render.Systems {
                             VertexSpan = new int2(startVertexIndex, childVertices.Length),
                             IndexSpan  = new int2(startTriangleIndex, childIndices.Length)
                         });
+
+                        entityCount++;
                     }
                     submeshes.Add(new SubmeshSliceElement {
                         VertexSpan = new int2(subMeshVertexStart, rootVertices.Length - subMeshVertexStart),

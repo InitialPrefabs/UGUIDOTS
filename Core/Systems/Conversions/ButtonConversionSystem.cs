@@ -20,7 +20,7 @@ namespace UGUIDots.Conversions.Systems {
                     DstEntityManager.AddComponentData(entity, new ButtonDisabledTag { });
                     DstEntityManager.SetComponentData(entity, new AppliedColor { Value = colorBlock.disabledColor });
                 } else {
-                    DstEntityManager.SetComponentData(entity, new AppliedColor { Value = colorBlock.normalColor });
+                    DstEntityManager.AddComponentData(entity, new AppliedColor { Value = colorBlock.normalColor });
                 }
             });
         }
