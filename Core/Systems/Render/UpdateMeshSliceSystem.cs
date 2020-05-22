@@ -28,28 +28,56 @@ namespace UGUIDots.Render.Systems {
             [ReadOnly]
             public ArchetypeChunkBufferType<RenderElement> RenderBufferType;
 
+            [ReadOnly]
+            public ArchetypeChunkComponentType<UpdateVertexColorTag> UpdateVertexType;
+
+            [ReadOnly]
+            public ArchetypeChunkComponentType<DisableRenderingTag> DisableRenderingType;
+
             public EntityCommandBuffer.Concurrent CmdBuffer;
 
             public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex) {
                 var entities = chunk.GetNativeArray(EntityType);
                 var renderBuffers = chunk.GetBufferAccessor(RenderBufferType);
 
-                for (int i = 0; i < chunk.Count; i++) {
-                    var entity         = entities[i];
-                    var renderElements = renderBuffers[i].AsNativeArray();
-                    var rootVertices   = new NativeList<RootVertexData>(Allocator.Temp);
-                    ConsolidateRenderElements(renderElements, ref rootVertices);
+                if (chunk.Has(DisableRenderingType)) {
+                    for (int i = 0; i < chunk.Count; i++) {
+                        var entity         = entities[i];
+                        var renderElements = renderBuffers[i].AsNativeArray();
+                        var rootVertices   = new NativeList<RootVertexData>(Allocator.Temp);
+                        ConsolidateRenderElements(renderElements, ref rootVertices);
 
-                    var rootBuffer = CmdBuffer.SetBuffer<RootVertexData>(chunkIndex, entity);
-                    rootBuffer.ResizeUninitialized(rootVertices.Length);
+                        var rootBuffer = CmdBuffer.SetBuffer<RootVertexData>(chunkIndex, entity);
+                        rootBuffer.ResizeUninitialized(rootVertices.Length);
 
-                    UnsafeUtility.MemCpy(rootBuffer.GetUnsafePtr(), rootVertices.GetUnsafePtr(),
-                        UnsafeUtility.SizeOf<RootVertexData>() * rootVertices.Length);
+                        UnsafeUtility.MemCpy(rootBuffer.GetUnsafePtr(), rootVertices.GetUnsafePtr(),
+                            UnsafeUtility.SizeOf<RootVertexData>() * rootVertices.Length);
 
-                    rootVertices.Dispose();
+                        rootVertices.Dispose();
 
-                    CmdBuffer.RemoveComponent<UpdateVertexColorTag>(chunkIndex, entity);
-                    CmdBuffer.AddComponent<BuildCanvasTag>(chunkIndex, entity);
+                        CmdBuffer.RemoveComponent<DisableRenderingTag>(chunkIndex, entity);
+                        CmdBuffer.AddComponent<BatchCanvasTag>(chunkIndex, entity);
+                    }
+                }
+
+                if (chunk.Has(UpdateVertexType)) {
+                    for (int i = 0; i < chunk.Count; i++) {
+                        var entity         = entities[i];
+                        var renderElements = renderBuffers[i].AsNativeArray();
+                        var rootVertices   = new NativeList<RootVertexData>(Allocator.Temp);
+                        ConsolidateRenderElements(renderElements, ref rootVertices);
+
+                        var rootBuffer = CmdBuffer.SetBuffer<RootVertexData>(chunkIndex, entity);
+                        rootBuffer.ResizeUninitialized(rootVertices.Length);
+
+                        UnsafeUtility.MemCpy(rootBuffer.GetUnsafePtr(), rootVertices.GetUnsafePtr(),
+                            UnsafeUtility.SizeOf<RootVertexData>() * rootVertices.Length);
+
+                        rootVertices.Dispose();
+
+                        CmdBuffer.RemoveComponent<UpdateVertexColorTag>(chunkIndex, entity);
+                        CmdBuffer.AddComponent<BuildCanvasTag>(chunkIndex, entity);
+                    }
                 }
             }
 
@@ -79,8 +107,10 @@ namespace UGUIDots.Render.Systems {
         protected override void OnCreate() {
             canvasUpdateQuery = GetEntityQuery(new EntityQueryDesc {
                 All = new[] {
-                    ComponentType.ReadOnly<UpdateVertexColorTag>(), ComponentType.ReadWrite<RootVertexData>(),
-                    ComponentType.ReadOnly<RenderElement>()
+                    ComponentType.ReadWrite<RootVertexData>(), ComponentType.ReadOnly<RenderElement>()
+                },
+                Any = new[] {
+                    ComponentType.ReadOnly<UpdateVertexColorTag>(), ComponentType.ReadOnly<DisableRenderingTag>()
                 }
             });
 
@@ -88,13 +118,15 @@ namespace UGUIDots.Render.Systems {
         }
 
         protected override void OnUpdate() {
-            Dependency             = new UpdateMeshSliceJob {
-                ChildrenBuffer     = GetBufferFromEntity<Child>(true),
-                LocalVertexDatas   = GetBufferFromEntity<LocalVertexData>(true),
-                UpdateVerticesData = GetComponentDataFromEntity<UpdateVertexColorTag>(true),
-                EntityType         = GetArchetypeChunkEntityType(),
-                RenderBufferType   = GetArchetypeChunkBufferType<RenderElement>(true),
-                CmdBuffer          = cmdBufferSystem.CreateCommandBuffer().ToConcurrent()
+            Dependency               = new UpdateMeshSliceJob {
+                ChildrenBuffer       = GetBufferFromEntity<Child>(true),
+                LocalVertexDatas     = GetBufferFromEntity<LocalVertexData>(true),
+                UpdateVerticesData   = GetComponentDataFromEntity<UpdateVertexColorTag>(true),
+                EntityType           = GetArchetypeChunkEntityType(),
+                RenderBufferType     = GetArchetypeChunkBufferType<RenderElement>(true),
+                UpdateVertexType     = GetArchetypeChunkComponentType<UpdateVertexColorTag>(true),
+                DisableRenderingType = GetArchetypeChunkComponentType<DisableRenderingTag>(true),
+                CmdBuffer            = cmdBufferSystem.CreateCommandBuffer().ToConcurrent(),
             }.Schedule(canvasUpdateQuery, Dependency);
 
             cmdBufferSystem.AddJobHandleForProducer(Dependency);

@@ -16,11 +16,6 @@ namespace UGUIDots.Render.Systems {
         protected override void OnUpdate() {
             var cmdBuffer = cmdBufferSystem.CreateCommandBuffer().ToConcurrent();
 
-            Dependency = Entities.WithAll<DisableRenderingTag, Disabled>().ForEach(
-                (Entity entity, int entityInQueryIndex) => {
-                cmdBuffer.RemoveComponent<DisableRenderingTag>(entityInQueryIndex, entity);
-            }).ScheduleParallel(Dependency);
-
             Dependency = Entities.WithAll<EnableRenderingTag>().ForEach((Entity entity, int entityInQueryIndex) => {
                 cmdBuffer.RemoveComponent<EnableRenderingTag>(entityInQueryIndex, entity);
             }).ScheduleParallel(Dependency);

@@ -16,6 +16,8 @@ namespace UGUIDots.Render.Systems {
 
             public float3 Offset;
 
+            public EntityCommandBuffer.Concurrent CmdBuffer;
+
             [ReadOnly]
             public ArchetypeChunkComponentType<Disabled> DisabledType;
 
@@ -31,9 +33,6 @@ namespace UGUIDots.Render.Systems {
             [ReadOnly]
             public ComponentDataFromEntity<Parent> Parents;
 
-            [WriteOnly]
-            public NativeHashMap<Entity, Entity>.ParallelWriter CanvasMap;
-
             public ArchetypeChunkBufferType<LocalVertexData> LocalVertexType;
 
             public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex) {
@@ -45,7 +44,6 @@ namespace UGUIDots.Render.Systems {
 
                 // If newly disabled
                 if (isDisabled && !isNewlyEnabled) {
-                    Debug.Log($"Disabling by shoving with {Offset}");
                     for (int i = 0; i < chunk.Count; i++) {
                         var entity   = entities[i];
                         var vertices = vertexBuffers[i].AsNativeArray();
@@ -59,7 +57,7 @@ namespace UGUIDots.Render.Systems {
                         }
 
                         var root = HierarchyUtils.GetRoot(entity, Parents);
-                        CanvasMap.TryAdd(root, entity);
+                        CmdBuffer.AddComponent<DisableRenderingTag>(chunkIndex, root);
                     }
                 }
 
@@ -77,13 +75,13 @@ namespace UGUIDots.Render.Systems {
                         }
 
                         var root = HierarchyUtils.GetRoot(entity, Parents);
-                        CanvasMap.TryAdd(root, entity);
+                        CmdBuffer.AddComponent<UpdateVertexColorTag>(chunkIndex, root);
+                        // CanvasMap.TryAdd(root, entity);
                     }
                 }
 
                 // If the chunk is newly renabled
                 if (!isDisabled && isNewlyEnabled) {
-                    Debug.Log($"Enabled by -{Offset}");
                     for (int i = 0; i < chunk.Count; i++) {
                         var entity   = entities[i];
                         var vertices = vertexBuffers[i].AsNativeArray();
@@ -97,7 +95,7 @@ namespace UGUIDots.Render.Systems {
                         }
 
                         var root = HierarchyUtils.GetRoot(entity, Parents);
-                        CanvasMap.TryAdd(root, entity);
+                        CmdBuffer.AddComponent<UpdateVertexColorTag>(chunkIndex, root);
                     }
                 }
             }
@@ -118,15 +116,10 @@ namespace UGUIDots.Render.Systems {
             }
         }
 
-        private EntityQuery canvasQuery, childrenUIQuery;
+        private EntityQuery childrenUIQuery;
         private EntityCommandBufferSystem cmdBufferSystem;
 
         protected override void OnCreate() {
-
-            canvasQuery = GetEntityQuery(new EntityQueryDesc { 
-                All = new [] { ComponentType.ReadOnly<WidthHeightRatio>() }
-            });
-
             childrenUIQuery = GetEntityQuery(new EntityQueryDesc {
                 All = new [] {
                     ComponentType.ReadOnly<UpdateVertexColorTag>(), ComponentType.ReadOnly<MeshDataSpan>(),
@@ -141,12 +134,11 @@ namespace UGUIDots.Render.Systems {
         }
 
         protected override void OnUpdate() {
-            var map       = new NativeHashMap<Entity, Entity>(canvasQuery.CalculateEntityCount() * 2, Allocator.TempJob);
-            var cmdBuffer = cmdBufferSystem.CreateCommandBuffer();
+            var cmdBuffer = cmdBufferSystem.CreateCommandBuffer().ToConcurrent();
 
             Dependency              = new UpdateLocalVertexJob {
                 Offset              = new float3(Screen.width, Screen.height, 0) * 2,
-                CanvasMap           = map.AsParallelWriter(),
+                CmdBuffer           = cmdBuffer,
                 Parents             = GetComponentDataFromEntity<Parent>(),
                 AppliedColorType    = GetArchetypeChunkComponentType<AppliedColor>(true),
                 LocalVertexType     = GetArchetypeChunkBufferType<LocalVertexData>(false),
@@ -155,12 +147,6 @@ namespace UGUIDots.Render.Systems {
                 DisabledType        = GetArchetypeChunkComponentType<Disabled>(true)
             }.ScheduleParallel(childrenUIQuery, Dependency);
 
-            Dependency        = new ScheduleRootVertexUpdate {
-                CommandBuffer = cmdBuffer,
-                CanvasMap     = map,
-            }.Schedule(Dependency);
-
-            Dependency = map.Dispose(Dependency);
             cmdBufferSystem.AddJobHandleForProducer(Dependency);
         }
     }

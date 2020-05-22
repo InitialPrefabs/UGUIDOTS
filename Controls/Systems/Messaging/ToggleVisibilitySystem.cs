@@ -47,7 +47,6 @@ namespace UGUIDots.Controls.Messaging.Systems {
 
                 if (!isActive) {
                     CmdBuffer.AddComponent<Disabled>(targetEntity);
-                    CmdBuffer.AddComponent<DisableRenderingTag>(targetEntity);
                     CmdBuffer.AddComponent<UpdateVertexColorTag>(targetEntity);
 
                     RecurseChildrenAndDisabled(targetEntity);
