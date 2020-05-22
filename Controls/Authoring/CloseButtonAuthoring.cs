@@ -2,8 +2,16 @@ using Unity.Entities;
 using UnityEngine;
 
 namespace UGUIDots.Controls.Authoring {
+
+    public enum ButtonVisibilityType {
+        Close,
+        Show,
+        Toggle
+    }
+
     public class CloseButtonAuthoring : MonoBehaviour, IConvertGameObjectToEntity {
 
+        public ButtonVisibilityType Type = ButtonVisibilityType.Toggle;
         public GameObject Target;
 
         public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem) {
@@ -16,6 +24,19 @@ namespace UGUIDots.Controls.Authoring {
             // Create the message which will try to close something
             var msg = dstManager.CreateEntity();
 
+            switch (Type) {
+                case ButtonVisibilityType.Toggle:
+                    dstManager.AddComponentData(msg, new ToggleButtonType { });
+                    break;
+                case ButtonVisibilityType.Show:
+                    dstManager.AddComponentData(msg, new ShowButtonType { });
+                    break;
+                case ButtonVisibilityType.Close:
+                    dstManager.AddComponentData(msg, new CloseButtonType { });
+                    break;
+                default:
+                    break;
+            }
             dstManager.AddComponentData(msg, new CloseTarget {
                 Value = conversionSystem.GetPrimaryEntity(Target)
             });

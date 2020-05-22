@@ -16,7 +16,7 @@ namespace UGUIDots.Render.Systems {
         protected override void OnUpdate() {
             var cmdBuffer = cmdBufferSystem.CreateCommandBuffer().ToConcurrent();
 
-            Dependency = Entities.WithNone<ButtonDisabledTag>().
+            Dependency = Entities.WithNone<NonInteractableButtontag>().
                 ForEach((Entity entity, int entityInQueryIndex, in AppliedColor c0, in ColorStates c1, in ButtonVisual c3) => {
 
                 bool delta       = true;

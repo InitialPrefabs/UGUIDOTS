@@ -37,5 +37,20 @@ namespace UGUIDots {
     /// <summary>
     /// Marks that a button is non interactable.
     /// </summary>
-    public struct ButtonDisabledTag : IComponentData { }
+    public struct NonInteractableButtontag : IComponentData { }
+
+    /// <summary>
+    /// The button is strictly a close button type.
+    /// </summary>
+    public struct CloseButtonType : IComponentData { }
+
+    /// <summary>
+    /// The button is strictly a show button type.
+    /// </summary>
+    public struct ShowButtonType : IComponentData { }
+
+    /// <summary>
+    /// The button is strictly a toggle button type.
+    /// </summary>
+    public struct ToggleButtonType : IComponentData { }
 }

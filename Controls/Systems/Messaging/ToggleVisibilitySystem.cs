@@ -1,5 +1,6 @@
 using UGUIDots.Render;
 using UGUIDots.Transforms;
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
@@ -10,6 +11,7 @@ namespace UGUIDots.Controls.Messaging.Systems {
     [UpdateInGroup(typeof(MessagingUpdateGroup))]
     public class ToggleVisibilitySystem : SystemBase {
 
+        [BurstCompile]
         private struct ToggleJob { 
 
             public EntityCommandBuffer CmdBuffer;
@@ -23,9 +25,18 @@ namespace UGUIDots.Controls.Messaging.Systems {
             [ReadOnly]
             public BufferFromEntity<Child> Children;
 
+            [ReadOnly]
+            public ComponentDataFromEntity<ShowButtonType> ShowButtonTypes;
+
+            [ReadOnly]
+            public ComponentDataFromEntity<ToggleButtonType> ToggleButtonTypes;
+
+            [ReadOnly]
+            public ComponentDataFromEntity<CloseButtonType> CloseButtonTypes;
+
             public ComponentDataFromEntity<ChildrenActiveMetadata> Metadata;
 
-            public void Execute(in CloseTarget c0) {
+            public void Execute(Entity msgEntity, in CloseTarget c0) {
                 var targetEntity = c0.Value;
 
                 // Check the metadata of the entity and update its state
@@ -37,7 +48,7 @@ namespace UGUIDots.Controls.Messaging.Systems {
                     activeStates.Value[targetEntity] = isActive;
                 }
 
-                if (isActive && Disabled.Exists(targetEntity)) {
+                if (isActive && Disabled.Exists(targetEntity) && (ShowButtonTypes.Exists(msgEntity) || ToggleButtonTypes.Exists(msgEntity))) {
                     CmdBuffer.RemoveComponent<Disabled>(targetEntity);
                     CmdBuffer.AddComponent<EnableRenderingTag>(targetEntity);
                     CmdBuffer.AddComponent<UpdateVertexColorTag>(targetEntity);
@@ -45,13 +56,14 @@ namespace UGUIDots.Controls.Messaging.Systems {
                     RecurseChildrenAndEnable(targetEntity, ref activeStates.Value);
                 }
 
-                if (!isActive) {
+                if (!isActive && (CloseButtonTypes.Exists(msgEntity) || ToggleButtonTypes.Exists(msgEntity))) {
                     CmdBuffer.AddComponent<Disabled>(targetEntity);
                     CmdBuffer.AddComponent<UpdateVertexColorTag>(targetEntity);
 
                     RecurseChildrenAndDisabled(targetEntity);
                 }
             }
+
 
             private void RecurseChildrenAndDisabled(Entity entity) {
                 if (!Children.Exists(entity)) {
@@ -100,16 +112,20 @@ namespace UGUIDots.Controls.Messaging.Systems {
         }
 
         protected override void OnUpdate() {
-            var job       = new ToggleJob {
-                CmdBuffer = cmdBufferSystem.CreateCommandBuffer(),
-                Parents   = GetComponentDataFromEntity<Parent>(true),
-                Metadata  = GetComponentDataFromEntity<ChildrenActiveMetadata>(false),
-                Children  = GetBufferFromEntity<Child>(true),
-                Disabled  = GetComponentDataFromEntity<Disabled>(true)
+            var job               = new ToggleJob {
+                CmdBuffer         = cmdBufferSystem.CreateCommandBuffer(),
+                Parents           = GetComponentDataFromEntity<Parent>(true),
+                Metadata          = GetComponentDataFromEntity<ChildrenActiveMetadata>(false),
+                Children          = GetBufferFromEntity<Child>(true),
+                Disabled          = GetComponentDataFromEntity<Disabled>(true),
+                ShowButtonTypes   = GetComponentDataFromEntity<ShowButtonType>(true),
+                CloseButtonTypes  = GetComponentDataFromEntity<CloseButtonType>(true),
+                ToggleButtonTypes = GetComponentDataFromEntity<ToggleButtonType>(true)
             };
 
-            Dependency = Entities.WithAll<ButtonMessageRequest>().ForEach((in CloseTarget c0) => {
-                job.Execute(c0);
+            Dependency = Entities.WithAll<ButtonMessageRequest>().
+                WithAny<ShowButtonType, CloseButtonType, ToggleButtonType>().ForEach((Entity entity, in CloseTarget c0) => {
+                job.Execute(entity, c0);
             }).Schedule(Dependency);
 
             cmdBufferSystem.AddJobHandleForProducer(Dependency);
