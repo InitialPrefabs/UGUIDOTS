@@ -217,7 +217,9 @@ namespace UGUIDots.Render.Systems {
                     ComponentType.ReadOnly<CharElement>(),
                     ComponentType.ReadOnly<TextOptions>(),
                     ComponentType.ReadOnly<BuildUIElementTag>()
-                }
+                },
+
+                Options = EntityQueryOptions.IncludeDisabled
             });
 
             RequireForUpdate(textQuery);

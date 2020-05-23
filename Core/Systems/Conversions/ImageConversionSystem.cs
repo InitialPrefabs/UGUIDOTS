@@ -21,9 +21,9 @@ namespace UGUIDots.Conversions.Systems {
                 var entity   = GetPrimaryEntity(image);
                 var rectSize = image.rectTransform.Int2Size();
 
-                DstEntityManager.AddComponentData(entity, new LinkedTextureEntity { Value = GetPrimaryEntity(texture) });
+                DstEntityManager.AddComponentData(entity, new LinkedTextureEntity  { Value = GetPrimaryEntity(texture) });
                 DstEntityManager.AddComponentData(entity, new LinkedMaterialEntity { Value = GetPrimaryEntity(material) });
-                DstEntityManager.AddComponentData(entity, new AppliedColor { Value = image.color });
+                DstEntityManager.AddComponentData(entity, new AppliedColor         { Value = image.color });
 
                 var spriteTexture = image.sprite;
                 var spriteRes = spriteTexture != null ?
@@ -52,6 +52,11 @@ namespace UGUIDots.Conversions.Systems {
                         break;
                     default:
                         throw new System.NotSupportedException($"Only Simple/Filled Image types are supported so far for {image.name}");
+                }
+
+                // If the image is inactive, then we want to make sure the image gets offsetted.
+                if (!image.gameObject.activeInHierarchy || !image.enabled) {
+                    DstEntityManager.AddComponent<UpdateVertexColorTag>(entity);
                 }
             });
         }

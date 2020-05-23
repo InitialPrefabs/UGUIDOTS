@@ -80,25 +80,29 @@ namespace UGUIDots.Conversions.Systems {
     /// </summary>
     public class TMPTextConversionSystem : GameObjectConversionSystem {
         protected override void OnUpdate() {
-            Entities.ForEach((TextMeshProUGUI c0) => {
-                var entity = GetPrimaryEntity(c0);
+            Entities.ForEach((TextMeshProUGUI text) => {
+                var entity = GetPrimaryEntity(text);
 
-                DstEntityManager.AddComponentData(entity, new AppliedColor { Value = c0.color });
-                DstEntityManager.AddComponentData(entity, new TextFontID   { Value = c0.font.GetInstanceID() });
+                DstEntityManager.AddComponentData(entity, new AppliedColor { Value = text.color });
+                DstEntityManager.AddComponentData(entity, new TextFontID   { Value = text.font.GetInstanceID() });
                 DstEntityManager.AddComponentData(entity, new TextOptions  {
-                    Size      = (ushort)c0.fontSize,
-                    Style     = c0.fontStyle,
-                    Alignment = c0.alignment.FromTextAnchor()
+                    Size      = (ushort)text.fontSize,
+                    Style     = text.fontStyle,
+                    Alignment = text.alignment.FromTextAnchor()
                 });
 
                 DstEntityManager.AddComponentData(entity, new LinkedMaterialEntity { 
-                    Value = GetPrimaryEntity(c0.materialForRendering) 
+                    Value = GetPrimaryEntity(text.materialForRendering) 
                 });
 
                 // Marks that the text element needs to be built
                 DstEntityManager.AddComponent<BuildUIElementTag>(entity);
 
-                AddTextData(entity, c0.text);
+                AddTextData(entity, text.text);
+
+                if (!text.gameObject.activeInHierarchy || !text.enabled) {
+                    DstEntityManager.AddComponent<UpdateVertexColorTag>(entity);
+                }
             });
         }
 
