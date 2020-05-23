@@ -26,13 +26,16 @@ namespace UGUIDots.Controls.Messaging.Systems {
             public BufferFromEntity<Child> Children;
 
             [ReadOnly]
-            public ComponentDataFromEntity<ShowButtonType> ShowButtonTypes;
+            public ComponentDataFromEntity<ShowButtonType> ShowButtons;
 
             [ReadOnly]
-            public ComponentDataFromEntity<ToggleButtonType> ToggleButtonTypes;
+            public ComponentDataFromEntity<ToggleButtonType> ToggleButtons;
 
             [ReadOnly]
-            public ComponentDataFromEntity<CloseButtonType> CloseButtonTypes;
+            public ComponentDataFromEntity<CloseButtonType> CloseButtons;
+
+            [ReadOnly]
+            public BufferFromEntity<LocalVertexData> LocalVertices;
 
             public ComponentDataFromEntity<ChildrenActiveMetadata> Metadata;
 
@@ -52,18 +55,23 @@ namespace UGUIDots.Controls.Messaging.Systems {
                     }
 
                     if (isActive && Disabled.Exists(targetEntity) && 
-                        (ShowButtonTypes.Exists(msgEntity) || ToggleButtonTypes.Exists(msgEntity))) {
+                        (ShowButtons.Exists(msgEntity) || ToggleButtons.Exists(msgEntity))) {
 
                         CmdBuffer.RemoveComponent<Disabled>(targetEntity);
                         CmdBuffer.AddComponent<EnableRenderingTag>(targetEntity);
-                        CmdBuffer.AddComponent<UpdateVertexColorTag>(targetEntity);
 
+                        if (LocalVertices.Exists(targetEntity)) {
+                            CmdBuffer.AddComponent<UpdateVertexColorTag>(targetEntity);
+                        }
                         RecurseChildrenAndEnable(targetEntity, ref activeStates.Value);
                     }
 
-                    if (!isActive && (CloseButtonTypes.Exists(msgEntity) || ToggleButtonTypes.Exists(msgEntity))) {
+                    if (!isActive && (CloseButtons.Exists(msgEntity) || ToggleButtons.Exists(msgEntity))) {
                         CmdBuffer.AddComponent<Disabled>(targetEntity);
-                        CmdBuffer.AddComponent<UpdateVertexColorTag>(targetEntity);
+
+                        if (LocalVertices.Exists(targetEntity)) {
+                            CmdBuffer.AddComponent<UpdateVertexColorTag>(targetEntity);
+                        }
 
                         RecurseChildrenAndDisabled(targetEntity);
                     }
@@ -118,15 +126,16 @@ namespace UGUIDots.Controls.Messaging.Systems {
         }
 
         protected override void OnUpdate() {
-            var job               = new ToggleJob {
-                CmdBuffer         = cmdBufferSystem.CreateCommandBuffer(),
-                Parents           = GetComponentDataFromEntity<Parent>(true),
-                Metadata          = GetComponentDataFromEntity<ChildrenActiveMetadata>(false),
-                Children          = GetBufferFromEntity<Child>(true),
-                Disabled          = GetComponentDataFromEntity<Disabled>(true),
-                ShowButtonTypes   = GetComponentDataFromEntity<ShowButtonType>(true),
-                CloseButtonTypes  = GetComponentDataFromEntity<CloseButtonType>(true),
-                ToggleButtonTypes = GetComponentDataFromEntity<ToggleButtonType>(true)
+            var job           = new ToggleJob {
+                CmdBuffer     = cmdBufferSystem.CreateCommandBuffer(),
+                Parents       = GetComponentDataFromEntity<Parent>(true),
+                Metadata      = GetComponentDataFromEntity<ChildrenActiveMetadata>(false),
+                Children      = GetBufferFromEntity<Child>(true),
+                Disabled      = GetComponentDataFromEntity<Disabled>(true),
+                ShowButtons   = GetComponentDataFromEntity<ShowButtonType>(true),
+                CloseButtons  = GetComponentDataFromEntity<CloseButtonType>(true),
+                ToggleButtons = GetComponentDataFromEntity<ToggleButtonType>(true),
+                LocalVertices = GetBufferFromEntity<LocalVertexData>(true)
             };
 
             Dependency = Entities.WithAll<ButtonMessageRequest>().
