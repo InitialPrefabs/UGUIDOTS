@@ -12,11 +12,11 @@ namespace UGUIDots.Controls.Authoring {
     public class CloseButtonAuthoring : MonoBehaviour, IConvertGameObjectToEntity {
 
         public ButtonVisibilityType Type = ButtonVisibilityType.Toggle;
-        public GameObject Target;
+        public GameObject[] Targets;
 
         public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem) {
 #if UNITY_EDITOR
-            if (Target == null) {
+            if (Targets.Length == 0) {
                 throw new System.InvalidOperationException("Cannot send a message to a GameObject that is null!");
             }
 #endif
@@ -37,9 +37,12 @@ namespace UGUIDots.Controls.Authoring {
                 default:
                     break;
             }
-            dstManager.AddComponentData(msg, new CloseTarget {
-                Value = conversionSystem.GetPrimaryEntity(Target)
-            });
+
+            var buffer = dstManager.AddBuffer<CloseTarget>(msg); 
+
+            foreach (var target in Targets) {
+                buffer.Add(new CloseTarget { Value = conversionSystem.GetPrimaryEntity(target) });
+            }
 
             dstManager.AddComponentData(entity, new ButtonMessageFramePayload { Value = msg });
 

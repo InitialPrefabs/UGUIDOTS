@@ -8,7 +8,7 @@ namespace UGUIDots.Controls {
     /// <summary>
     /// The entity which is targetted to be disabled.
     /// </summary>
-    public struct CloseTarget : IComponentData {
+    public struct CloseTarget : IBufferElementData {
         public Entity Value;
     }
 

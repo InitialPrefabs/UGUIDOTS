@@ -36,31 +36,37 @@ namespace UGUIDots.Controls.Messaging.Systems {
 
             public ComponentDataFromEntity<ChildrenActiveMetadata> Metadata;
 
-            public void Execute(Entity msgEntity, in CloseTarget c0) {
-                var targetEntity = c0.Value;
+            public void Execute(Entity msgEntity, DynamicBuffer<CloseTarget> b0) {
+                var buffer = b0.AsNativeArray();
 
-                // Check the metadata of the entity and update its state
-                var root         = HierarchyUtils.GetRoot(targetEntity, Parents);
-                var activeStates = Metadata[root];
+                for (int i = 0; i < buffer.Length; i++) {
+                    var targetEntity = buffer[i].Value;
 
-                if (activeStates.Value.TryGetValue(targetEntity, out bool isActive)) {
-                    isActive = !isActive;
-                    activeStates.Value[targetEntity] = isActive;
-                }
+                    // Check the metadata of the entity and update its state
+                    var root         = HierarchyUtils.GetRoot(targetEntity, Parents);
+                    var activeStates = Metadata[root];
 
-                if (isActive && Disabled.Exists(targetEntity) && (ShowButtonTypes.Exists(msgEntity) || ToggleButtonTypes.Exists(msgEntity))) {
-                    CmdBuffer.RemoveComponent<Disabled>(targetEntity);
-                    CmdBuffer.AddComponent<EnableRenderingTag>(targetEntity);
-                    CmdBuffer.AddComponent<UpdateVertexColorTag>(targetEntity);
+                    if (activeStates.Value.TryGetValue(targetEntity, out bool isActive)) {
+                        isActive = !isActive;
+                        activeStates.Value[targetEntity] = isActive;
+                    }
 
-                    RecurseChildrenAndEnable(targetEntity, ref activeStates.Value);
-                }
+                    if (isActive && Disabled.Exists(targetEntity) && 
+                        (ShowButtonTypes.Exists(msgEntity) || ToggleButtonTypes.Exists(msgEntity))) {
 
-                if (!isActive && (CloseButtonTypes.Exists(msgEntity) || ToggleButtonTypes.Exists(msgEntity))) {
-                    CmdBuffer.AddComponent<Disabled>(targetEntity);
-                    CmdBuffer.AddComponent<UpdateVertexColorTag>(targetEntity);
+                        CmdBuffer.RemoveComponent<Disabled>(targetEntity);
+                        CmdBuffer.AddComponent<EnableRenderingTag>(targetEntity);
+                        CmdBuffer.AddComponent<UpdateVertexColorTag>(targetEntity);
 
-                    RecurseChildrenAndDisabled(targetEntity);
+                        RecurseChildrenAndEnable(targetEntity, ref activeStates.Value);
+                    }
+
+                    if (!isActive && (CloseButtonTypes.Exists(msgEntity) || ToggleButtonTypes.Exists(msgEntity))) {
+                        CmdBuffer.AddComponent<Disabled>(targetEntity);
+                        CmdBuffer.AddComponent<UpdateVertexColorTag>(targetEntity);
+
+                        RecurseChildrenAndDisabled(targetEntity);
+                    }
                 }
             }
 
@@ -124,8 +130,10 @@ namespace UGUIDots.Controls.Messaging.Systems {
             };
 
             Dependency = Entities.WithAll<ButtonMessageRequest>().
-                WithAny<ShowButtonType, CloseButtonType, ToggleButtonType>().ForEach((Entity entity, in CloseTarget c0) => {
-                job.Execute(entity, c0);
+                WithAny<ShowButtonType, CloseButtonType, ToggleButtonType>().
+                ForEach((Entity entity, DynamicBuffer<CloseTarget> b0) => {
+
+                job.Execute(entity, b0);
             }).Schedule(Dependency);
 
             cmdBufferSystem.AddJobHandleForProducer(Dependency);
