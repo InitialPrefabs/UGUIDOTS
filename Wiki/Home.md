@@ -6,10 +6,12 @@ tuned technical details that may be necessary for the developer using this. As s
 be kept up to date to help lower the barrier of entry for new developers. :)
 
 ## Table Of Contents
+* [Button](Button.md)
+  * [Closing](Close.md)
 * [Canvas](Canvas.md)
+* [Conversions](Conversions.md)
 * [Image](Image.md)
 * [Text](Text.md)
 * [Rendering](Rendering.md)
 * [Shaders](Shaders.md)
 * [Materials](Material.md)
-* [Button](Button.md)
