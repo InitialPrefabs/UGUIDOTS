@@ -76,7 +76,6 @@ namespace UGUIDots.Render.Systems {
 
                         var root = HierarchyUtils.GetRoot(entity, Parents);
                         CmdBuffer.AddComponent<UpdateVertexColorTag>(chunkIndex, root);
-                        // CanvasMap.TryAdd(root, entity);
                     }
                 }
 
@@ -98,21 +97,6 @@ namespace UGUIDots.Render.Systems {
                         CmdBuffer.AddComponent<UpdateVertexColorTag>(chunkIndex, root);
                     }
                 }
-            }
-        }
-
-        [BurstCompile]
-        private struct ScheduleRootVertexUpdate : IJob {
-
-            public EntityCommandBuffer CommandBuffer;
-            public NativeHashMap<Entity, Entity> CanvasMap;
-
-            public void Execute() {
-                var keys = CanvasMap.GetKeyArray(Allocator.Temp);
-                for (int i = 0; i < keys.Length; i++) {
-                    CommandBuffer.AddComponent<UpdateVertexColorTag>(keys[i]);
-                }
-                keys.Dispose();
             }
         }
 
