@@ -6,7 +6,10 @@ using Unity.Jobs;
 using Unity.Mathematics;
 
 namespace UGUIDots {
-
+    
+    /// <summary>
+    /// Stores data about each child's active state in an unsafe hash map.
+    /// </summary>
     public struct ChildrenActiveMetadata : ISystemStateComponentData, IDisposable {
         public UnsafeHashMap<Entity, bool> Value;
 

@@ -1,5 +1,19 @@
 # Change Log
 
+## 0.2.0
+### Added
+* Added `ChildrenActiveMetadata` component to store the state of the visibility of the entity
+* Added the `EnableRenderingTag` to mark entities as newly rendering
+* Added the `ToggleVisibilitySystem` to manage the state of the entities' visibility
+* Added a `ReactiveSubgroupToggleSystem` to clean up entities when they are disabled/enabled.
+
+### Changed
+* Changed the `UpdateLocalMeshDataSystem` to react to the state of the entity. See the wiki page about 
+[closing](Wiki/Close.md) for more details.
+* Changed the `CanvasConversionSystem` to populate and add the `ChildrenActiveMetadataSystem`.
+* Changed the `BuildImageVertexDataSystem` and `BuildTextVertexDataSystem` to include disabled entities.
+* Changed the `RenderCommand` to be a managed `IComponentData` instead.
+
 ## 0.1.3
 ### Fixed
 * Fixed issue regarding render texture cameras
