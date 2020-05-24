@@ -1,3 +1,4 @@
+using UGUIDots.Render;
 using Unity.Entities;
 using UnityEngine.UI;
 
@@ -16,11 +17,10 @@ namespace UGUIDots.Conversions.Systems {
                 DstEntityManager.AddComponentData(entity, ColorStates.FromColorBlock(colorBlock));
 
                 if (!button.interactable) {
-                    DstEntityManager.AddComponentData(entity, new ButtonDisabledTag { });
+                    DstEntityManager.AddComponentData(entity, new NonInteractableButtontag { });
                     DstEntityManager.SetComponentData(entity, new AppliedColor { Value = colorBlock.disabledColor });
-                    DstEntityManager.RemoveComponent<Disabled>(entity);
                 } else {
-                    DstEntityManager.SetComponentData(entity, new AppliedColor { Value = colorBlock.normalColor });
+                    DstEntityManager.AddComponentData(entity, new AppliedColor { Value = colorBlock.normalColor });
                 }
             });
         }

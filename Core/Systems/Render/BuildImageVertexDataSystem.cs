@@ -173,7 +173,8 @@ namespace UGUIDots.Render.Systems {
                 },
                 None = new [] {
                     ComponentType.ReadOnly<CharElement>()
-                }
+                },
+                Options = EntityQueryOptions.IncludeDisabled
             });
 
             cmdBufferSystem = World.GetOrCreateSystem<BeginPresentationEntityCommandBufferSystem>();

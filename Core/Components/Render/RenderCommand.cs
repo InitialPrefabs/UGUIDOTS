@@ -1,11 +1,9 @@
 using System;
 using Unity.Entities;
-using UnityEngine;
 
 namespace UGUIDots.Render {
 
-    // TODO: Convert to using a pointer?
-    public struct RenderCommand : ISharedComponentData, IEquatable<RenderCommand> {
+    public class RenderCommand : IComponentData, IEquatable<RenderCommand> {
         public OrthographicRenderFeature RenderFeature;
 
         public bool Equals(RenderCommand other) {
@@ -14,7 +12,7 @@ namespace UGUIDots.Render {
 
         public override int GetHashCode() {
             var hash = 0;
-            if (RenderFeature != null) hash ^= RenderFeature.GetHashCode();
+            if (ReferenceEquals(RenderFeature, null)) hash ^= RenderFeature.GetHashCode();
             return hash;
         }
     }

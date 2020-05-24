@@ -1,7 +1,8 @@
+using System.Runtime.CompilerServices;
 using Unity.Burst;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
-using Unity.Jobs;
 using Unity.Transforms;
 
 namespace UGUIDots.Render.Systems {
@@ -9,76 +10,93 @@ namespace UGUIDots.Render.Systems {
     [UpdateInGroup(typeof(MeshUpdateGroup))]
     public class UpdateMeshSliceSystem : SystemBase {
 
-        [RequireComponentTag(typeof(UpdateVertexColorTag))]
         [BurstCompile]
-        private struct UpdateMeshSliceJob : IJobChunk {
+        private unsafe struct UpdateMeshSliceJob : IJobChunk {
 
             [ReadOnly]
             public BufferFromEntity<Child> ChildrenBuffer;
 
             [ReadOnly]
-            public ComponentDataFromEntity<MeshDataSpan> MeshDataSpans;
-
-            [ReadOnly]
             public BufferFromEntity<LocalVertexData> LocalVertexDatas;
 
-            public ArchetypeChunkBufferType<RootVertexData> RootVertexType;
+            [ReadOnly]
+            public ComponentDataFromEntity<UpdateVertexColorTag> UpdateVerticesData;
 
             [ReadOnly]
             public ArchetypeChunkEntityType EntityType;
 
+            [ReadOnly]
+            public ArchetypeChunkBufferType<RenderElement> RenderBufferType;
+
+            [ReadOnly]
+            public ArchetypeChunkComponentType<UpdateVertexColorTag> UpdateVertexType;
+
+            [ReadOnly]
+            public ArchetypeChunkComponentType<DisableRenderingTag> DisableRenderingType;
+
             public EntityCommandBuffer.Concurrent CmdBuffer;
 
             public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex) {
-                var entities          = chunk.GetNativeArray(EntityType);
-                var rootVertexBuffers = chunk.GetBufferAccessor(RootVertexType);
+                var entities = chunk.GetNativeArray(EntityType);
+                var renderBuffers = chunk.GetBufferAccessor(RenderBufferType);
 
-                for (int i = 0; i < chunk.Count; i++) {
-                    var entity       = entities[i];
-                    var rootVertices = rootVertexBuffers[i].AsNativeArray();
+                if (chunk.Has(DisableRenderingType)) {
+                    for (int i = 0; i < chunk.Count; i++) {
+                        var entity         = entities[i];
+                        var renderElements = renderBuffers[i].AsNativeArray();
+                        var rootVertices   = new NativeList<RootVertexData>(Allocator.Temp);
+                        ConsolidateRenderElements(renderElements, ref rootVertices);
 
-                    RecurseUpdateChildren(entity, ref rootVertices);
+                        var rootBuffer = CmdBuffer.SetBuffer<RootVertexData>(chunkIndex, entity);
+                        rootBuffer.ResizeUninitialized(rootVertices.Length);
 
-                    CmdBuffer.RemoveComponent<UpdateVertexColorTag>(entity.Index, entity);
-                    CmdBuffer.AddComponent<BuildCanvasTag>(entity.Index, entity);
+                        UnsafeUtility.MemCpy(rootBuffer.GetUnsafePtr(), rootVertices.GetUnsafePtr(),
+                            UnsafeUtility.SizeOf<RootVertexData>() * rootVertices.Length);
+
+                        rootVertices.Dispose();
+
+                        CmdBuffer.RemoveComponent<DisableRenderingTag>(chunkIndex, entity);
+                        CmdBuffer.AddComponent<BatchCanvasTag>(chunkIndex, entity);
+                    }
+                }
+
+                if (chunk.Has(UpdateVertexType)) {
+                    for (int i = 0; i < chunk.Count; i++) {
+                        var entity         = entities[i];
+                        var renderElements = renderBuffers[i].AsNativeArray();
+                        var rootVertices   = new NativeList<RootVertexData>(Allocator.Temp);
+                        ConsolidateRenderElements(renderElements, ref rootVertices);
+
+                        var rootBuffer = CmdBuffer.SetBuffer<RootVertexData>(chunkIndex, entity);
+                        rootBuffer.ResizeUninitialized(rootVertices.Length);
+
+                        UnsafeUtility.MemCpy(rootBuffer.GetUnsafePtr(), rootVertices.GetUnsafePtr(),
+                            UnsafeUtility.SizeOf<RootVertexData>() * rootVertices.Length);
+
+                        rootVertices.Dispose();
+
+                        CmdBuffer.RemoveComponent<UpdateVertexColorTag>(chunkIndex, entity);
+                        CmdBuffer.AddComponent<BuildCanvasTag>(chunkIndex, entity);
+                    }
                 }
             }
 
-            public void Execute(Entity entity, int index, DynamicBuffer<RootVertexData> b0) {
-                if (!ChildrenBuffer.Exists(entity)) {
-                    return;
-                }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private void ConsolidateRenderElements(in NativeArray<RenderElement> renderBatches, 
+                ref NativeList<RootVertexData> rootVertices) {
+                for (int i = 0; i < renderBatches.Length; i++) {
+                    var entity = renderBatches[i].Value;
 
-                var rootVertices = b0.AsNativeArray();
-                RecurseUpdateChildren(entity, ref rootVertices);
-
-                CmdBuffer.RemoveComponent<UpdateVertexColorTag>(index, entity);
-                CmdBuffer.AddComponent<BuildCanvasTag>(index, entity);
-            }
-
-            private void RecurseUpdateChildren(Entity root, ref NativeArray<RootVertexData> rootVertices) {
-                if (!ChildrenBuffer.Exists(root)) {
-                    return;
-                }
-
-                var children = ChildrenBuffer[root].AsNativeArray();
-                for (int i = 0; i < children.Length; i++) {
-                    var child = children[i].Value;
-
-                    if (!MeshDataSpans.Exists(child) || !LocalVertexDatas.Exists(child)) {
-                        continue;
+                    if (UpdateVerticesData.Exists(entity)) {
+                        CmdBuffer.RemoveComponent<UpdateVertexColorTag>(entity.Index, entity);
                     }
 
-                    var span = MeshDataSpans[child];
-                    var localVertices = LocalVertexDatas[child].AsNativeArray();
-
-                    for (int k = 0; k < localVertices.Length; k++) {
-                        rootVertices[span.VertexSpan.x + k] = RootVertexData.FromLocalVertexData(localVertices[k]);
+                    if (LocalVertexDatas.Exists(entity)) {
+                        var localVertices = LocalVertexDatas[entity].AsNativeArray();
+                        for (int m = 0; m < localVertices.Length; m++) {
+                            rootVertices.Add(localVertices[m]);
+                        }
                     }
-
-                    CmdBuffer.RemoveComponent<UpdateVertexColorTag>(child.Index, child);
-
-                    RecurseUpdateChildren(child, ref rootVertices);
                 }
             }
         }
@@ -88,8 +106,11 @@ namespace UGUIDots.Render.Systems {
 
         protected override void OnCreate() {
             canvasUpdateQuery = GetEntityQuery(new EntityQueryDesc {
-                All = new [] { 
-                    ComponentType.ReadOnly<UpdateVertexColorTag>(), ComponentType.ReadWrite<RootVertexData>(), 
+                All = new[] {
+                    ComponentType.ReadWrite<RootVertexData>(), ComponentType.ReadOnly<RenderElement>()
+                },
+                Any = new[] {
+                    ComponentType.ReadOnly<UpdateVertexColorTag>(), ComponentType.ReadOnly<DisableRenderingTag>()
                 }
             });
 
@@ -97,13 +118,15 @@ namespace UGUIDots.Render.Systems {
         }
 
         protected override void OnUpdate() {
-            Dependency           = new UpdateMeshSliceJob {
-                ChildrenBuffer   = GetBufferFromEntity<Child>(true),
-                MeshDataSpans    = GetComponentDataFromEntity<MeshDataSpan>(true),
-                LocalVertexDatas = GetBufferFromEntity<LocalVertexData>(true),
-                CmdBuffer        = cmdBufferSystem.CreateCommandBuffer().ToConcurrent(),
-                EntityType       = GetArchetypeChunkEntityType(),
-                RootVertexType = GetArchetypeChunkBufferType<RootVertexData>(false),
+            Dependency               = new UpdateMeshSliceJob {
+                ChildrenBuffer       = GetBufferFromEntity<Child>(true),
+                LocalVertexDatas     = GetBufferFromEntity<LocalVertexData>(true),
+                UpdateVerticesData   = GetComponentDataFromEntity<UpdateVertexColorTag>(true),
+                EntityType           = GetArchetypeChunkEntityType(),
+                RenderBufferType     = GetArchetypeChunkBufferType<RenderElement>(true),
+                UpdateVertexType     = GetArchetypeChunkComponentType<UpdateVertexColorTag>(true),
+                DisableRenderingType = GetArchetypeChunkComponentType<DisableRenderingTag>(true),
+                CmdBuffer            = cmdBufferSystem.CreateCommandBuffer().ToConcurrent(),
             }.Schedule(canvasUpdateQuery, Dependency);
 
             cmdBufferSystem.AddJobHandleForProducer(Dependency);

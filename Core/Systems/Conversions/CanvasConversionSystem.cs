@@ -1,5 +1,7 @@
 using System;
 using UGUIDots.Render;
+using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Transforms;
 using UnityEngine;
@@ -21,12 +23,22 @@ namespace UGUIDots.Conversions.Systems {
 #if UNITY_EDITOR
                 UnityEditor.EditorGUIUtility.PingObject(canvas);
 #endif
-                    throw new NotSupportedException($"{canvas.name} is child of {parent.name}, this will not be " + 
-                        "supported!");
+                    throw new NotSupportedException($"{canvas.name} is child of {parent.name}, this is not supported!");
                 }
 
                 var entity       = GetPrimaryEntity(canvas);
                 var canvasScaler = canvas.GetComponent<CanvasScaler>();
+
+                // Build a metadata of the children which are active
+                var count = 0;
+                count     = RecurseCountChildren(ref count, canvas.transform);
+
+                var metadata = new UnsafeHashMap<Entity, bool>(count + 1, Allocator.Persistent);
+                RecurseAddMetadata(ref metadata, canvas.transform);
+
+                DstEntityManager.AddComponentData(entity, new ChildrenActiveMetadata {
+                    Value = metadata
+                });
 
                 // Remove unnecessary information
                 DstEntityManager.RemoveComponent<Rotation>(entity);
@@ -63,6 +75,31 @@ namespace UGUIDots.Conversions.Systems {
                         throw new NotSupportedException($"{canvasScaler.uiScaleMode} is not supported yet.");
                 }
             });
+        }
+
+        private int RecurseCountChildren(ref int count, Transform current) {
+            count += current.childCount;
+            for (int i = 0; i < current.childCount; i++) {
+                var child = current.GetChild(i);
+
+                if (child.childCount > 0) {
+                    RecurseCountChildren(ref count, child);
+                }
+            }
+            return count;
+        }
+
+        private void RecurseAddMetadata(ref UnsafeHashMap<Entity, bool> interactableMetadata, Transform current) {
+            for (int i = 0; i < current.childCount; i++) {
+                var child       = current.GetChild(i);
+                var childEntity = this.GetPrimaryEntity(child);
+
+                interactableMetadata.TryAdd(GetPrimaryEntity(child), child.gameObject.activeSelf);
+
+                if (child.childCount > 0) {
+                    RecurseAddMetadata(ref interactableMetadata, child);
+                }
+            }
         }
     }
 }

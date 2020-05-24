@@ -31,7 +31,7 @@ namespace UGUIDots.Controls.Systems {
                 Pressed = new bool2(clickDown, clickUp)
             };
 
-            Dependency = Entities.WithNone<ButtonDisabledTag>().ForEach((ref ClickState c0, ref ButtonVisual c1, 
+            Entities.WithNone<NonInteractableButtontag>().ForEach((ref ClickState c0, ref ButtonVisual c1, 
                 in Dimensions c2, in LocalToWorld c3, in ButtonClickType c4) => {
 
                 var aabb = new AABB {
@@ -58,7 +58,7 @@ namespace UGUIDots.Controls.Systems {
                 } else {
                     c1.Value = ButtonVisualState.None;
                 }
-            }).ScheduleParallel(Dependency);
+            }).Run();
         }
     }
 }

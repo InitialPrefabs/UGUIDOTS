@@ -1,4 +1,5 @@
-﻿using Unity.Entities;
+﻿using System;
+using Unity.Entities;
 using UnityEngine;
 
 namespace UGUIDots.Render.Authoring {
@@ -8,9 +9,11 @@ namespace UGUIDots.Render.Authoring {
         public OrthographicRenderFeature RenderFeature;
 
         public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem) {
-            dstManager.AddSharedComponentData(entity, new RenderCommand {
-                RenderFeature = RenderFeature
-            });
+            if (ReferenceEquals(RenderFeature, null)) {
+                throw new ArgumentException("The RenderFeature cannot be null!");
+            }
+
+            dstManager.AddComponentData(entity, new RenderCommand { RenderFeature = RenderFeature });
         }
     }
 }

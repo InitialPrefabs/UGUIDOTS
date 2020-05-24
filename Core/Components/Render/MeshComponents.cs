@@ -15,16 +15,6 @@ namespace UGUIDots.Render {
         public float4 Color;
         public float2 UV1;
         public float2 UV2;
-
-        public static RootVertexData FromLocalVertexData(in LocalVertexData value) {
-            return new RootVertexData {
-                Position = value.Position,
-                Normal   = value.Normal,
-                Color    = value.Color,
-                UV1      = value.UV1,
-                UV2      = value.UV2
-            };
-        }
     }
 
     /// <summary>
@@ -37,6 +27,16 @@ namespace UGUIDots.Render {
         public float4 Color;
         public float2 UV1;
         public float2 UV2;
+
+        public static implicit operator RootVertexData(LocalVertexData value) {
+            return new RootVertexData {
+                Position = value.Position,
+                Normal   = value.Normal,
+                Color    = value.Color,
+                UV1      = value.UV1,
+                UV2      = value.UV2
+            };
+        }
     }
 
     /// <summary>
