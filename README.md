@@ -1,4 +1,4 @@
-# UGUIDots
+# UGUIDOTS
 
 <p align="center">
     <img src="Wiki/Images/uguidots-logo.png" alt="Logo done by Sabrina Lam">
@@ -41,7 +41,7 @@ Support for the following will come over time - depends on the needs for my own 
 * [x] Image stretching
 * [x] Button actions
 * [x] Button states (with color support)
-* [ ] Hierarchy based disabling
+* [x] Hierarchy based disabling
 * [x] Text Rendering
 * [ ] Input fields
 * [ ] Subscene support
