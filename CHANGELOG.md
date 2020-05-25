@@ -1,5 +1,15 @@
 # Change Log
 
+## 0.3.0
+### Added
+* NumericsUtils to convert integers to character arrays.
+
+### Changed
+* Updates the minimum dependency to Entities 0.11.0
+
+### Removed
+* Removes checks of a null EntityManager in the test fixture.
+
 ## 0.2.0
 ### Added
 * Added `ChildrenActiveMetadata` component to store the state of the visibility of the entity
