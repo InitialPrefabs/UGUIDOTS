@@ -5,7 +5,7 @@ namespace CarteDiem.Common.Tests {
     public unsafe class NumericUtilTests {
 
         [Test]
-        public void CharEqualsDigit() {
+        public void CharEqualsPositiveDigit() {
             int value = 1234567890;
 
             char* actual = stackalloc char[10];
@@ -15,13 +15,12 @@ namespace CarteDiem.Common.Tests {
             string expected = value.ToString();
 
             for (int i = 0; i < count; i++) {
-                UnityEngine.Debug.Log(actual[i]);
                 Assert.AreEqual(expected[i], actual[i], "Mismatched digits");
             }
         }
 
         [Test]
-        public void CharEqualsDigitWithExcess() {
+        public void CharEqualsPositiveDigitWithExcess() {
             int value = 12345;
 
             char* actual = stackalloc char[15];
@@ -31,6 +30,32 @@ namespace CarteDiem.Common.Tests {
             for (int i = 0; i < count; i++) {
 
                 Assert.AreEqual(exepected[i], actual[i], "Mismatched digits");
+            }
+        }
+
+        [Test]
+        public void CharEqualsNegativeDigits() {
+            int value = -12345;
+
+            char* actual = stackalloc char[6];
+            value.ToCharArray(actual, 6, out int count);
+            string expected = value.ToString();
+
+            for (int i = 0; i < count; i++) {
+                Assert.AreEqual(expected[i], actual[i], "Mismatch digits");
+            }
+        }
+
+        [Test]
+        public void CharEqualsNegativeDigitsWIthExcess() {
+            int value = -1234569;
+
+            char* actual = stackalloc char[15];
+            value.ToCharArray(actual, 15, out int count);
+            string expected = value.ToString();
+
+            for (int i = 0; i < count; i++) {
+                Assert.AreEqual(expected[i], actual[i], "Mismatch digits");
             }
         }
     }
