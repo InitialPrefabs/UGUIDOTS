@@ -98,10 +98,10 @@ Please see the Sample repository [here](https://github.com/InitialPrefabs/UGUIDo
 
 Grab these from Unity's package manager.
 
-* Burst 1.3.0-preview.10
-* Entities 0.9.1-preview.15
-* Jobs 0.2.8-preview.3
-* Collections 0.7.1-preview.3
+* Burst 1.3.0
+* Entities 0.11.0-preview.7
+* Jobs 0.2.10-preview.11
+* Collections 0.9.0-preview.5
 * UGUI 1.0.0
 * Universal RP 9.0.0-preview.14
 * TextMeshPro 0.3.0-preview.11
