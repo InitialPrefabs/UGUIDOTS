@@ -1,6 +1,6 @@
 ﻿using NUnit.Framework;
 
-namespace CarteDiem.Common.Tests {
+namespace UGUIDots.Common.Tests {
 
     public unsafe class NumericUtilTests {
 
