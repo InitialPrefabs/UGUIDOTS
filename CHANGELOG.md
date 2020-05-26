@@ -1,5 +1,9 @@
 # Change Log
 
+## 9,3,1
+### Changed
+* Renamed the `CarteDiem.Common` namespace to `UGUIDOTS.Common`
+
 ## 0.3.0
 ### Added
 * NumericsUtils to convert integers to character arrays.
