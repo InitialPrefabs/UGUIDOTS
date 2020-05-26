@@ -1,7 +1,7 @@
 ﻿using Unity.Collections;
 using Unity.Mathematics;
 
-namespace CarteDiem.Common {
+namespace UGUIDots.Common {
 
     public unsafe static class NumericUtils {
 
