@@ -1,6 +1,10 @@
 # Change Log
 
-## 9,3,1
+## 0.3.2
+### Fixed
+* Fixed the CanvasMetadataDisposalSystem from disposing incorrectly on a separate thread and not removing the system state.
+
+## 0.3.1
 ### Changed
 * Renamed the `CarteDiem.Common` namespace to `UGUIDOTS.Common`
 
