@@ -3,12 +3,21 @@ using Unity.Entities;
 namespace UGUIDots.Render.Systems {
 
     public class CanvasMetadataDisposalSystem : SystemBase {
-        protected override void OnUpdate() {
 
-            var deps = Dependency;
-            Entities.WithNone<RootVertexData>().ForEach((ref ChildrenActiveMetadata c0) => {
-                c0.Dispose(deps);   
-            }).ScheduleParallel(Dependency);
+        private EntityCommandBufferSystem commandBufferSystem;
+
+        protected override void OnCreate() {
+            commandBufferSystem = World.GetOrCreateSystem<BeginSimulationEntityCommandBufferSystem>();
+        }
+
+        protected override void OnUpdate() {
+            var cmdBuffer = commandBufferSystem.CreateCommandBuffer();
+
+            Entities.WithNone<RootVertexData>().ForEach((Entity entity, ref ChildrenActiveMetadata c0) => {
+                c0.Dispose();
+
+                cmdBuffer.RemoveComponent<ChildrenActiveMetadata>(entity);
+            }).Run();
         }
     }
 }
