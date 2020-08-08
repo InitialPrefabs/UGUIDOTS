@@ -13,7 +13,7 @@ namespace UGUIDots.Controls.Messaging.Systems {
         }
 
         protected override void OnUpdate() {
-            var cmdBuffer = cmdBufferSystem.CreateCommandBuffer().ToConcurrent();
+            var cmdBuffer = cmdBufferSystem.CreateCommandBuffer().AsParallelWriter();
 
             Dependency = Entities.ForEach((Entity entity, in ButtonMessageRequest c0) => {
                 cmdBuffer.DestroyEntity(entity.Index, entity);
@@ -33,7 +33,7 @@ namespace UGUIDots.Controls.Messaging.Systems {
         }
 
         protected override void OnUpdate() {
-            var cmdBuffer = cmdBufferSystem.CreateCommandBuffer().ToConcurrent();
+            var cmdBuffer = cmdBufferSystem.CreateCommandBuffer().AsParallelWriter();
             Dependency = Entities.ForEach((Entity entity, in ClickState c0, in ButtonMessageFramePayload c1) => {
                 if (c0.Value) {
                     var msgEntity = cmdBuffer.Instantiate(entity.Index, c1.Value);

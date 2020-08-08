@@ -17,8 +17,8 @@ namespace UGUIDots.Render.Systems {
         private struct BuildGlyphMapJobChunk : IJobChunk {
 
             [WriteOnly] public NativeHashMap<int, Entity>.ParallelWriter GlyphMap;
-            [ReadOnly] public ArchetypeChunkComponentType<FontID> FontType;
-            [ReadOnly] public ArchetypeChunkEntityType EntityType;
+            [ReadOnly] public ComponentTypeHandle<FontID> FontType;
+            [ReadOnly] public EntityTypeHandle EntityType;
 
             public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex) {
                 var fonts = chunk.GetNativeArray(FontType);
@@ -37,18 +37,18 @@ namespace UGUIDots.Render.Systems {
             [ReadOnly] public BufferFromEntity<GlyphElement> GlyphData;
             [ReadOnly] public ComponentDataFromEntity<FontFaceInfo> FontFaces;
             [ReadOnly] public ComponentDataFromEntity<Parent> Parents;
-            [ReadOnly] public ArchetypeChunkEntityType EntityType;
-            [ReadOnly] public ArchetypeChunkBufferType<CharElement> CharBufferType;
-            [ReadOnly] public ArchetypeChunkComponentType<TextOptions> TextOptionType;
-            [ReadOnly] public ArchetypeChunkComponentType<TextFontID> TxtFontIDType;
-            [ReadOnly] public ArchetypeChunkComponentType<AppliedColor> ColorType;
-            [ReadOnly] public ArchetypeChunkComponentType<LocalToWorld> LTWType;
-            [ReadOnly] public ArchetypeChunkComponentType<Dimensions> DimensionType;
+            [ReadOnly] public EntityTypeHandle EntityType;
+            [ReadOnly] public BufferTypeHandle<CharElement> CharBufferType;
+            [ReadOnly] public ComponentTypeHandle<TextOptions> TextOptionType;
+            [ReadOnly] public ComponentTypeHandle<TextFontID> TxtFontIDType;
+            [ReadOnly] public ComponentTypeHandle<AppliedColor> ColorType;
+            [ReadOnly] public ComponentTypeHandle<LocalToWorld> LTWType;
+            [ReadOnly] public ComponentTypeHandle<Dimensions> DimensionType;
 
-            public ArchetypeChunkBufferType<LocalVertexData> MeshVertexDataType;
-            public ArchetypeChunkBufferType<LocalTriangleIndexElement> TriangleIndexType;
+            public BufferTypeHandle<LocalVertexData> MeshVertexDataType;
+            public BufferTypeHandle<LocalTriangleIndexElement> TriangleIndexType;
 
-            public EntityCommandBuffer.Concurrent CmdBuffer;
+            public EntityCommandBuffer.ParallelWriter CmdBuffer;
 
             public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex) {
                 var textBufferAccessor    = chunk.GetBufferAccessor(CharBufferType);
@@ -77,8 +77,8 @@ namespace UGUIDots.Render.Systems {
                     var canvasScale = ltw.AverageScale();
 
                     var glyphTableExists  = GlyphMap.TryGetValue(fontID, out var glyphEntity);
-                    var glyphBufferExists = GlyphData.Exists(glyphEntity);
-                    var fontFaceExists    = FontFaces.Exists(glyphEntity);
+                    var glyphBufferExists = GlyphData.HasComponent(glyphEntity);
+                    var fontFaceExists    = FontFaces.HasComponent(glyphEntity);
 
                     if (!(glyphTableExists && glyphBufferExists && fontFaceExists)) {
                         continue;
@@ -192,7 +192,7 @@ namespace UGUIDots.Render.Systems {
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             private Entity GetRootCanvas(Entity current) {
-                if (Parents.Exists(current)) {
+                if (Parents.HasComponent(current)) {
                     return GetRootCanvas(Parents[current].Value);
                 }
                 return current;
@@ -232,8 +232,8 @@ namespace UGUIDots.Render.Systems {
 
             Dependency = new BuildGlyphMapJobChunk {
                 GlyphMap   = glyphMap.AsParallelWriter(),
-                EntityType = GetArchetypeChunkEntityType(),
-                FontType   = GetArchetypeChunkComponentType<FontID>(true)
+                EntityType = GetEntityTypeHandle(),
+                FontType   = GetComponentTypeHandle<FontID>(true)
             }.Schedule(glyphQuery, Dependency);
 
             Dependency = new BuildTextMeshJob {
@@ -241,16 +241,16 @@ namespace UGUIDots.Render.Systems {
                 GlyphData          = GetBufferFromEntity<GlyphElement>(true),
                 FontFaces          = GetComponentDataFromEntity<FontFaceInfo>(true),
                 Parents            = GetComponentDataFromEntity<Parent>(true),
-                EntityType         = GetArchetypeChunkEntityType(),
-                CharBufferType     = GetArchetypeChunkBufferType<CharElement>(true),
-                TextOptionType     = GetArchetypeChunkComponentType<TextOptions>(true),
-                TxtFontIDType      = GetArchetypeChunkComponentType<TextFontID>(true),
-                ColorType          = GetArchetypeChunkComponentType<AppliedColor>(true),
-                LTWType            = GetArchetypeChunkComponentType<LocalToWorld>(true),
-                DimensionType      = GetArchetypeChunkComponentType<Dimensions>(true),
-                MeshVertexDataType = GetArchetypeChunkBufferType<LocalVertexData>(),
-                TriangleIndexType  = GetArchetypeChunkBufferType<LocalTriangleIndexElement>(),
-                CmdBuffer          = cmdBufferSystem.CreateCommandBuffer().ToConcurrent()
+                EntityType         = GetEntityTypeHandle(),
+                CharBufferType     = GetBufferTypeHandle<CharElement>(true),
+                TextOptionType     = GetComponentTypeHandle<TextOptions>(true),
+                TxtFontIDType      = GetComponentTypeHandle<TextFontID>(true),
+                ColorType          = GetComponentTypeHandle<AppliedColor>(true),
+                LTWType            = GetComponentTypeHandle<LocalToWorld>(true),
+                DimensionType      = GetComponentTypeHandle<Dimensions>(true),
+                MeshVertexDataType = GetBufferTypeHandle<LocalVertexData>(),
+                TriangleIndexType  = GetBufferTypeHandle<LocalTriangleIndexElement>(),
+                CmdBuffer          = cmdBufferSystem.CreateCommandBuffer().AsParallelWriter()
             }.Schedule(textQuery, Dependency);
 
             Dependency = glyphMap.Dispose(Dependency);

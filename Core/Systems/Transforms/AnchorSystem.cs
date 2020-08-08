@@ -31,7 +31,7 @@ namespace UGUIDots.Transforms.Systems {
             public ComponentDataFromEntity<LocalToWorld> LTW;
 
             [ReadOnly]
-            public ArchetypeChunkEntityType EntityType;
+            public EntityTypeHandle EntityType;
 
             [ReadOnly]
             public BufferFromEntity<Child> ChildBuffers;
@@ -48,7 +48,7 @@ namespace UGUIDots.Transforms.Systems {
             [ReadOnly]
             public ComponentDataFromEntity<LinkedMaterialEntity> LinkedMaterials;
 
-            public EntityCommandBuffer.Concurrent CmdBuffer;
+            public EntityCommandBuffer.ParallelWriter CmdBuffer;
 
             public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex) {
                 var entities = chunk.GetNativeArray(EntityType);
@@ -71,7 +71,7 @@ namespace UGUIDots.Transforms.Systems {
                 for (int i = 0; i < children.Length; i++) {
                     var current = children[i].Value;
 
-                    if (!Anchors.Exists(current)) { 
+                    if (!Anchors.HasComponent(current)) { 
                         continue;
                     }
 
@@ -102,7 +102,7 @@ namespace UGUIDots.Transforms.Systems {
                     CmdBuffer.SetComponent(current.Index, current, translation);
                     CmdBuffer.SetComponent(current.Index, current, worldSpace);
 
-                    if (ChildBuffers.Exists(current)) {
+                    if (ChildBuffers.HasComponent(current)) {
                         var grandChildren = ChildBuffers[current];
                         RecurseChildren(in current, in worldSpace, in rootScale, in grandChildren);
                     }
@@ -111,7 +111,7 @@ namespace UGUIDots.Transforms.Systems {
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             private float2 GetAnchoredPosition(Entity parent, in LocalToWorld parentLTW, in float2 scale, in Anchor anchor) {
-                var isParentVisual = Parents.Exists(parent) && LinkedMaterials.Exists(parent);
+                var isParentVisual = Parents.HasComponent(parent) && LinkedMaterials.HasComponent(parent);
 
                 if (isParentVisual) {
                     // Get the local space of the dimensions we're working with in screen space.
@@ -156,9 +156,9 @@ namespace UGUIDots.Transforms.Systems {
                 Anchors         = GetComponentDataFromEntity<Anchor>(true),
                 Parents         = GetComponentDataFromEntity<Parent>(true),
                 Dimensions      = GetComponentDataFromEntity<Dimensions>(true),
-                EntityType      = GetArchetypeChunkEntityType(),
+                EntityType      = GetEntityTypeHandle(),
                 LinkedMaterials = GetComponentDataFromEntity<LinkedMaterialEntity>(true),
-                CmdBuffer = cmdBufferSystem.CreateCommandBuffer().ToConcurrent(),
+                CmdBuffer = cmdBufferSystem.CreateCommandBuffer().AsParallelWriter(),
             }.Schedule(canvasQuery, Dependency);
 
             cmdBufferSystem.AddJobHandleForProducer(Dependency);

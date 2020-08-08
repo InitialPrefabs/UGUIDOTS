@@ -29,7 +29,7 @@ namespace UGUIDots.Render.Systems {
                     var entityIndex  = spans[i].Value.x;
                     var renderEntity = renderEntities[entityIndex].Value;
 
-                    if (linkedTextures.Exists(renderEntity)) {
+                    if (linkedTextures.HasComponent(renderEntity)) {
                         var textureEntity = linkedTextures[renderEntity].Value;
                         var texture       = EntityManager.GetComponentData<SharedTexture>(textureEntity);
 

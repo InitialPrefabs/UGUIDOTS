@@ -23,18 +23,18 @@ namespace UGUIDots.Render.Systems {
             public ComponentDataFromEntity<UpdateVertexColorTag> UpdateVerticesData;
 
             [ReadOnly]
-            public ArchetypeChunkEntityType EntityType;
+            public EntityTypeHandle EntityType;
 
             [ReadOnly]
-            public ArchetypeChunkBufferType<RenderElement> RenderBufferType;
+            public BufferTypeHandle<RenderElement> RenderBufferType;
 
             [ReadOnly]
-            public ArchetypeChunkComponentType<UpdateVertexColorTag> UpdateVertexType;
+            public ComponentTypeHandle<UpdateVertexColorTag> UpdateVertexType;
 
             [ReadOnly]
-            public ArchetypeChunkComponentType<DisableRenderingTag> DisableRenderingType;
+            public ComponentTypeHandle<DisableRenderingTag> DisableRenderingType;
 
-            public EntityCommandBuffer.Concurrent CmdBuffer;
+            public EntityCommandBuffer.ParallelWriter CmdBuffer;
 
             public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex) {
                 var entities = chunk.GetNativeArray(EntityType);
@@ -87,11 +87,11 @@ namespace UGUIDots.Render.Systems {
                 for (int i = 0; i < renderBatches.Length; i++) {
                     var entity = renderBatches[i].Value;
 
-                    if (UpdateVerticesData.Exists(entity)) {
+                    if (UpdateVerticesData.HasComponent(entity)) {
                         CmdBuffer.RemoveComponent<UpdateVertexColorTag>(entity.Index, entity);
                     }
 
-                    if (LocalVertexDatas.Exists(entity)) {
+                    if (LocalVertexDatas.HasComponent(entity)) {
                         var localVertices = LocalVertexDatas[entity].AsNativeArray();
                         for (int m = 0; m < localVertices.Length; m++) {
                             rootVertices.Add(localVertices[m]);
@@ -122,11 +122,11 @@ namespace UGUIDots.Render.Systems {
                 ChildrenBuffer       = GetBufferFromEntity<Child>(true),
                 LocalVertexDatas     = GetBufferFromEntity<LocalVertexData>(true),
                 UpdateVerticesData   = GetComponentDataFromEntity<UpdateVertexColorTag>(true),
-                EntityType           = GetArchetypeChunkEntityType(),
-                RenderBufferType     = GetArchetypeChunkBufferType<RenderElement>(true),
-                UpdateVertexType     = GetArchetypeChunkComponentType<UpdateVertexColorTag>(true),
-                DisableRenderingType = GetArchetypeChunkComponentType<DisableRenderingTag>(true),
-                CmdBuffer            = cmdBufferSystem.CreateCommandBuffer().ToConcurrent(),
+                EntityType           = GetEntityTypeHandle(),
+                RenderBufferType     = GetBufferTypeHandle<RenderElement>(true),
+                UpdateVertexType     = GetComponentTypeHandle<UpdateVertexColorTag>(true),
+                DisableRenderingType = GetComponentTypeHandle<DisableRenderingTag>(true),
+                CmdBuffer            = cmdBufferSystem.CreateCommandBuffer().AsParallelWriter(),
             }.Schedule(canvasUpdateQuery, Dependency);
 
             cmdBufferSystem.AddJobHandleForProducer(Dependency);
