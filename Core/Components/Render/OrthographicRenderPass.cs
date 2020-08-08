@@ -21,7 +21,9 @@ namespace UGUIDots.Render {
                 return;
             }
 #endif
-            context.ExecuteCommandBuffer(CommandBuffer);
+            using (new ProfilingScope(CommandBuffer, Sampler)) {
+                context.ExecuteCommandBuffer(CommandBuffer);
+            }
         }
     }
 }
