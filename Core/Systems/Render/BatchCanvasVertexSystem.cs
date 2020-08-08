@@ -85,12 +85,12 @@ namespace UGUIDots.Render.Systems {
             public EntityCommandBuffer.ParallelWriter CommandBuffer;
 
             public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex) {
-                var entities         = chunk.GetNativeArray(EntityType);
-                var vertexAccessor   = chunk.GetBufferAccessor(CanvasVertexType);
-                var triangleAccessor = chunk.GetBufferAccessor(CanvasIndexType);
-                var batchedRenders   = chunk.GetBufferAccessor(RenderElementType);
-                var batchedSpans     = chunk.GetBufferAccessor(SpanType);
-                var submeshDescriptors        = chunk.GetBufferAccessor(SubMeshType);
+                var entities           = chunk.GetNativeArray(EntityType);
+                var vertexAccessor     = chunk.GetBufferAccessor(CanvasVertexType);
+                var triangleAccessor   = chunk.GetBufferAccessor(CanvasIndexType);
+                var batchedRenders     = chunk.GetBufferAccessor(RenderElementType);
+                var batchedSpans       = chunk.GetBufferAccessor(SpanType);
+                var submeshDescriptors = chunk.GetBufferAccessor(SubMeshType);
 
                 for (int i             = 0; i < chunk.Count; i++) {
                     var entity         = entities[i];

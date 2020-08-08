@@ -1,47 +1,27 @@
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
-using UnityEngine;
 
 namespace UGUIDots.Render {
 
     public class OrthographicRenderPass : ScriptableRenderPass {
 
-        private string profilerTag;
-        private ProfilingSampler sampler;
+        public CommandBuffer CommandBuffer;
 
-        private CommandBuffer cmd;
-
-        public OrthographicRenderPass(OrthographicRenderSettings settings) {
-            base.renderPassEvent = settings.RenderPassEvt;
-            profilerTag          = settings.ProfilerTag;
-            sampler              = new ProfilingSampler(settings.ProfilerTag);
-
-            Debug.Log("Created");
-        }
-
-        public CommandBuffer Init() {
-            if (cmd != null) {
-                return cmd;
-            }
-
-            cmd = CommandBufferPool.Get(profilerTag);
-
-            return cmd;
-        }
+        public ProfilingSampler Sampler;
 
         public void Release() {
-            if (cmd != null) {
-                CommandBufferPool.Release(cmd);
+            if (CommandBuffer != null) {
+                CommandBufferPool.Release(CommandBuffer);
             }
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData) {
 #if UNITY_EDITOR
-            if (cmd == null) {
+            if (CommandBuffer == null) {
                 return;
             }
 #endif
-            context.ExecuteCommandBuffer(cmd);
+            context.ExecuteCommandBuffer(CommandBuffer);
         }
     }
 }

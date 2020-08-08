@@ -8,45 +8,35 @@ namespace UGUIDots.Render.Systems {
     [UpdateInGroup(typeof(MeshRenderGroup))]
     public class OrthographicRenderSystem : SystemBase {
 
-#pragma warning disable 649
         private CommandBuffer cmd;
-#pragma warning restore 649
+
+        protected override void OnDestroy() {
+            CommandBufferPool.Release(cmd);
+        }
 
         protected override void OnStartRunning() {
-            Entities.ForEach((RenderCommand cmd) => {
-                this.cmd = cmd.RenderFeature.InitCommandBuffer();
+            Entities.ForEach((RenderCommand c0) => {
+                cmd = CommandBufferPool.Get(c0.RenderFeature.name);
+                c0.RenderFeature.CommandBuffer = cmd;
             }).WithoutBurst().Run();
         }
 
         protected unsafe override void OnUpdate() {
-            cmd?.Clear();
+            cmd.Clear();
+            cmd.SetViewProjectionMatrices(
+                Matrix4x4.Ortho(0, Screen.width, 0, Screen.height, -100f, 100f), 
+                Matrix4x4.TRS(Vector3.zero, Quaternion.identity, Vector3.one));
+            
             Entities.ForEach((Mesh mesh, MaterialPropertyBatch batch, DynamicBuffer<SubmeshKeyElement> keys) => {
-                if (keys.Length == 0) { 
-                    return; 
-                }
-
-                for (int i = 0; i < mesh.subMeshCount; i++) {
-                    var materialKey = keys[i].MaterialEntity;
+                var submeshKeys = keys.AsNativeArray();
+                for (int i = 0; i < mesh.subMeshCount && mesh.subMeshCount == submeshKeys.Length; i++) {
+                    var materialKey = submeshKeys[i].MaterialEntity;
                     var prop        = batch.Value[i];
                     var mat         = EntityManager.GetComponentData<SharedMaterial>(materialKey).Value;
-
-                    // Debug.Log($"{cmd == null}, {mesh == null}, {batch.Value == null}, {keys.IsCreated}");
 
                     cmd.DrawMesh(mesh, Matrix4x4.identity, mat, i, -1, prop);
                 }
             }).WithoutBurst().Run();
-
-            /*
-            Entities.WithStoreEntityQueryInField(ref renderQuery).
-                ForEach((Mesh mesh, MaterialPropertyBatch batch, DynamicBuffer<SubmeshKeyElement> keys) => {
-                    renderFeature.Pass.RenderInstructions.Enqueue(new RenderInstruction {
-                        Start = (SubmeshKeyElement*)keys.GetUnsafePtr(),
-                        Batch = batch,
-                        Mesh  = mesh,
-                    }
-                );
-            }).WithoutBurst().Run();
-            */
         }
     }
 }
