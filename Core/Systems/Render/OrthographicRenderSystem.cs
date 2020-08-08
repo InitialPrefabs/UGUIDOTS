@@ -1,33 +1,42 @@
 using Unity.Entities;
 using Unity.Jobs;
 using UnityEngine;
-using static UGUIDots.Render.OrthographicRenderPass;
+using UnityEngine.Rendering;
 
 namespace UGUIDots.Render.Systems {
 
     [UpdateInGroup(typeof(MeshRenderGroup))]
     public class OrthographicRenderSystem : SystemBase {
 
-        private EntityQuery renderQuery, renderCommandQuery;
-        private OrthographicRenderFeature renderFeature;
-
-        protected override void OnCreate() {
-            renderQuery = GetEntityQuery(new EntityQueryDesc {
-                All = new [] { ComponentType.ReadOnly<SubmeshKeyElement>(), ComponentType.ReadOnly<Mesh>() }
-            });
-
-            renderCommandQuery = GetEntityQuery(new EntityQueryDesc {
-                All = new [] { ComponentType.ReadOnly<RenderCommand>() }
-            });
-        }
+#pragma warning disable 649
+        private CommandBuffer cmd;
+#pragma warning restore 649
 
         protected override void OnStartRunning() {
-            Entities.WithStoreEntityQueryInField(ref renderCommandQuery).ForEach((RenderCommand cmd) => {
-                renderFeature = cmd.RenderFeature;
+            Entities.ForEach((RenderCommand cmd) => {
+                this.cmd = cmd.RenderFeature.InitCommandBuffer();
             }).WithoutBurst().Run();
         }
 
         protected unsafe override void OnUpdate() {
+            cmd?.Clear();
+            Entities.ForEach((Mesh mesh, MaterialPropertyBatch batch, DynamicBuffer<SubmeshKeyElement> keys) => {
+                if (keys.Length == 0) { 
+                    return; 
+                }
+
+                for (int i = 0; i < mesh.subMeshCount; i++) {
+                    var materialKey = keys[i].MaterialEntity;
+                    var prop        = batch.Value[i];
+                    var mat         = EntityManager.GetComponentData<SharedMaterial>(materialKey).Value;
+
+                    // Debug.Log($"{cmd == null}, {mesh == null}, {batch.Value == null}, {keys.IsCreated}");
+
+                    cmd.DrawMesh(mesh, Matrix4x4.identity, mat, i, -1, prop);
+                }
+            }).WithoutBurst().Run();
+
+            /*
             Entities.WithStoreEntityQueryInField(ref renderQuery).
                 ForEach((Mesh mesh, MaterialPropertyBatch batch, DynamicBuffer<SubmeshKeyElement> keys) => {
                     renderFeature.Pass.RenderInstructions.Enqueue(new RenderInstruction {
@@ -37,6 +46,7 @@ namespace UGUIDots.Render.Systems {
                     }
                 );
             }).WithoutBurst().Run();
+            */
         }
     }
 }
