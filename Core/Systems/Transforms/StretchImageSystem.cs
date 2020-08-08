@@ -19,7 +19,7 @@ namespace UGUIDots.Transforms.Systems {
         }
 
         protected override void OnUpdate() {
-            var cmdBuffer  = cmdBufferSystem.CreateCommandBuffer().ToConcurrent();
+            var cmdBuffer  = cmdBufferSystem.CreateCommandBuffer().AsParallelWriter();
             var resolution = new float2(Screen.width, Screen.height);
 
             Dependency = Entities.ForEach((Entity entity, ref Dimensions c1, in LocalToWorld c0, in Stretch c2) => {

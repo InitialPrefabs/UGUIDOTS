@@ -22,30 +22,30 @@ namespace UGUIDots.Render.Systems {
             public ComponentDataFromEntity<Parent> Parents;
 
             [ReadOnly]
-            public ArchetypeChunkComponentType<LocalToWorld> LTWType;
+            public ComponentTypeHandle<LocalToWorld> LTWType;
 
             [ReadOnly]
-            public ArchetypeChunkComponentType<Dimensions> DimensionType;
+            public ComponentTypeHandle<Dimensions> DimensionType;
 
             [ReadOnly]
-            public ArchetypeChunkBufferType<CharElement> CharType;
+            public BufferTypeHandle<CharElement> CharType;
 
             [ReadOnly]
-            public ArchetypeChunkComponentType<AppliedColor> ColorType;
+            public ComponentTypeHandle<AppliedColor> ColorType;
 
             [ReadOnly]
-            public ArchetypeChunkEntityType EntityType;
+            public EntityTypeHandle EntityType;
 
             [ReadOnly]
-            public ArchetypeChunkComponentType<SpriteData> SpriteDataType;
+            public ComponentTypeHandle<SpriteData> SpriteDataType;
 
             [ReadOnly]
-            public ArchetypeChunkComponentType<DefaultSpriteResolution> SpriteResType;
+            public ComponentTypeHandle<DefaultSpriteResolution> SpriteResType;
 
-            public ArchetypeChunkBufferType<LocalVertexData> VertexType;
-            public ArchetypeChunkBufferType<LocalTriangleIndexElement> TriangleType;
+            public BufferTypeHandle<LocalVertexData> VertexType;
+            public BufferTypeHandle<LocalTriangleIndexElement> TriangleType;
 
-            public EntityCommandBuffer.Concurrent CmdBuffer;
+            public EntityCommandBuffer.ParallelWriter CmdBuffer;
 
             public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex) {
                 BuildMeshProfiler.Begin();
@@ -153,7 +153,7 @@ namespace UGUIDots.Render.Systems {
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             private Entity GetRootCanvas(Entity current) {
-                if (Parents.Exists(current)) {
+                if (Parents.HasComponent(current)) {
                     return GetRootCanvas(Parents[current].Value);
                 }
 
@@ -184,16 +184,16 @@ namespace UGUIDots.Render.Systems {
             Dependency            = new RebuildImgMeshJob {
                 BuildMeshProfiler = new ProfilerMarker("BuildImageVertexDataSystem.RebuildImgMeshJob"),
                 Parents           = GetComponentDataFromEntity<Parent>(true),
-                LTWType           = GetArchetypeChunkComponentType<LocalToWorld>(true),
-                DimensionType     = GetArchetypeChunkComponentType<Dimensions>(true),
-                ColorType         = GetArchetypeChunkComponentType<AppliedColor>(true),
-                VertexType        = GetArchetypeChunkBufferType<LocalVertexData>(),
-                TriangleType      = GetArchetypeChunkBufferType<LocalTriangleIndexElement>(),
-                CharType          = GetArchetypeChunkBufferType<CharElement>(true),
-                SpriteDataType    = GetArchetypeChunkComponentType<SpriteData>(true),
-                SpriteResType     = GetArchetypeChunkComponentType<DefaultSpriteResolution>(true),
-                EntityType        = GetArchetypeChunkEntityType(),
-                CmdBuffer         = cmdBufferSystem.CreateCommandBuffer().ToConcurrent()
+                LTWType           = GetComponentTypeHandle<LocalToWorld>(true),
+                DimensionType     = GetComponentTypeHandle<Dimensions>(true),
+                ColorType         = GetComponentTypeHandle<AppliedColor>(true),
+                VertexType        = GetBufferTypeHandle<LocalVertexData>(),
+                TriangleType      = GetBufferTypeHandle<LocalTriangleIndexElement>(),
+                CharType          = GetBufferTypeHandle<CharElement>(true),
+                SpriteDataType    = GetComponentTypeHandle<SpriteData>(true),
+                SpriteResType     = GetComponentTypeHandle<DefaultSpriteResolution>(true),
+                EntityType        = GetEntityTypeHandle(),
+                CmdBuffer         = cmdBufferSystem.CreateCommandBuffer().AsParallelWriter()
             }.Schedule(graphicQuery, Dependency);
 
             cmdBufferSystem.AddJobHandleForProducer(Dependency);

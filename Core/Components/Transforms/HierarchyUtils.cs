@@ -11,7 +11,7 @@ namespace UGUIDots.Transforms {
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Entity GetRoot(Entity child, ComponentDataFromEntity<Parent> parents) {
-            if (!parents.Exists(child)) {
+            if (!parents.HasComponent(child)) {
                 return child;
             }
 

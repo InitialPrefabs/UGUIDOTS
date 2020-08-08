@@ -16,24 +16,24 @@ namespace UGUIDots.Render.Systems {
 
             public float3 Offset;
 
-            public EntityCommandBuffer.Concurrent CmdBuffer;
+            public EntityCommandBuffer.ParallelWriter CmdBuffer;
 
             [ReadOnly]
-            public ArchetypeChunkComponentType<Disabled> DisabledType;
+            public ComponentTypeHandle<Disabled> DisabledType;
 
             [ReadOnly]
-            public ArchetypeChunkComponentType<EnableRenderingTag> EnableRenderingType;
+            public ComponentTypeHandle<EnableRenderingTag> EnableRenderingType;
 
             [ReadOnly]
-            public ArchetypeChunkComponentType<AppliedColor> AppliedColorType;
+            public ComponentTypeHandle<AppliedColor> AppliedColorType;
 
             [ReadOnly]
-            public ArchetypeChunkEntityType EntityType;
+            public EntityTypeHandle EntityType;
 
             [ReadOnly]
             public ComponentDataFromEntity<Parent> Parents;
 
-            public ArchetypeChunkBufferType<LocalVertexData> LocalVertexType;
+            public BufferTypeHandle<LocalVertexData> LocalVertexType;
 
             public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex) {
                 var colors         = chunk.GetNativeArray(AppliedColorType);
@@ -118,17 +118,17 @@ namespace UGUIDots.Render.Systems {
         }
 
         protected override void OnUpdate() {
-            var cmdBuffer = cmdBufferSystem.CreateCommandBuffer().ToConcurrent();
+            var cmdBuffer = cmdBufferSystem.CreateCommandBuffer().AsParallelWriter();
 
             Dependency              = new UpdateLocalVertexJob {
                 Offset              = new float3(Screen.width, Screen.height, 0) * 2,
                 CmdBuffer           = cmdBuffer,
                 Parents             = GetComponentDataFromEntity<Parent>(),
-                AppliedColorType    = GetArchetypeChunkComponentType<AppliedColor>(true),
-                LocalVertexType     = GetArchetypeChunkBufferType<LocalVertexData>(false),
-                EntityType          = GetArchetypeChunkEntityType(),
-                EnableRenderingType = GetArchetypeChunkComponentType<EnableRenderingTag>(true),
-                DisabledType        = GetArchetypeChunkComponentType<Disabled>(true)
+                AppliedColorType    = GetComponentTypeHandle<AppliedColor>(true),
+                LocalVertexType     = GetBufferTypeHandle<LocalVertexData>(false),
+                EntityType          = GetEntityTypeHandle(),
+                EnableRenderingType = GetComponentTypeHandle<EnableRenderingTag>(true),
+                DisabledType        = GetComponentTypeHandle<Disabled>(true)
             }.ScheduleParallel(childrenUIQuery, Dependency);
 
             cmdBufferSystem.AddJobHandleForProducer(Dependency);

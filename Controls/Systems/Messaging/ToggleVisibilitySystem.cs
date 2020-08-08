@@ -54,22 +54,22 @@ namespace UGUIDots.Controls.Messaging.Systems {
                         activeStates.Value[targetEntity] = isActive;
                     }
 
-                    if (isActive && Disabled.Exists(targetEntity) && 
-                        (ShowButtons.Exists(msgEntity) || ToggleButtons.Exists(msgEntity))) {
+                    if (isActive && Disabled.HasComponent(targetEntity) && 
+                        (ShowButtons.HasComponent(msgEntity) || ToggleButtons.HasComponent(msgEntity))) {
 
                         CmdBuffer.RemoveComponent<Disabled>(targetEntity);
                         CmdBuffer.AddComponent<EnableRenderingTag>(targetEntity);
 
-                        if (LocalVertices.Exists(targetEntity)) {
+                        if (LocalVertices.HasComponent(targetEntity)) {
                             CmdBuffer.AddComponent<UpdateVertexColorTag>(targetEntity);
                         }
                         RecurseChildrenAndEnable(targetEntity, ref activeStates.Value);
                     }
 
-                    if (!isActive && (CloseButtons.Exists(msgEntity) || ToggleButtons.Exists(msgEntity))) {
+                    if (!isActive && (CloseButtons.HasComponent(msgEntity) || ToggleButtons.HasComponent(msgEntity))) {
                         CmdBuffer.AddComponent<Disabled>(targetEntity);
 
-                        if (LocalVertices.Exists(targetEntity)) {
+                        if (LocalVertices.HasComponent(targetEntity)) {
                             CmdBuffer.AddComponent<UpdateVertexColorTag>(targetEntity);
                         }
 
@@ -80,7 +80,7 @@ namespace UGUIDots.Controls.Messaging.Systems {
 
 
             private void RecurseChildrenAndDisabled(Entity entity) {
-                if (!Children.Exists(entity)) {
+                if (!Children.HasComponent(entity)) {
                     return;
                 }
 
@@ -96,7 +96,7 @@ namespace UGUIDots.Controls.Messaging.Systems {
             }
 
             private void RecurseChildrenAndEnable(Entity entity, ref UnsafeHashMap<Entity, bool> metadata) {
-                if (!Children.Exists(entity)) {
+                if (!Children.HasComponent(entity)) {
                     return;
                 }
 

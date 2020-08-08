@@ -34,8 +34,6 @@ If you would like to help contribute to the development of UGUIDots, please see 
 
 Support for the following will come over time - depends on the needs for my own game.
 
-(?) - Maybe I'll support?
-
 * [x] Canvas Scaling
 * [x] Anchoring
 * [x] Image stretching
@@ -94,17 +92,18 @@ Please see the Sample repository [here](https://github.com/InitialPrefabs/UGUIDo
 
 ## Dependencies
 
-* Unity 2020.1bx
+* Unity 2020.1.x
 
 Grab these from Unity's package manager.
 
-* Burst 1.3.0
-* Entities 0.11.0-preview.7
-* Jobs 0.2.10-preview.11
-* Collections 0.9.0-preview.5
+* Burst 1.3.4
+* Collections 0.11.0-preview.17
+* Entities 0.13.0-preview.24
+* Jobs 0.4.0-preview.18
+* Mathematics 1.2.1
+* TextMeshPro 3.0.1
 * UGUI 1.0.0
-* Universal RP 9.0.0-preview.14
-* TextMeshPro 0.3.0-preview.11
+* Universal RP 9.0.0-preview.35
 
 ## Limitations
 Development is still underway - so not all of the features Unity has by default is supported. Similarly - there are certain

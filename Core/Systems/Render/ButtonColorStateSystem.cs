@@ -14,7 +14,7 @@ namespace UGUIDots.Render.Systems {
         }
 
         protected override void OnUpdate() {
-            var cmdBuffer = cmdBufferSystem.CreateCommandBuffer().ToConcurrent();
+            var cmdBuffer = cmdBufferSystem.CreateCommandBuffer().AsParallelWriter();
 
             Dependency = Entities.WithNone<NonInteractableButtontag>().
                 ForEach((Entity entity, int entityInQueryIndex, in AppliedColor c0, in ColorStates c1, in ButtonVisual c3) => {
