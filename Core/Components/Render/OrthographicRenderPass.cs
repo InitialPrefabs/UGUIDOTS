@@ -16,13 +16,10 @@ namespace UGUIDots.Render {
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData) {
-#if UNITY_EDITOR
-            if (CommandBuffer == null) {
-                return;
-            }
-#endif
             using (new ProfilingScope(CommandBuffer, Sampler)) {
-                context.ExecuteCommandBuffer(CommandBuffer);
+                if (CommandBuffer != null) {
+                    context.ExecuteCommandBuffer(CommandBuffer);
+                }
             }
         }
     }
