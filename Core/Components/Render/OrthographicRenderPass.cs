@@ -7,21 +7,8 @@ namespace UGUIDots.Render {
 
         public CommandBuffer CommandBuffer;
 
-        public ProfilingSampler Sampler;
-
-        public void Release() {
-            if (CommandBuffer != null) {
-                CommandBufferPool.Release(CommandBuffer);
-            }
-        }
-
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData) {
-#if UNITY_EDITOR
-            if (CommandBuffer == null) {
-                return;
-            }
-#endif
-            using (new ProfilingScope(CommandBuffer, Sampler)) {
+            if (CommandBuffer != null) {
                 context.ExecuteCommandBuffer(CommandBuffer);
             }
         }

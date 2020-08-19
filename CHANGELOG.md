@@ -1,5 +1,14 @@
 # Change Log
 
+## 0.3.4
+### Fixed
+* Fixed a missing null check in the Render Pass which caused a reoccuring error when executing a build.
+
+## 0.3.3
+### Changed
+* Changed the OrthographicRenderSystem to cache a command buffer. The RenderPass is much simpler now by executing the Command Buffer.
+* Updated the package dependencies.
+
 ## 0.3.2
 ### Fixed
 * Fixed the CanvasMetadataDisposalSystem from disposing incorrectly on a separate thread and not removing the system state.

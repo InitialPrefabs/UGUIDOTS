@@ -14,7 +14,6 @@ namespace UGUIDots.Render {
         public override void Create() {
             orthographic = new OrthographicRenderPass {
                 CommandBuffer   = CommandBuffer,
-                Sampler         = new ProfilingSampler(name),
                 renderPassEvent = RenderPassEvent
             };
         }
