@@ -1,5 +1,8 @@
 # Change Log
 
+## 0.3.6
+* Version bump for Open UPM.
+
 ## 0.3.4
 ### Fixed
 * Fixed a missing null check in the Render Pass which caused a reoccuring error when executing a build.
