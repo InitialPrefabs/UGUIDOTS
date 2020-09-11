@@ -11,6 +11,7 @@ namespace UGUIDots.Conversions.Systems {
     /// </summary>
     [UpdateInGroup(typeof(GameObjectConversionGroup))]
     [UpdateAfter(typeof(VisualAssetsConversionSystem))]
+    [DisableAutoCreation]
     public class ImageConversionSystem : GameObjectConversionSystem {
 
         protected override void OnUpdate() {

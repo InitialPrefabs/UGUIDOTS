@@ -7,6 +7,7 @@ using Unity.Mathematics;
 namespace UGUIDots.Conversions.Systems {
 
     [UpdateInGroup(typeof(GameObjectDeclareReferencedObjectsGroup))]
+    [DisableAutoCreation]
     public class FontAssetDeclarationSystem : GameObjectConversionSystem {
 
         protected override void OnUpdate() {
@@ -19,6 +20,7 @@ namespace UGUIDots.Conversions.Systems {
     }
 
     [UpdateInGroup(typeof(GameObjectConversionGroup))]
+    [DisableAutoCreation]
     public class FontAssetConversionSystem : GameObjectConversionSystem {
 
         protected override void OnUpdate() {

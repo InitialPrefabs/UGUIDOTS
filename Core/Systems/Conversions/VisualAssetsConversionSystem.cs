@@ -7,6 +7,7 @@ using UnityEngine.UI;
 namespace UGUIDots.Conversions.Systems {
 
     [UpdateInGroup(typeof(GameObjectDeclareReferencedObjectsGroup))]
+    [DisableAutoCreation]
     public class VisualAssetsDeclarationSystem : GameObjectConversionSystem {
         protected override void OnUpdate() {
             Entities.ForEach((Image img) => {
@@ -30,6 +31,7 @@ namespace UGUIDots.Conversions.Systems {
     }
 
     [UpdateInGroup(typeof(GameObjectConversionGroup))]
+    [DisableAutoCreation]
     public class VisualAssetsConversionSystem : GameObjectConversionSystem {
         protected override void OnUpdate() {
             Entities.ForEach((Image img) => {

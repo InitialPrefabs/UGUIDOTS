@@ -9,6 +9,7 @@ namespace UGUIDots.Conversions.Systems {
     /// in ScreenSpace.
     /// </summary>
     [UpdateInGroup(typeof(GameObjectConversionGroup))]
+    [DisableAutoCreation]
     public class RectTransformConversionSystem : GameObjectConversionSystem {
 
         protected override void OnUpdate() {

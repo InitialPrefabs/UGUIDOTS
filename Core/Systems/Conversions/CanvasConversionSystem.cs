@@ -13,6 +13,7 @@ namespace UGUIDots.Conversions.Systems {
     [UpdateAfter(typeof(RectTransformConversionSystem))]
     [UpdateAfter(typeof(ImageConversionSystem))]
     [UpdateAfter(typeof(TMPTextConversionSystem))]
+    [DisableAutoCreation]
     public class CanvasConversionSystem : GameObjectConversionSystem {
 
         protected override void OnUpdate() {

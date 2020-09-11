@@ -4,6 +4,7 @@ using UnityEngine.UI;
 
 namespace UGUIDots.Conversions.Systems {
 
+    [DisableAutoCreation]
     [UpdateInGroup(typeof(GameObjectConversionGroup))]
     [UpdateAfter(typeof(ImageConversionSystem))]
     public class ButtonConversionSystem : GameObjectConversionSystem {
