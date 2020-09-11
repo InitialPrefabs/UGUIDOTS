@@ -1,78 +1,14 @@
-using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using UGUIDots.Analyzers;
-using Unity.Entities;
-using UGUIDots.Render;
 using Unity.Mathematics;
 using UGUIDots.Transforms;
 
 namespace UGUIDots.Conversions.Systems {
 
-    public static class ImageConversionUtils {
-        public static void SetImageType(Entity entity, Image image, EntityManager manager) {
-            switch (image.type) {
-                case Image.Type.Simple:
-                    break;
-                case Image.Type.Filled:
-                    SetFill(image, entity, manager);
-                    break;
-                default:
-                    throw new NotImplementedException($"Only Simple/Filled Image types are supported {image.name}!");
-            }
-        }
-
-        private static void SetFill(Image image, Entity entity, EntityManager manager) {
-            var fillMethod = image.fillMethod;
-            switch (fillMethod) {
-                case Image.FillMethod.Vertical:
-                    if (image.fillOrigin == (int)Image.OriginVertical.Bottom) {
-                        manager.AddComponentData(entity, new FillAmount {
-                            Amount = image.fillAmount,
-                            Type = FillType.BottomToTop,
-                        });
-                    }
-
-                    if (image.fillOrigin == (int) Image.OriginVertical.Top) {
-                        manager.AddComponentData(entity, new FillAmount {
-                            Amount = image.fillAmount,
-                            Type = FillType.TopToBottom,
-                        });
-                    }
-                    break;
-                case Image.FillMethod.Horizontal:
-                    if (image.fillOrigin == (int)Image.OriginHorizontal.Left) {
-                        manager.AddComponentData(entity, new FillAmount {
-                            Amount = image.fillAmount,
-                            Type = FillType.LeftToRight
-                        });
-                    }
-
-                    if (image.fillOrigin == (int)Image.OriginHorizontal.Right) {
-                        manager.AddComponentData(entity, new FillAmount {
-                            Amount = image.fillAmount,
-                            Type = FillType.RightToLeft,
-                        });
-                    }
-                    break;
-                default:
-                    throw new System.NotSupportedException("Radial support is not implemented yet.");
-            }
-        }
-
-    }
-
-    public class HierarchyConversionSystem : GameObjectConversionSystem {
-
-        private List<Dictionary<int, (Material, Texture)>> batches;
-
-        protected override void OnCreate() {
-            base.OnCreate();
-
-            batches = new List<Dictionary<int, (Material, Texture)>>();
-        }
+    internal class HierarchyConversionSystem : GameObjectConversionSystem {
 
         protected override void OnUpdate() {
             Entities.ForEach((Canvas canvas) => {
@@ -86,7 +22,12 @@ namespace UGUIDots.Conversions.Systems {
                 foreach (var element in batches) {
                     BuildPerElement(element);
                 }
+
+                var canvasEntity = GetPrimaryEntity(canvas);
+                CanvasConversionUtils.CleanCanvas(canvasEntity, DstEntityManager);
+                CanvasConversionUtils.SetScaleMode(canvasEntity, canvas, DstEntityManager);
             });
+
         }
 
         private void BuildPerElement(List<GameObject> batch) {
@@ -103,7 +44,9 @@ namespace UGUIDots.Conversions.Systems {
                         new int2(image.sprite.texture.width, image.sprite.texture.height) :
                         rectSize;
 
-                    DstEntityManager.AddComponentData(imgEntity, new DefaultSpriteResolution { Value = spriteResolution });
+                    DstEntityManager.AddComponentData(imgEntity, new DefaultSpriteResolution { 
+                        Value = spriteResolution 
+                    });
 
                     // Set up the sprite
                     DstEntityManager.AddComponentData(imgEntity, SpriteData.FromSprite(image.sprite));
