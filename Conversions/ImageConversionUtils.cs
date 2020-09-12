@@ -6,8 +6,6 @@ using UGUIDots.Render;
 namespace UGUIDots.Conversions.Systems {
 
     internal static class ImageConversionUtils {
-        internal static void GenerateAssociativeRenderData() {
-        }
 
         internal static void SetImageType(Entity entity, Image image, EntityManager manager) {
             switch (image.type) {
