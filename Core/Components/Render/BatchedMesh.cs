@@ -39,6 +39,11 @@ namespace UGUIDots.Render {
     /// Stores the start index of the first entity in the batch, and the number of elements in the batch.
     /// </summary>
     public struct BatchedSpanElement : IBufferElementData {
+
+        /// <summary>
+        /// x: The first entity's index in the batch.
+        /// y: The total number of elements in the batch.
+        /// </summary>
         public int2 Value;
 
         public static implicit operator BatchedSpanElement(int2 value) => new BatchedSpanElement { Value = value };

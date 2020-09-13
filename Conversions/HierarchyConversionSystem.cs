@@ -7,6 +7,8 @@ using Unity.Mathematics;
 using UGUIDots.Transforms;
 using Unity.Entities;
 using UGUIDots.Render;
+using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 
 namespace UGUIDots.Conversions.Systems {
 
@@ -25,17 +27,49 @@ namespace UGUIDots.Conversions.Systems {
                 CanvasConversionUtils.CleanCanvas(canvasEntity, DstEntityManager);
                 CanvasConversionUtils.SetScaleMode(canvasEntity, canvas, DstEntityManager);
 
-                ConstructRenderBatch(canvasEntity, batches);
+                ConstructMaterialPropertyBatch(canvasEntity, batches);
+                BakeRenderElements(canvasEntity, batches);
 
                 foreach (var element in batches) {
                     BuildPerElement(element);
                 }
-
             });
-
         }
 
-        private void ConstructRenderBatch(Entity canvasEntity, List<List<GameObject>> batches) {
+        private unsafe void BakeRenderElements(Entity canvasEntity, List<List<GameObject>> batches) {
+            var renderEntities = new NativeList<RenderElement>(Allocator.Temp);
+            var batchSpans     = new NativeList<BatchedSpanElement>(Allocator.Temp);
+            int startIdx       = 0;
+
+            // Build a flat array of of the elements we need to render and the spans which defines
+            // which sections of the RenderElements belong to which batch.
+            // TODO: Write more documents on this...
+            for (int i = 0; i < batches.Count; i++) {
+                var currentBatch = batches[i];
+
+                for (int k = 0; k < currentBatch.Count; k++) {
+                    var uiElement = GetPrimaryEntity(currentBatch[k]);
+                    renderEntities.Add(new RenderElement { Value = uiElement });
+                }
+
+                batchSpans.Add(new int2(startIdx, currentBatch.Count));
+                startIdx += currentBatch.Count;
+            }
+
+            var renderBatches = DstEntityManager.AddBuffer<RenderElement>(canvasEntity);
+            var size = UnsafeUtility.SizeOf<RenderElement>() * renderEntities.Length;
+
+            renderBatches.ResizeUninitialized(renderEntities.Length);
+            UnsafeUtility.MemCpy(renderBatches.GetUnsafePtr(), renderEntities.GetUnsafePtr(), size);
+
+            var renderSpans = DstEntityManager.AddBuffer<BatchedSpanElement>(canvasEntity);
+            size = UnsafeUtility.SizeOf<BatchedSpanElement>() * batchSpans.Length;
+            
+            renderSpans.ResizeUninitialized(batchSpans.Length);
+            UnsafeUtility.MemCpy(renderSpans.GetUnsafePtr(), batchSpans.GetUnsafePtr(), size);
+        }
+
+        private void ConstructMaterialPropertyBatch(Entity canvasEntity, List<List<GameObject>> batches) {
             var propertyBatch = new MaterialPropertyBatch {
                 Value = new MaterialPropertyBlock[batches.Count]
             };
