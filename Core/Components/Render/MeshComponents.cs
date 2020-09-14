@@ -1,9 +1,29 @@
+using System;
 using System.Runtime.InteropServices;
 using Unity.Entities;
 using Unity.Mathematics;
+using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace UGUIDots.Render {
+namespace UGUIDOTS.Render {
+
+    [Serializable]
+    public class SharedMesh : IComponentData, IEquatable<SharedMesh> {
+        
+        public Mesh Value;
+
+        public override int GetHashCode() {
+            if (!ReferenceEquals(null, Value)) {
+                return Value.GetHashCode();
+            }
+
+            return 0;
+        }
+
+        public bool Equals(SharedMesh other) {
+            return other.Value == Value;
+        }
+    }
 
     /// <summary>
     /// Stores all batched vertices.

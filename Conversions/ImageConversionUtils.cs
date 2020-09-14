@@ -1,9 +1,9 @@
 using System;
 using UnityEngine.UI;
 using Unity.Entities;
-using UGUIDots.Render;
+using UGUIDOTS.Render;
 
-namespace UGUIDots.Conversions.Systems {
+namespace UGUIDOTS.Conversions.Systems {
 
     internal static class ImageConversionUtils {
 

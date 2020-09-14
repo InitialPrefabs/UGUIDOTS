@@ -2,7 +2,7 @@
 using Unity.Entities;
 using UnityEngine;
 
-namespace UGUIDots.Controls {
+namespace UGUIDOTS.Controls {
 
     /// <summary>
     /// Stores the primary mouse key code.

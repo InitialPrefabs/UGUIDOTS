@@ -1,6 +1,6 @@
 using Unity.Entities;
 
-namespace UGUIDots.Render.Systems {
+namespace UGUIDOTS.Render.Systems {
 
     public class CanvasMetadataDisposalSystem : SystemBase {
 

@@ -1,5 +1,5 @@
 using System.Runtime.CompilerServices;
-using UGUIDots.Render;
+using UGUIDOTS.Render;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -8,7 +8,7 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
-namespace UGUIDots.Transforms.Systems {
+namespace UGUIDOTS.Transforms.Systems {
 
     /// <summary>
     /// Recomputes the anchors if the resolution changes.

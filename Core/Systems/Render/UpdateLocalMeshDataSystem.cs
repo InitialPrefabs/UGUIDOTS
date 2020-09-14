@@ -1,4 +1,4 @@
-using UGUIDots.Transforms;
+using UGUIDOTS.Transforms;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -7,7 +7,7 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
-namespace UGUIDots.Render.Systems {
+namespace UGUIDOTS.Render.Systems {
     [UpdateInGroup(typeof(MeshUpdateGroup))]
     public class UpdateLocalMeshDataSystem : SystemBase {
 

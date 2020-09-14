@@ -1,8 +1,8 @@
-using UGUIDots.Transforms;
+using UGUIDOTS.Transforms;
 using Unity.Entities;
 using UnityEngine;
 
-namespace UGUIDots.Conversions.Systems {
+namespace UGUIDOTS.Conversions.Systems {
 
     /// <summary>
     /// Converts all RectTransforms into its entities counterpart using LocalToWorld as its Matrix4x4 representation

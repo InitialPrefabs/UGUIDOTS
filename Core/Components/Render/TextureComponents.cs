@@ -2,7 +2,7 @@ using System;
 using Unity.Entities;
 using UnityEngine;
 
-namespace UGUIDots.Render {
+namespace UGUIDOTS.Render {
 
     [Serializable]
     public class SharedTexture : IComponentData, IEquatable<SharedTexture> {

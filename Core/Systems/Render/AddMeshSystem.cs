@@ -2,7 +2,7 @@ using Unity.Collections;
 using Unity.Entities;
 using UnityEngine;
 
-namespace UGUIDots.Render.Systems {
+namespace UGUIDOTS.Render.Systems {
 
     [UpdateInGroup(typeof(InitializationSystemGroup))]
     public class AddMeshSystem : SystemBase {

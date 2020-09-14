@@ -1,5 +1,5 @@
 using System;
-using UGUIDots.Render;
+using UGUIDOTS.Render;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
@@ -7,7 +7,7 @@ using Unity.Transforms;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace UGUIDots.Conversions.Systems {
+namespace UGUIDOTS.Conversions.Systems {
 
     [UpdateInGroup(typeof(GameObjectConversionGroup))]
     [UpdateAfter(typeof(RectTransformConversionSystem))]

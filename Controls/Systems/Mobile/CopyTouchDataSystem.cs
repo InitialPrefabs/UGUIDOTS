@@ -2,7 +2,7 @@
 using Unity.Mathematics;
 using UnityEngine;
 
-namespace UGUIDots.Controls.Systems {
+namespace UGUIDOTS.Controls.Systems {
 
     /// <summary>
     /// Copies data from the Input engine into a TouchElement buffer.

@@ -1,10 +1,10 @@
-using UGUIDots.Render;
+using UGUIDOTS.Render;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace UGUIDots.Conversions.Systems {
+namespace UGUIDOTS.Conversions.Systems {
 
     /// <summary>
     /// Converts images by associating the material to the Image based chunk.

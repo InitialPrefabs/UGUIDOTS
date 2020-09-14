@@ -4,7 +4,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
-namespace UGUIDots.Transforms {
+namespace UGUIDOTS.Transforms {
 
     /// <summary>
     /// Flags which state how a transform is anchored relative to the resolution of the screen.

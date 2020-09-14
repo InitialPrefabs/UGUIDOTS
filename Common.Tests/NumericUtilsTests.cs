@@ -1,6 +1,6 @@
 ﻿using NUnit.Framework;
 
-namespace UGUIDots.Common.Tests {
+namespace UGUIDOTS.Common.Tests {
 
     public unsafe class NumericUtilTests {
 

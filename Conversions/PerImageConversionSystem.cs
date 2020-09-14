@@ -1,13 +1,15 @@
 using System.Collections.Generic;
-using UGUIDots.Render;
+using UGUIDOTS.Render;
+using UGUIDOTS.Transforms;
 using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace UGUIDots.Conversions.Systems {
+namespace UGUIDOTS.Conversions.Systems {
 
     [UpdateInGroup(typeof(GameObjectDeclareReferencedObjectsGroup))]
-    public class DeclareRenderDataConversionSystem : GameObjectConversionSystem {
+    internal class DeclareRenderDataConversionSystem : GameObjectConversionSystem {
         protected override void OnUpdate() {
             Entities.ForEach((Image image) => {
                 var texture = image.sprite != null ? image.sprite.texture : Texture2D.whiteTexture;
@@ -19,8 +21,31 @@ namespace UGUIDots.Conversions.Systems {
         }
     }
 
-    [UpdateBefore(typeof(HierarchyConversionSystem))]
-    public class PerImageConversionSystem : GameObjectConversionSystem {
+    internal class RectTransformConversionSystem : GameObjectConversionSystem {
+        protected override void OnUpdate() {
+            Entities.ForEach((RectTransform transform) => {
+                var entity = GetPrimaryEntity(transform);
+                var rectSize = transform.Int2Size();
+                DstEntityManager.AddComponentData(entity, new Dimensions { Value = rectSize });
+
+                // Add anchoring if the min max anchors are equal (e.g. one of the presets)
+                if (transform.anchorMin == transform.anchorMax) {
+
+                    // Adding the anchors - which is taking the anchored position
+                    DstEntityManager.AddComponentData(entity, new Anchor {
+                        Distance = transform.anchoredPosition,
+                        State    = transform.ToAnchor()
+                    });
+                } else {
+                    DstEntityManager.AddComponentData(entity, new Stretch {
+                        Value = StretchedState.StretchXY
+                    });
+                }
+            });
+        }
+    }
+
+    internal class PerImageConversionSystem : GameObjectConversionSystem {
 
         private Dictionary<int, Material> uniqueMaterials;
 
@@ -36,25 +61,41 @@ namespace UGUIDots.Conversions.Systems {
                 var texture = image.sprite != null ? image.sprite.texture : Texture2D.whiteTexture;
 
                 var materialEntity = GetPrimaryEntity(material);
-                var textureEntity = GetPrimaryEntity(texture);
-                var imageEntity = GetPrimaryEntity(image);
+                var textureEntity  = GetPrimaryEntity(texture);
+                var imgEntity      = GetPrimaryEntity(image);
 
-                DstEntityManager.AddComponentObject(materialEntity, material);
-                DstEntityManager.AddComponentObject(textureEntity, texture);
+                DstEntityManager.AddComponentData(materialEntity, new SharedMaterial { Value =  material });
+                DstEntityManager.AddComponentData(textureEntity, new SharedTexture   { Value = texture });
 
-                DstEntityManager.AddComponentData(imageEntity, new LinkedMaterialEntity {
+                DstEntityManager.AddComponentData(imgEntity, new LinkedMaterialEntity {
                     Value = materialEntity
                 });
 
-                DstEntityManager.AddComponentData(imageEntity, new LinkedTextureEntity { 
+                DstEntityManager.AddComponentData(imgEntity, new LinkedTextureEntity { 
                     Value = textureEntity 
                 });
 
-                // Set some names to make things convenient...
                 #if UNITY_EDITOR
+                // Set some names to make things convenient to view in the debugger
                 DstEntityManager.SetName(textureEntity, $"[Texture]: {texture.name}");
                 DstEntityManager.SetName(materialEntity, $"[Material]: {material.name}");
                 #endif
+
+                DstEntityManager.AddComponentData(imgEntity, new AppliedColor { Value = image.color });
+                ImageConversionUtils.SetImageType(imgEntity, image, DstEntityManager);
+
+                // Set up the texture
+                var rectSize = image.rectTransform.Int2Size();
+                var spriteResolution = image.sprite != null ? 
+                    new int2(image.sprite.texture.width, image.sprite.texture.height) :
+                    rectSize;
+
+                DstEntityManager.AddComponentData(imgEntity, new DefaultSpriteResolution { 
+                    Value = spriteResolution 
+                });
+
+                // Set up the sprite
+                DstEntityManager.AddComponentData(imgEntity, SpriteData.FromSprite(image.sprite));
             });
         }
     }

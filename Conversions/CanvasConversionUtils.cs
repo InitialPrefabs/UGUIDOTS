@@ -4,7 +4,7 @@ using UnityEngine.UI;
 using Unity.Entities;
 using Unity.Transforms;
 
-namespace UGUIDots.Conversions.Systems {
+namespace UGUIDOTS.Conversions.Systems {
     internal static class CanvasConversionUtils {
         internal static void CleanCanvas(Entity canvasEntity, EntityManager manager) {
             manager.RemoveComponent<Rotation>(canvasEntity);

@@ -5,7 +5,7 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
-namespace UGUIDots.Controls.Systems {
+namespace UGUIDOTS.Controls.Systems {
 
     public class MobileMouseCollisionSystemTests : TestFixture {
 

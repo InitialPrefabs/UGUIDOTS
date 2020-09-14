@@ -1,6 +1,6 @@
 using Unity.Entities;
 
-namespace UGUIDots.Render {
+namespace UGUIDOTS.Render {
 
     /// <summary>
     /// Indicates that UI Element needs to be rebuilt.

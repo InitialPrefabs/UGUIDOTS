@@ -2,7 +2,16 @@ using System;
 using Unity.Entities;
 using UnityEngine;
 
-namespace UGUIDots.Render {
+namespace UGUIDOTS.Render {
+
+    public struct MaterialPropertyEntity : IComponentData {
+
+        /// <summary>
+        /// Stores the number of material property blocks to generate into the MaterialPropertyBatch.
+        /// </summary>
+        public int Count;
+        public Entity Canvas;
+    }
 
     // TODO: Turn this into a managed component data instead to avoid unnecessary chunk splitting
     [Serializable]
@@ -39,7 +48,7 @@ namespace UGUIDots.Render {
     /// </summary>
     public class MaterialPropertyBatch : IComponentData, IEquatable<MaterialPropertyBatch> {
         public MaterialPropertyBlock[] Value;
-
+        
         public override bool Equals(object obj) {
             return Equals((MaterialPropertyBatch)obj);
         }

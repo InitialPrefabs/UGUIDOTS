@@ -1,7 +1,7 @@
 using System.Runtime.CompilerServices;
 using Unity.Entities;
 
-namespace UGUIDots {
+namespace UGUIDOTS {
 
     public enum ButtonVisualState : byte {
         None    = 0,

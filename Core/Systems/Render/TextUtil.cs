@@ -1,10 +1,10 @@
 using System.Runtime.CompilerServices;
 using Unity.Mathematics;
-using UGUIDots.Transforms;
+using UGUIDOTS.Transforms;
 using TMPro;
 using Unity.Collections;
 
-namespace UGUIDots.Render {
+namespace UGUIDOTS.Render {
 
     public static class TextUtil {
 

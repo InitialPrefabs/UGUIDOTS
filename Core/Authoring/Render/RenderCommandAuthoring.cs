@@ -2,7 +2,7 @@
 using Unity.Entities;
 using UnityEngine;
 
-namespace UGUIDots.Render.Authoring {
+namespace UGUIDOTS.Render.Authoring {
 
     public class RenderCommandAuthoring : MonoBehaviour, IConvertGameObjectToEntity {
 

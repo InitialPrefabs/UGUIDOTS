@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Assertions;
 
-namespace UGUIDots.Analyzers {
+namespace UGUIDOTS.Analyzers {
 
     public static class BatchAnalysis {
 

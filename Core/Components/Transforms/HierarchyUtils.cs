@@ -2,7 +2,7 @@ using System.Runtime.CompilerServices;
 using Unity.Entities;
 using Unity.Transforms;
 
-namespace UGUIDots.Transforms {
+namespace UGUIDOTS.Transforms {
 
     public static class HierarchyUtils {
         

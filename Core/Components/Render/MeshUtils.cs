@@ -4,7 +4,7 @@ using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace UGUIDots.Render {
+namespace UGUIDOTS.Render {
 
     public static class MeshUtils {
 

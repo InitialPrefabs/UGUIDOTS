@@ -2,7 +2,7 @@ using Unity.Entities;
 using Unity.Jobs;
 using UnityEngine;
 
-namespace UGUIDots.Render.Systems {
+namespace UGUIDOTS.Render.Systems {
 
     [UpdateInGroup(typeof(MeshUpdateGroup))]
     public class ButtonColorStateSystem : SystemBase {

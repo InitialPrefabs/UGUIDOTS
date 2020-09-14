@@ -1,10 +1,72 @@
 using System.Runtime.CompilerServices;
-using UGUIDots.Transforms;
+using UGUIDOTS.Transforms;
+using Unity.Collections;
+using Unity.Entities;
 using Unity.Mathematics;
+using UnityEngine;
 
-namespace UGUIDots.Render {
+namespace UGUIDOTS.Render {
 
     public static class ImageUtils {
+   
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void AddImageIndices(
+            this ref NativeList<RootTriangleIndexElement> indices,
+            in NativeList<RootVertexData> vertices) {
+
+            var nextStartIdx = indices.Length > 1 ? indices[indices.Length - 1] + 1 : 0;
+
+            indices.Add(new RootTriangleIndexElement { Value = (ushort)(0 + nextStartIdx) });
+            indices.Add(new RootTriangleIndexElement { Value = (ushort)(1 + nextStartIdx) });
+            indices.Add(new RootTriangleIndexElement { Value = (ushort)(2 + nextStartIdx) });
+            indices.Add(new RootTriangleIndexElement { Value = (ushort)(0 + nextStartIdx) });
+            indices.Add(new RootTriangleIndexElement { Value = (ushort)(2 + nextStartIdx) });
+            indices.Add(new RootTriangleIndexElement { Value = (ushort)(3 + nextStartIdx) });
+        }
+        
+        // TODO: Move this to MeshUtils...
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void AddVertices(
+            this ref NativeList<RootVertexData> buffer, 
+            float4 position,
+            SpriteData data, 
+            Color32 color) {
+
+            var normalColor = color.ToNormalizedFloat4();
+            var uv2         = new float2(1);
+
+            buffer.Add(new RootVertexData {
+                Color    = normalColor,
+                Normal   = new float3(0, 0, -1),
+                Position = new float3(position.xy, 0),
+                UV1      = data.OuterUV.xy,
+                UV2      = uv2
+            });
+
+            buffer.Add(new RootVertexData {
+                Color    = normalColor,
+                Normal   = new float3(0, 0, -1),
+                Position = new float3(position.xw, 0),
+                UV1      = data.OuterUV.xw,
+                UV2      = uv2
+            });
+
+            buffer.Add(new RootVertexData {
+                Color    = normalColor,
+                Normal   = new float3(0, 0, -1),
+                Position = new float3(position.zw, 0),
+                UV1      = data.OuterUV.zw,
+                UV2      = uv2
+            });
+
+            buffer.Add(new RootVertexData {
+                Color    = normalColor,
+                Normal   = new float3(0, 0, -1),
+                Position = new float3(position.zy, 0),
+                UV1      = data.OuterUV.zy,
+                UV2      = uv2
+            });
+        }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float4 BuildImageVertexData(

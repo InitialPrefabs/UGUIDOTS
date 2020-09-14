@@ -1,8 +1,8 @@
-﻿using UGUIDots.Transforms;
+﻿using UGUIDOTS.Transforms;
 using Unity.Entities;
 using Unity.Jobs;
 
-namespace UGUIDots.Render.Systems {
+namespace UGUIDOTS.Render.Systems {
 
     [UpdateInGroup(typeof(UITransformUpdateGroup))]
     public class ResolutionDeltaRebuildSystem : SystemBase {

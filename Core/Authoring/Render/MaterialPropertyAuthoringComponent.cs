@@ -1,7 +1,7 @@
 using Unity.Entities;
 using UnityEngine;
 
-namespace UGUIDots.Render.Authoring {
+namespace UGUIDOTS.Render.Authoring {
 
     [System.Obsolete]
     public class MaterialPropertyAuthoringComponent : MonoBehaviour, IConvertGameObjectToEntity {

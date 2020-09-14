@@ -6,7 +6,7 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Transforms;
 
-namespace UGUIDots.Render.Systems {
+namespace UGUIDOTS.Render.Systems {
 
     [UpdateInGroup(typeof(MeshBatchGroup))]
     public class BatchCanvasVertexSystem : SystemBase {

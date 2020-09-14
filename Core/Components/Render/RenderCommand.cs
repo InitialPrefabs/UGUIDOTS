@@ -1,7 +1,7 @@
 using System;
 using Unity.Entities;
 
-namespace UGUIDots.Render {
+namespace UGUIDOTS.Render {
 
     public class RenderCommand : IComponentData, IEquatable<RenderCommand> {
 

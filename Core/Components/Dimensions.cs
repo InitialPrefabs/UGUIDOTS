@@ -4,7 +4,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
-namespace UGUIDots {
+namespace UGUIDOTS {
 
     /// <summary>
     /// Represents the bounding box which may be used to generate the quads for images. For text based entities,

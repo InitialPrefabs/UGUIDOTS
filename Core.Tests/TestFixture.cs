@@ -2,7 +2,7 @@
 using Unity.Entities;
 using Unity.Entities.CodeGeneratedJobForEach;
 
-namespace UGUIDots {
+namespace UGUIDOTS {
 
     public abstract class TestFixture {
 

@@ -1,10 +1,10 @@
-﻿using UGUIDots.Analyzers;
-using UGUIDots.Render.Authoring;
+﻿using UGUIDOTS.Analyzers;
+using UGUIDOTS.Render.Authoring;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Assertions;
 
-namespace UGUIDots.EditorTools {
+namespace UGUIDOTS.EditorTools {
 
     [CustomEditor(typeof(BatchedMeshAuthoring))]
     public class BatchedMeshAuthoringEditor : Editor {

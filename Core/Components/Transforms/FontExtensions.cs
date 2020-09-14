@@ -2,7 +2,7 @@ using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.TextCore;
 
-namespace UGUIDots {
+namespace UGUIDOTS {
 
     /// <summary>
     /// Convenient extensions as getters.

@@ -1,6 +1,6 @@
 ﻿using Unity.Entities;
 
-namespace UGUIDots.Controls.Messaging.Systems {
+namespace UGUIDOTS.Controls.Messaging.Systems {
 
     // TODO: Rename the accompanying file
     [UpdateInGroup(typeof(MessagingConsumptionGroup))]

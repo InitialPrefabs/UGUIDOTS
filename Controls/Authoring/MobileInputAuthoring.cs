@@ -1,7 +1,7 @@
 ﻿using Unity.Entities;
 using UnityEngine;
 
-namespace UGUIDots.Controls {
+namespace UGUIDOTS.Controls {
 
     public class MobileInputAuthoring : MonoBehaviour, IConvertGameObjectToEntity {
 

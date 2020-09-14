@@ -1,12 +1,12 @@
-using UGUIDots.Render;
-using UGUIDots.Transforms;
+using UGUIDOTS.Render;
+using UGUIDOTS.Transforms;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Transforms;
 
-namespace UGUIDots.Controls.Messaging.Systems {
+namespace UGUIDOTS.Controls.Messaging.Systems {
 
     [UpdateInGroup(typeof(MessagingUpdateGroup))]
     public class ToggleVisibilitySystem : SystemBase {

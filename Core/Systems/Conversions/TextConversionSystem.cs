@@ -1,10 +1,10 @@
 ﻿using TMPro;
-using UGUIDots.Render;
-using UGUIDots.Transforms;
+using UGUIDOTS.Render;
+using UGUIDOTS.Transforms;
 using Unity.Entities;
 using Unity.Mathematics;
 
-namespace UGUIDots.Conversions.Systems {
+namespace UGUIDOTS.Conversions.Systems {
 
     [UpdateInGroup(typeof(GameObjectDeclareReferencedObjectsGroup))]
     [DisableAutoCreation]

@@ -1,6 +1,6 @@
 using Unity.Entities;
 
-namespace UGUIDots.Transforms {
+namespace UGUIDOTS.Transforms {
 
     [System.Flags]
     public enum StretchedState : byte {

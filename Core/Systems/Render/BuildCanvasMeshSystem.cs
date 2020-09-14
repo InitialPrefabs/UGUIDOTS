@@ -3,7 +3,7 @@ using Unity.Jobs;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace UGUIDots.Render.Systems {
+namespace UGUIDOTS.Render.Systems {
 
     [UpdateInGroup(typeof(MeshBatchGroup)), UpdateAfter(typeof(BatchCanvasVertexSystem))]
     public class BuildCanvasMeshSystem : SystemBase {

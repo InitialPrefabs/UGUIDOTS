@@ -1,6 +1,6 @@
 using Unity.Entities;
 
-namespace UGUIDots.Transforms {
+namespace UGUIDOTS.Transforms {
 
     /// <summary>
     /// Marks a messaging entity that the resolution has changed.

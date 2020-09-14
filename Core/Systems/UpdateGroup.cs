@@ -1,6 +1,6 @@
 using Unity.Entities;
 
-namespace UGUIDots {
+namespace UGUIDOTS {
 
     /**
      * Update material property blocks

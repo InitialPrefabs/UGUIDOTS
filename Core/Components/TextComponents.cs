@@ -1,13 +1,13 @@
 using System;
 using System.Runtime.CompilerServices;
 using TMPro;
-using UGUIDots.Transforms;
+using UGUIDOTS.Transforms;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine.TextCore;
 
-namespace UGUIDots {
+namespace UGUIDOTS {
 
     /// <summary>
     /// Stores a buffer of character values

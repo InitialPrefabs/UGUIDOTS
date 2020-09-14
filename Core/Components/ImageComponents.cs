@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.Sprites;
 using UnityEngine.UI;
 
-namespace UGUIDots {
+namespace UGUIDOTS {
 
     /// <summary>
     /// Stores the sprite's UVs, padding, and minimum size.

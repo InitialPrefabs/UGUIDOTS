@@ -2,7 +2,7 @@
 using Unity.Transforms;
 using UnityEngine;
 
-namespace UGUIDots.Controls.Authoring {
+namespace UGUIDOTS.Controls.Authoring {
 
     public class StandaloneInputAuthoring : MonoBehaviour, IConvertGameObjectToEntity {
 

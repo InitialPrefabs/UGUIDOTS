@@ -1,11 +1,11 @@
-using UGUIDots.Render;
+using UGUIDOTS.Render;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
-namespace UGUIDots.Transforms.Systems {
+namespace UGUIDOTS.Transforms.Systems {
 
     [UpdateInGroup(typeof(UITransformUpdateGroup))]
     [UpdateAfter(typeof(AnchorSystem))]

@@ -1,6 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 using TMPro;
-using UGUIDots.Transforms;
+using UGUIDOTS.Transforms;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -8,7 +8,7 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Transforms;
 
-namespace UGUIDots.Render.Systems {
+namespace UGUIDOTS.Render.Systems {
 
     [UpdateInGroup(typeof(MeshBuildGroup))]
     public class BuildTextVertexDataSystem : SystemBase {

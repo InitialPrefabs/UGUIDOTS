@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 
-namespace UGUIDots.Collections.Unsafe {
+namespace UGUIDOTS.Collections.Unsafe {
 
     // TODO: Allow for enumeration like foreach loops.
     public unsafe struct UnsafeArray<T> : IDisposable, IEquatable<UnsafeArray<T>> where T : unmanaged {

@@ -5,7 +5,7 @@ using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Transforms;
 
-namespace UGUIDots.Render.Systems {
+namespace UGUIDOTS.Render.Systems {
 
     [UpdateInGroup(typeof(MeshUpdateGroup))]
     public class UpdateMeshSliceSystem : SystemBase {

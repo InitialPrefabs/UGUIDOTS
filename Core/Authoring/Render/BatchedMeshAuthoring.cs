@@ -5,7 +5,7 @@ using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace UGUIDots.Render.Authoring {
+namespace UGUIDOTS.Render.Authoring {
 
     public class BatchedMeshAuthoring : MonoBehaviour, IConvertGameObjectToEntity {
 

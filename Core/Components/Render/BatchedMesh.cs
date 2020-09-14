@@ -1,7 +1,7 @@
 ﻿using Unity.Entities;
 using Unity.Mathematics;
 
-namespace UGUIDots.Render {
+namespace UGUIDOTS.Render {
 
     /// <summary>
     /// Used to describe the submesh's index buffer and vertex buffer params.

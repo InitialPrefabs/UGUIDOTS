@@ -1,8 +1,8 @@
-﻿using UGUIDots.Collections.Unsafe;
+﻿using UGUIDOTS.Collections.Unsafe;
 using NUnit.Framework;
 using Unity.Collections;
 
-namespace UGUIDots.Collections.Tests {
+namespace UGUIDOTS.Collections.Tests {
 
     public class UnsafeArrayTests {
 

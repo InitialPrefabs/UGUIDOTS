@@ -1,6 +1,6 @@
 ﻿using Unity.Entities;
 
-namespace UGUIDots.Render.Systems {
+namespace UGUIDOTS.Render.Systems {
 
     /// <summary>
     /// Removes the DisabledTag and actually marks the subgroup as disabled.

@@ -1,6 +1,6 @@
 using Unity.Entities;
 
-namespace UGUIDots.Controls {
+namespace UGUIDOTS.Controls {
 
     [UpdateInGroup(typeof(PresentationSystemGroup))]
     public class InputGroup : ComponentSystemGroup { }
