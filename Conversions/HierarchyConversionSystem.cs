@@ -9,7 +9,6 @@ using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Rendering;
-using Unity.Transforms;
 
 namespace UGUIDOTS.Conversions.Systems {
 

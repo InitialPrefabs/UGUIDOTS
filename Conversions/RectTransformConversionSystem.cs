@@ -1,7 +1,9 @@
 using UGUIDOTS.Transforms;
 using Unity.Entities;
+using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace UGUIDOTS.Conversions.Systems {
 
@@ -10,8 +12,6 @@ namespace UGUIDOTS.Conversions.Systems {
         protected override void OnUpdate() {
             Entities.ForEach((RectTransform transform) => {
                 var entity = GetPrimaryEntity(transform);
-                var rectSize = transform.Int2Size();
-                DstEntityManager.AddComponentData(entity, new Dimensions { Value = rectSize });
 
                 // Add anchoring if the min max anchors are equal (e.g. one of the presets)
                 if (transform.anchorMin == transform.anchorMax) {
@@ -21,10 +21,17 @@ namespace UGUIDOTS.Conversions.Systems {
                         Distance = transform.anchoredPosition,
                         State    = transform.ToAnchor()
                     });
+
+                    var rectSize = transform.Int2Size();
+                    DstEntityManager.AddComponentData(entity, new Dimensions { Value = rectSize });
                 } else {
                     DstEntityManager.AddComponentData(entity, new Stretch {
                         Value = StretchedState.StretchXY
                     });
+
+                    var res = transform.root.GetComponent<CanvasScaler>().referenceResolution;
+                    var rectSize = new int2((int)res.x, (int)res.y);
+                    DstEntityManager.AddComponentData(entity, new Dimensions { Value = rectSize });
                 }
 
                 DstEntityManager.AddComponentData(entity, new LocalToWorldRect { });

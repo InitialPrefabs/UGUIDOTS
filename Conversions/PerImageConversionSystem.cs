@@ -69,7 +69,7 @@ namespace UGUIDOTS.Conversions.Systems {
                     Value = spriteResolution 
                 });
 
-                // Set up the sprite
+                // Set up the sprite data
                 DstEntityManager.AddComponentData(imgEntity, SpriteData.FromSprite(image.sprite));
             });
         }
