@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using TMPro;
 using UGUIDOTS.Analyzers;
 using UGUIDOTS.Render;
 using UGUIDOTS.Transforms;
@@ -203,20 +202,6 @@ namespace UGUIDOTS.Conversions.Systems {
 
             // Add the material property entity
             DstEntityManager.AddComponentData(msg, new MaterialPropertyEntity { Count = keys.Length, Canvas = canvasEntity });
-        }
-
-        private void BuildPerElement(List<GameObject> batch) {
-            foreach (var gameObject in batch) {
-                if (gameObject.TryGetComponent(out TMP_Text txt)) {
-                    var txtEntity = GetPrimaryEntity(txt);
-                    DstEntityManager.AddComponentData(txtEntity, new AppliedColor { Value = txt.color });
-                    DstEntityManager.AddComponentData(txtEntity, new TextOptions {
-                        Size      = (ushort)txt.fontSize,
-                        Style     = txt.fontStyle,
-                        Alignment = txt.alignment.FromTextAnchor()
-                    });
-                }
-            }
         }
     }
 }
