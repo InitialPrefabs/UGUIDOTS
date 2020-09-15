@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UGUIDOTS.Render;
-using UGUIDOTS.Transforms;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
@@ -17,30 +16,6 @@ namespace UGUIDOTS.Conversions.Systems {
 
                 var material = image.material != null ? image.material : Canvas.GetDefaultCanvasMaterial();
                 DeclareReferencedAsset(material);
-            });
-        }
-    }
-
-    internal class RectTransformConversionSystem : GameObjectConversionSystem {
-        protected override void OnUpdate() {
-            Entities.ForEach((RectTransform transform) => {
-                var entity = GetPrimaryEntity(transform);
-                var rectSize = transform.Int2Size();
-                DstEntityManager.AddComponentData(entity, new Dimensions { Value = rectSize });
-
-                // Add anchoring if the min max anchors are equal (e.g. one of the presets)
-                if (transform.anchorMin == transform.anchorMax) {
-
-                    // Adding the anchors - which is taking the anchored position
-                    DstEntityManager.AddComponentData(entity, new Anchor {
-                        Distance = transform.anchoredPosition,
-                        State    = transform.ToAnchor()
-                    });
-                } else {
-                    DstEntityManager.AddComponentData(entity, new Stretch {
-                        Value = StretchedState.StretchXY
-                    });
-                }
             });
         }
     }

@@ -8,16 +8,39 @@ namespace UGUIDOTS.Analyzers {
     public class BakedCanvasData : ScriptableObject {
         
         [Serializable]
-        public struct CanvasTransform {
-            public int InstanceID;
-            public Vector3 Translation;
-            public Vector3 Scale;
+        public class CanvasTransform {
 
-            public Matrix4x4 AsFloat4x4() {
-                return Matrix4x4.TRS(Translation, Quaternion.identity, Scale);
+            public Vector2 WPosition => WorldPosition;
+            public Vector2 WScale    => WorldScale;
+            public Vector2 LPosition => LocalPosition;
+            public Vector2 LScale    => LocalScale;
+
+            // Store the LocalToWorld info
+            public Vector3 WorldPosition;
+            public Vector3 WorldScale;
+
+            // Store the LocalToParent info
+            public Vector3 LocalPosition;
+            public Vector3 LocalScale;
+
+            public List<CanvasTransform> Children;
+
+            public CanvasTransform() {
+                Children = new List<CanvasTransform>();
+            }
+
+            public CanvasTransform(Vector3 worldPos, Vector3 worldScale, 
+                Vector3 localPos, Vector3 localScale) {
+
+                WorldPosition = worldPos;
+                WorldScale    = worldScale;
+                LocalPosition = localPos;
+                LocalScale    = localScale;
+
+                Children = new List<CanvasTransform>();
             }
         }
 
-        public List<CanvasTransform> CanvasTransforms;
+        public List<CanvasTransform> Transforms;
     }
 }

@@ -13,36 +13,6 @@ using Unity.Transforms;
 
 namespace UGUIDOTS.Conversions.Systems {
 
-    internal class CanvasPreparationConversionSystem : GameObjectConversionSystem {
-        protected override void OnUpdate() {
-            Entities.ForEach((Canvas canvas) => {
-                var canvasEntity = GetPrimaryEntity(canvas);
-
-                var m = float4x4.TRS(canvas.transform.position, quaternion.identity, new float3(1));
-                if (canvas.TryGetComponent<BakedCanvasRunner>(out BakedCanvasRunner runner)) {
-                    var bakedData = runner.BakedCanvasData.CanvasTransforms;
-
-                    if (runner.Index == -1) {
-                        throw new System.IndexOutOfRangeException("Please bake the data into the Baked Canvas Data!");
-                    }
-
-                    var canvasInfo = bakedData[runner.Index];
-                    Debug.Log($"ID: {canvasInfo.InstanceID} {canvasInfo.Translation} {canvas.GetInstanceID()}");
-                    m = canvasInfo.AsFloat4x4();
-                }
-                DstEntityManager.SetComponentData(canvasEntity, new LocalToWorld {
-                    Value = m
-                });
-
-                // Remove unnecessary information
-                DstEntityManager.RemoveComponent<Rotation>(canvasEntity);
-                DstEntityManager.RemoveComponent<Translation>(canvasEntity);
-                DstEntityManager.RemoveComponent<NonUniformScale>(canvasEntity);
-                DstEntityManager.RemoveComponent<Anchor>(canvasEntity);
-            });
-        }
-    }
-
     [UpdateInGroup(typeof(GameObjectAfterConversionGroup))]
     internal class HierarchyConversionSystem : GameObjectConversionSystem {
 
@@ -55,22 +25,6 @@ namespace UGUIDOTS.Conversions.Systems {
 
                 var canvasEntity = GetPrimaryEntity(canvas);
                 var batches = BatchAnalysis.BuildStaticBatch(canvas);
-
-                var m = float4x4.TRS(canvas.transform.position, quaternion.identity, new float3(1));
-                if (canvas.TryGetComponent<BakedCanvasRunner>(out BakedCanvasRunner runner)) {
-                    var bakedData = runner.BakedCanvasData.CanvasTransforms;
-
-                    if (runner.Index == -1) {
-                        throw new System.IndexOutOfRangeException("Please bake the data into the Baked Canvas Data!");
-                    }
-
-                    var canvasInfo = bakedData[runner.Index];
-                    Debug.Log($"ID: {canvasInfo.InstanceID} {canvasInfo.Translation} {canvas.GetInstanceID()}");
-                    m = canvasInfo.AsFloat4x4();
-                }
-                DstEntityManager.SetComponentData(canvasEntity, new LocalToWorld {
-                    Value = m
-                });
 
                 CanvasConversionUtils.CleanCanvas(canvasEntity, DstEntityManager);
                 CanvasConversionUtils.SetScaleMode(canvasEntity, canvas, DstEntityManager);
@@ -116,6 +70,8 @@ namespace UGUIDOTS.Conversions.Systems {
             var indexData  = new NativeList<RootTriangleIndexElement>(Allocator.Temp);
             submeshSlices = new NativeList<SubmeshSliceElement>(Allocator.Temp);
 
+            var ltws = GetComponentDataFromEntity<LocalToWorldRect>(true);
+
             foreach (var batch in batches) {
                 var startVertex = vertexData.Length;
                 var startIndex  = indexData.Length;
@@ -124,7 +80,7 @@ namespace UGUIDOTS.Conversions.Systems {
                     var vertexOffset = vertexData.Length;
 
                     var entity = GetPrimaryEntity(gameObject);
-                    var m = gameObject.transform.localToWorldMatrix;
+                    var m      = DstEntityManager.GetComponentData<LocalToWorldRect>(entity).AsMatrix();
 
                     var spriteData = DstEntityManager.GetComponentData<SpriteData>(entity);
                     var resolution = DstEntityManager.GetComponentData<DefaultSpriteResolution>(entity);
