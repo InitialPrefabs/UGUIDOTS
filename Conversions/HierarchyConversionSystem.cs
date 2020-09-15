@@ -27,8 +27,8 @@ namespace UGUIDOTS.Conversions.Systems {
 
                 CanvasConversionUtils.CleanCanvas(canvasEntity, DstEntityManager);
                 CanvasConversionUtils.SetScaleMode(canvasEntity, canvas, DstEntityManager);
-                ConstructMaterialPropertyBatchMessage(canvas, canvasEntity, batches);
-                BakeRenderElements(canvasEntity, batches);
+                BakeRenderElements(canvasEntity, batches, out var keys);
+                ConstructMaterialPropertyBatchMessage(canvas, canvasEntity, keys);
                 BakeVertexDataToRoot(canvasEntity, batches, out var submeshSlices);
 
                 // Build the actual mesh needed to render.
@@ -135,10 +135,10 @@ namespace UGUIDOTS.Conversions.Systems {
                 UnsafeUtility.SizeOf<RootTriangleIndexElement>() * indexData.Length);
         }
 
-        private unsafe void BakeRenderElements(Entity canvasEntity, List<List<GameObject>> batches) {
+        private unsafe void BakeRenderElements(Entity canvasEntity, List<List<GameObject>> batches, out NativeList<SubmeshKeyElement> keys) {
+            keys               = new NativeList<SubmeshKeyElement>(Allocator.Temp);
             var renderEntities = new NativeList<RenderElement>(Allocator.Temp);
             var batchSpans     = new NativeList<BatchedSpanElement>(Allocator.Temp);
-            var keys           = new NativeList<SubmeshKeyElement>(Allocator.Temp);
             int startIdx       = 0;
 
             // Build a flat array of of the elements we need to render and the spans which defines
@@ -168,6 +168,7 @@ namespace UGUIDOTS.Conversions.Systems {
                 startIdx += currentBatch.Count;
             }
 
+#region Buffer Setup
             var renderBatches = DstEntityManager.AddBuffer<RenderElement>(canvasEntity);
             var size = UnsafeUtility.SizeOf<RenderElement>() * renderEntities.Length;
 
@@ -185,22 +186,23 @@ namespace UGUIDOTS.Conversions.Systems {
 
             submeshKeys.ResizeUninitialized(keys.Length);
             UnsafeUtility.MemCpy(submeshKeys.GetUnsafePtr(), keys.GetUnsafePtr(), size);
+#endregion
         }
         
         // TODO: Frame one will need to create the material property batch, for now store the 
-        private void ConstructMaterialPropertyBatchMessage(
-            Canvas canvas, Entity canvasEntity, List<List<GameObject>> batches) {
+        private unsafe void ConstructMaterialPropertyBatchMessage(Canvas canvas, Entity canvasEntity, NativeList<SubmeshKeyElement> keys) {
             var msg = CreateAdditionalEntity(canvas);
 
 #if UNITY_EDITOR
             var name = DstEntityManager.GetName(canvasEntity);
             DstEntityManager.SetName(msg, $"[Material Property Batch]: {name}");
 #endif
+            var buffer =  DstEntityManager.AddBuffer<SubmeshKeyElement>(msg);
+            buffer.ResizeUninitialized(keys.Length);
+            UnsafeUtility.MemCpy(buffer.GetUnsafePtr(), keys.GetUnsafePtr(), UnsafeUtility.SizeOf<SubmeshKeyElement>() * keys.Length);
+
             // Add the material property entity
-            DstEntityManager.AddComponentData(msg, new MaterialPropertyEntity { 
-                Count = batches.Count,
-                Canvas = canvasEntity
-            });
+            DstEntityManager.AddComponentData(msg, new MaterialPropertyEntity { Count = keys.Length, Canvas = canvasEntity });
         }
 
         private void BuildPerElement(List<GameObject> batch) {

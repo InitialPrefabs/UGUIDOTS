@@ -36,11 +36,10 @@ namespace UGUIDOTS.EditorTools {
         }
 
         public override void OnInspectorGUI() {
-            DefaultInspector();
-
             using (var changeCheck = new EditorGUI.ChangeCheckScope()) {
                 serializedObject.Update();
 
+                DefaultInspector();
                 DrawBakeButton();
                 
                 if (changeCheck.changed) {

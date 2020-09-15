@@ -12,7 +12,7 @@ namespace UGUIDOTS.Render {
     }
 
     /// <summary>
-    /// Stores the key and material keys required to render. A value of -1 indicates that the material or texture is 
+    /// Stores the key and material keys required to render. A value of Entity.Null indicates that the material or texture is 
     /// not used explicitly.
     /// </summary>
     public struct SubmeshKeyElement : IBufferElementData {
