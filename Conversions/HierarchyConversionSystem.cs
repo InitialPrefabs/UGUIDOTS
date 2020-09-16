@@ -8,6 +8,7 @@ using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.UI;
 
 namespace UGUIDOTS.Conversions.Systems {
 
@@ -74,36 +75,38 @@ namespace UGUIDOTS.Conversions.Systems {
                 var startVertex = vertexData.Length;
                 var startIndex  = indexData.Length;
                 foreach (var gameObject in batch) {
-                    var indexOffset  = indexData.Length;
-                    var vertexOffset = vertexData.Length;
+                    if (gameObject.TryGetComponent(out Image image)) {
+                        var indexOffset  = indexData.Length;
+                        var vertexOffset = vertexData.Length;
 
-                    var entity = GetPrimaryEntity(gameObject);
-                    var m      = DstEntityManager.GetComponentData<LocalToWorldRect>(entity).AsMatrix();
+                        var entity = GetPrimaryEntity(gameObject);
+                        var m      = DstEntityManager.GetComponentData<LocalToWorldRect>(entity).AsMatrix();
 
-                    var spriteData = DstEntityManager.GetComponentData<SpriteData>(entity);
-                    var resolution = DstEntityManager.GetComponentData<DefaultSpriteResolution>(entity);
-                    var dim        = DstEntityManager.GetComponentData<Dimensions>(entity);
-                    var color      = DstEntityManager.GetComponentData<AppliedColor>(entity);
+                        var spriteData = DstEntityManager.GetComponentData<SpriteData>(entity);
+                        var resolution = DstEntityManager.GetComponentData<DefaultSpriteResolution>(entity);
+                        var dim        = DstEntityManager.GetComponentData<Dimensions>(entity);
+                        var color      = DstEntityManager.GetComponentData<AppliedColor>(entity);
 
-                    var minMax = ImageUtils.BuildImageVertexData(resolution, spriteData, dim, m);
+                        var minMax = ImageUtils.BuildImageVertexData(resolution, spriteData, dim, m);
 
-                    var startVertexIndex = vertexData.Length;
-                    var startTriangleIndex = indexData.Length;
-                    
-                    // Add 4 vertices for simple images
-                    // TODO: Support 9 slicing images - which will generate 16 vertices
-                    vertexData.AddVertices(minMax, spriteData, color.Value);
+                        var startVertexIndex = vertexData.Length;
+                        var startTriangleIndex = indexData.Length;
+                        
+                        // Add 4 vertices for simple images
+                        // TODO: Support 9 slicing images - which will generate 16 vertices
+                        vertexData.AddVertices(minMax, spriteData, color.Value);
 
-                    // After each image, the index needs to increment
-                    indexData.AddImageIndices(in vertexData);
+                        // After each image, the index needs to increment
+                        indexData.AddImageIndices(in vertexData);
 
-                    var indexSize = indexData.Length - indexOffset;
-                    var vertexSize = vertexData.Length - vertexOffset;
+                        var indexSize = indexData.Length - indexOffset;
+                        var vertexSize = vertexData.Length - vertexOffset;
 
-                    DstEntityManager.AddComponentData(entity, new MeshDataSpan {
-                        IndexSpan  = new int2(indexOffset, indexSize),
-                        VertexSpan = new int2(vertexOffset, vertexSize)
-                    });
+                        DstEntityManager.AddComponentData(entity, new MeshDataSpan {
+                            IndexSpan  = new int2(indexOffset, indexSize),
+                            VertexSpan = new int2(vertexOffset, vertexSize)
+                        });
+                    }
                 }
 
                 // After 1 entire batch the indices need to be incremented - Maybe?
@@ -134,7 +137,9 @@ namespace UGUIDOTS.Conversions.Systems {
                 UnsafeUtility.SizeOf<RootTriangleIndexElement>() * indexData.Length);
         }
 
-        private unsafe void BakeRenderElements(Entity canvasEntity, List<List<GameObject>> batches, out NativeList<SubmeshKeyElement> keys) {
+        private unsafe void BakeRenderElements(Entity canvasEntity, List<List<GameObject>> batches, 
+            out NativeList<SubmeshKeyElement> keys) {
+
             keys               = new NativeList<SubmeshKeyElement>(Allocator.Temp);
             var renderEntities = new NativeList<RenderElement>(Allocator.Temp);
             var batchSpans     = new NativeList<BatchedSpanElement>(Allocator.Temp);
@@ -200,7 +205,7 @@ namespace UGUIDOTS.Conversions.Systems {
             buffer.ResizeUninitialized(keys.Length);
             UnsafeUtility.MemCpy(buffer.GetUnsafePtr(), keys.GetUnsafePtr(), UnsafeUtility.SizeOf<SubmeshKeyElement>() * keys.Length);
 
-            // Add the material property entity
+            // Add the entity the material property will be 'assigned' to
             DstEntityManager.AddComponentData(msg, new MaterialPropertyEntity { Count = keys.Length, Canvas = canvasEntity });
         }
     }

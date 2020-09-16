@@ -29,6 +29,12 @@ namespace UGUIDOTS.EditorTools {
     [CustomEditor(typeof(BakedCanvasRunner))]
     public class BakedCanvasRunnerEditor : Editor {
 
+        private enum ButtonState {
+            Fail = -1,
+            None = 0,
+            Success = 1,
+        }
+
         private BakedCanvasRunner canvasRunner;
 
         private void OnEnable() {
@@ -40,7 +46,20 @@ namespace UGUIDOTS.EditorTools {
                 serializedObject.Update();
 
                 DefaultInspector();
-                DrawBakeButton();
+                DrawBakeButton(out var state);
+
+                if ((int)state > 0) {
+                    EditorGUILayout.HelpBox("The element was successfully cached into the Baked Canvas Data", MessageType.Info);
+                }
+
+                if ((int)state < 0) {
+                    EditorGUILayout.HelpBox("The element was not cached into the Baked Canvas Data!", MessageType.Error);
+                }
+
+                if ((int)state == 0) {
+                    EditorGUILayout.HelpBox("Please ensure the element was cached into the Baked Canvas Data! " +
+                        "Any structural changes will need to be rebaked.", MessageType.Warning);
+                }
                 
                 if (changeCheck.changed) {
                     serializedObject.ApplyModifiedProperties();
@@ -61,13 +80,14 @@ namespace UGUIDOTS.EditorTools {
             }
         }
 
-        private void DrawBakeButton() {
+        private void DrawBakeButton(out ButtonState state) {
             if (GUILayout.Button("Bake Canvas Info")) {
                 var canvasRoot = BuildHierarchy(canvasRunner.transform);
 
                 var idxProp = serializedObject.FindProperty("Index");
 
                 if (idxProp.intValue > -1) {
+                    state = ButtonState.Fail;
                     return;
                 }
 
@@ -77,7 +97,12 @@ namespace UGUIDOTS.EditorTools {
                 var idx = canvasRunner.BakedCanvasData.Transforms.Count - 1;
 
                 idxProp.intValue = idx;
+                state = ButtonState.None;
+
+                return;
             }
+
+            state = ButtonState.None;
         }
 
         private CanvasTransform BuildHierarchy(Transform transform) {

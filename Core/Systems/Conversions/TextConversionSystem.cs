@@ -80,6 +80,7 @@ namespace UGUIDOTS.Conversions.Systems {
     /// Converts UGUI Text components by adding a buffer to chars to the entity, the dimensions, and
     /// applied color for shader updates.
     /// </summary>
+    [DisableAutoCreation]
     public class TMPTextConversionSystem : GameObjectConversionSystem {
         protected override void OnUpdate() {
             Entities.ForEach((TextMeshProUGUI text) => {
