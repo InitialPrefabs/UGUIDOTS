@@ -9,6 +9,7 @@ using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.UI;
+using TMPro;
 
 namespace UGUIDOTS.Conversions.Systems {
 
@@ -94,7 +95,7 @@ namespace UGUIDOTS.Conversions.Systems {
                         
                         // Add 4 vertices for simple images
                         // TODO: Support 9 slicing images - which will generate 16 vertices
-                        vertexData.AddVertices(minMax, spriteData, color.Value);
+                        vertexData.AddImageVertices(minMax, spriteData, color.Value);
 
                         // After each image, the index needs to increment
                         indexData.AddImageIndices(in vertexData);
@@ -106,6 +107,11 @@ namespace UGUIDOTS.Conversions.Systems {
                             IndexSpan  = new int2(indexOffset, indexSize),
                             VertexSpan = new int2(vertexOffset, vertexSize)
                         });
+                    }
+
+                    if (gameObject.TryGetComponent(out TextMeshProUGUI text)) {
+                        // TODO: Reintroduce the text building mechanism as functions
+                        // TODO: Generate an entity with all the glyphs stored as a hash map.
                     }
                 }
 

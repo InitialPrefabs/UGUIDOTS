@@ -1,7 +1,6 @@
 using System.Runtime.CompilerServices;
 using UGUIDOTS.Transforms;
 using Unity.Collections;
-using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
@@ -14,7 +13,7 @@ namespace UGUIDOTS.Render {
             this ref NativeList<RootTriangleIndexElement> indices,
             in NativeList<RootVertexData> vertices) {
 
-            var nextStartIdx = indices.Length > 1 ? indices[indices.Length - 1] + 1 : 0;
+            var nextStartIdx = indices.Length > 0 ? indices[indices.Length - 1] + 1 : 0;
 
             indices.Add(new RootTriangleIndexElement { Value = (ushort)(0 + nextStartIdx) });
             indices.Add(new RootTriangleIndexElement { Value = (ushort)(1 + nextStartIdx) });
@@ -26,7 +25,7 @@ namespace UGUIDOTS.Render {
         
         // TODO: Move this to MeshUtils...
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void AddVertices(
+        public static void AddImageVertices(
             this ref NativeList<RootVertexData> buffer, 
             float4 position,
             SpriteData data, 
