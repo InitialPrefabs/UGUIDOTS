@@ -119,16 +119,17 @@ namespace UGUIDOTS.EditorTools {
             return root;
         }
 
-        private void RecurseBuildHierarchy(
-            Transform transform, CanvasTransform parent) {
+        private void RecurseBuildHierarchy(Transform transform, CanvasTransform parent) {
 
             for (int i = 0; i < transform.childCount; i++) {
                 var child = transform.GetChild(i);
 
-                var worldPos   = child.position;
-                var worldScale = child.lossyScale;
-                var localPos   = child.localPosition;
-                var localScale = child.localScale;
+                var childRect = child.GetComponent<RectTransform>();
+
+                var worldPos   = childRect.position;
+                var worldScale = childRect.lossyScale;
+                var localPos   = childRect.localPosition;
+                var localScale = childRect.localScale;
 
                 var canvasTransform = new CanvasTransform(worldPos, worldScale, localPos, localScale);
                 parent.Children.Add(canvasTransform);

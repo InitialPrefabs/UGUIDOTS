@@ -68,7 +68,7 @@ namespace UGUIDOTS.Conversions.Systems {
             out NativeList<SubmeshSliceElement> submeshSlices) {
             var vertexData = new NativeList<RootVertexData>(Allocator.Temp);
             var indexData  = new NativeList<RootTriangleIndexElement>(Allocator.Temp);
-            submeshSlices = new NativeList<SubmeshSliceElement>(Allocator.Temp);
+            submeshSlices  = new NativeList<SubmeshSliceElement>(Allocator.Temp);
 
             foreach (var batch in batches) {
                 var startVertex = vertexData.Length;
@@ -105,66 +105,35 @@ namespace UGUIDOTS.Conversions.Systems {
                     }
 
                     if (gameObject.TryGetComponent(out TextMeshProUGUI text)) {
-                        var indexOffset = indexData.Length;
+                        var indexOffset  = indexData.Length;
                         var vertexOffset = vertexData.Length;
                         
                         // TODO: Generate an entity with all the glyphs stored as a hash map.
-                        var textEntity = GetPrimaryEntity(text);
+                        var textEntity     = GetPrimaryEntity(text);
                         var textFontEntity = GetPrimaryEntity(text.font);
+                        var glyphTable     = text.font.characterLookupTable;
+                        var glyphList      = new NativeList<GlyphElement>(glyphTable.Count, Allocator.Temp);
+
+                        var glyphBuffer = DstEntityManager.GetBuffer<GlyphElement>(textFontEntity);
+                        var glyphData   = new NativeArray<GlyphElement>(glyphBuffer.Length, Allocator.Temp);
+                        UnsafeUtility.MemCpy(glyphData.GetUnsafePtr(), glyphBuffer.GetUnsafePtr(), 
+                            UnsafeUtility.SizeOf<GlyphElement>() * glyphData.Length);
                         
-                        // var textFontID = EntityManager.GetComponentData<TextFontID>(textEntity);
-
-                        var glyphTable = text.font.characterLookupTable;
-
-                        var glyphList = new NativeList<GlyphElement>(glyphTable.Count, Allocator.Temp);
-
-                        foreach (var entry in glyphTable) {
-                            var metrics = entry.Value.glyph.metrics;
-                            var rect = entry.Value.glyph.glyphRect;
-
-                            var rawUV = new float4(
-                                new float2(rect.x, rect.y),                                   // Min
-                                new float2(rect.x + rect.width, rect.y + rect.height)   // Max
-                            );
-
-                            glyphList.Add(new GlyphElement {
-                                Unicode  = (ushort)entry.Key,
-                                Advance  = metrics.horizontalAdvance,
-                                Bearings = new float2(metrics.horizontalBearingX, metrics.horizontalBearingY),
-                                Size     = new float2(metrics.width, metrics.height),
-                                Scale    = entry.Value.scale,
-                                Style    = text.fontStyle,
-                                RawUV    = rawUV,
-#if UNITY_EDITOR
-                                Char     = (char)entry.Key
-#endif
-                            });
-                        }
-
-                        var glyphData = new NativeArray<GlyphElement>(glyphList.Length, Allocator.Temp);
-                        
-                        UnsafeUtility.MemCpy(glyphData.GetUnsafePtr(), glyphList.GetUnsafePtr(), UnsafeUtility.SizeOf<GlyphElement>() * glyphData.Length);
-                        
-                        var fontFace = DstEntityManager.GetComponentData<FontFaceInfo>(textFontEntity);
+                        var fontFace   = DstEntityManager.GetComponentData<FontFaceInfo>(textFontEntity);
                         var textOption = DstEntityManager.GetComponentData<TextOptions>(textEntity);
-                        var elementText = text.text;
 
-                        var textBuffer = new NativeArray<CharElement>(elementText.Length, Allocator.Temp);
+                        var charBuffer = DstEntityManager.GetBuffer<CharElement>(textEntity);
+                        var textBuffer = new NativeArray<CharElement>(charBuffer.Length, Allocator.Temp);
+                        UnsafeUtility.MemCpy(textBuffer.GetUnsafePtr(), charBuffer.GetUnsafePtr(), 
+                            UnsafeUtility.SizeOf<CharElement>() * charBuffer.Length);
 
-                        for (int i = 0; i < textBuffer.Length; i++) {
-                            textBuffer[i] = new CharElement {
-                                Value = elementText[i]
-                            };
-                        }
-
-                        var ltw = DstEntityManager.GetComponentData<LocalToWorldRect>(textEntity);
-
+                        var ltw       = DstEntityManager.GetComponentData<LocalToWorldRect>(textEntity);
                         var fontScale = textOption.Size > 0 ? textOption.Size / fontFace.PointSize : 1f;
 
                         var dimension = DstEntityManager.GetComponentData<Dimensions>(textEntity);
                         var extents = DstEntityManager.GetComponentData<Dimensions>(textEntity).Extents() * ltw.Scale.y;
 
-                        var lines = new NativeList<TextUtil.LineInfo>(Allocator.Temp);
+                        var lines  = new NativeList<TextUtil.LineInfo>(Allocator.Temp);
                         var isBold = textOption.Style == FontStyles.Bold;
                         var styleSpaceMultiplier =
                             1f + (isBold ? fontFace.BoldStyle.y * 0.01f : fontFace.NormalStyle.y * 0.01f);
@@ -173,16 +142,14 @@ namespace UGUIDOTS.Conversions.Systems {
                         TextUtil.CountLines(textBuffer, glyphData, dimension, padding, ref lines);
 
                         var totalLineHeight = lines.Length * fontFace.LineHeight * fontScale * ltw.Scale.y;
-                        var heights = new float3(fontFace.LineHeight, fontFace.AscentLine, fontFace.DescentLine) *
-                                      ltw.Scale.y;
-
-                        var stylePadding = TextUtil.SelectStylePadding(textOption, fontFace);
+                        var heights         = new float3(fontFace.LineHeight, fontFace.AscentLine, fontFace.DescentLine) *
+                                                ltw.Scale.y;
+                        var stylePadding    = TextUtil.SelectStylePadding(textOption, fontFace);
 
                         var start = new float2(
-                            TextUtil.GetHorizontalAlignment(textOption.Alignment, extents,
-                                lines[0].LineWidth * ltw.Scale.x),
-                            TextUtil.GetVerticalAlignment(heights, fontScale, textOption.Alignment,
-                                extents, totalLineHeight, lines.Length)) * ltw.Translation;
+                            TextUtil.GetHorizontalAlignment(textOption.Alignment, extents, lines[0].LineWidth * ltw.Scale.x),
+                            TextUtil.GetVerticalAlignment(heights, fontScale, textOption.Alignment, extents, 
+                                totalLineHeight, lines.Length)) + ltw.Translation;
 
                         for (int k = 0, row = 0; k < textBuffer.Length; k++) {
                             var c = textBuffer[k].Value;
@@ -191,7 +158,7 @@ namespace UGUIDOTS.Conversions.Systems {
                                 continue;
                             }
 
-                            var bL = (ushort)vertexData.Length;
+                            var bl = (ushort)vertexData.Length;
                             if (row < lines.Length && k == lines[row].StartIndex) {
                                 var height = fontFace.LineHeight * fontScale * ltw.Scale.y * (row > 0 ? 1f : 0f);
 
@@ -202,32 +169,30 @@ namespace UGUIDOTS.Conversions.Systems {
                             }
 
                             var xPos = start.x + (glyph.Bearings.x - stylePadding) * fontScale * ltw.Scale.x;
-                            var yPos = start.y - (glyph.Size.y - glyph.Bearings.y - stylePadding) * fontScale *
-                                ltw.Scale.y;
+                            var yPos = start.y - (glyph.Size.y - glyph.Bearings.y - stylePadding) * fontScale * ltw.Scale.y;
                             var size = (glyph.Size + new float2(stylePadding * 2)) * fontScale * ltw.Scale;
-                            var uv1 = glyph.RawUV.NormalizeAdjustedUV(stylePadding, fontFace.AtlasSize);
+                            var uv1  = glyph.RawUV.NormalizeAdjustedUV(stylePadding, fontFace.AtlasSize);
 
                             var canvasScale = DstEntityManager.GetComponentData<LocalToWorldRect>(canvasEntity).Scale;
-                            
-                            var uv2 = new float2(glyph.Scale) * math.@select(canvasScale, -canvasScale, isBold);
+                            var uv2         = new float2(glyph.Scale) * math.@select(canvasScale, -canvasScale, isBold);
                             
                             var right = new float3(1, 0, 0);
-                            var color = DstEntityManager.GetComponentData<AppliedColor>(textEntity).Value.ToNormalizedFloat4();
+                            var color = ((Color32)text.color).ToNormalizedFloat4();
                             
                             vertexData.Add(new RootVertexData {
                                 Position =  new float3(xPos, yPos, 0),
-                                Normal =  right,
-                                Color = color,
-                                UV1 =  uv1.c0,
-                                UV2 = uv2
+                                Normal   = right,
+                                Color    = color,
+                                UV1      = uv1.c0,
+                                UV2      = uv2
                             });
                             
                             vertexData.Add(new RootVertexData {
                                 Position =  new float3(xPos, yPos + size.y, 0),
-                                Normal =  right,
-                                Color = color,
-                                UV1 =  uv1.c0,
-                                UV2 = uv2
+                                Normal   = right,
+                                Color    = color,
+                                UV1      = uv1.c1,
+                                UV2      = uv2
                             });
                             
                             vertexData.Add(new LocalVertexData {
@@ -245,33 +210,33 @@ namespace UGUIDOTS.Conversions.Systems {
                                 UV2      = uv2
                             });
 
+                            var tl = (ushort)(bl + 1);
+                            var tr = (ushort)(bl + 2);
+                            var br = (ushort)(bl + 3);
 
-                            var nextStartIdx = 0; // indexData.Length > 0 ? indexData[indexData.Length - 1] + 1 : 0;
-                            var tl = (ushort)(bL + 1 + nextStartIdx);
-                            var tr = (ushort)(bL + 2 + nextStartIdx);
-                            var br = (ushort)(bL + 3 + nextStartIdx);
+                            indexData.Add(new RootTriangleIndexElement { Value = bl }); // 0
+                            indexData.Add(new RootTriangleIndexElement { Value = tl }); // 1
+                            indexData.Add(new RootTriangleIndexElement { Value = tr }); // 2
 
-                            indexData.Add(new RootTriangleIndexElement { Value = bL });
-                            indexData.Add(new RootTriangleIndexElement { Value = tl });
-                            indexData.Add(new RootTriangleIndexElement { Value = tr });
+                            indexData.Add(new RootTriangleIndexElement { Value = bl }); // 0
+                            indexData.Add(new RootTriangleIndexElement { Value = tr }); // 2
+                            indexData.Add(new RootTriangleIndexElement { Value = br }); // 3
 
-                            indexData.Add(new RootTriangleIndexElement { Value = bL });
-                            indexData.Add(new RootTriangleIndexElement { Value = tr });
-                            indexData.Add(new RootTriangleIndexElement { Value = br });
-                            
-                            var indexSize = indexData.Length - indexOffset;
-                            var vertexSize = vertexData.Length - vertexOffset;
-
-                            DstEntityManager.AddComponentData(textEntity, new MeshDataSpan {
-                                VertexSpan = new int2(vertexOffset, vertexSize),
-                                IndexSpan =  new int2(indexOffset, indexSize)
-                            });
+                            start += new float2(glyph.Advance * padding, 0) * ltw.Scale;
                         }
+
+                        var indexSize = indexData.Length - indexOffset;
+                        var vertexSize = vertexData.Length - vertexOffset;
+
+                        DstEntityManager.AddComponentData(textEntity, new MeshDataSpan {
+                            VertexSpan = new int2(vertexOffset, vertexSize),
+                            IndexSpan =  new int2(indexOffset, indexSize)
+                        });
                     }
                 }
 
                 var submeshSlice = new SubmeshSliceElement {
-                    IndexSpan = new int2(startIndex, indexData.Length - startIndex),
+                    IndexSpan  = new int2(startIndex, indexData.Length - startIndex),
                     VertexSpan = new int2(startVertex, vertexData.Length - startVertex)
                 };
 
@@ -288,7 +253,6 @@ namespace UGUIDOTS.Conversions.Systems {
 
             var indexBuffer = DstEntityManager.AddBuffer<RootTriangleIndexElement>(canvasEntity);
             indexBuffer.ResizeUninitialized(indexData.Length);
-
 
             UnsafeUtility.MemCpy(
                 indexBuffer.GetUnsafePtr(), 
