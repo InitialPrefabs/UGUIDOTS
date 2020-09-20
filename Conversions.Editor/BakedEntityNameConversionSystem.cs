@@ -62,7 +62,7 @@ namespace UGUIDOTS.Conversions.Editor {
             });
 
             Entities.ForEach((TextMeshProUGUI text) => {
-                var mat = text.material;
+                var mat = text.materialForRendering;
                 var matEntity = GetPrimaryEntity(mat);
                 DstEntityManager.AddComponentData(matEntity, new BakedEntityName { Value = $"[Material]: {mat.name}" });
 

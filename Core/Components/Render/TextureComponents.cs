@@ -22,6 +22,13 @@ namespace UGUIDOTS.Render {
             if (!ReferenceEquals(null, Value)) hash = Value.GetHashCode() ^ hash;
             return hash;
         }
+
+        public Texture GetTexture() {
+            if (Value == null) {
+                Value = Texture2D.whiteTexture;
+            }
+            return Value;
+        }
     }
 
     /// <summary>

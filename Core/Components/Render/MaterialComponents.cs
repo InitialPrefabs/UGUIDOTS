@@ -31,10 +31,9 @@ namespace UGUIDOTS.Render {
         }
 
         public Material GetMaterial() {
-            if (Value != null) {
-                return Value;
+            if (Value == null) {
+                Value = Canvas.GetDefaultCanvasMaterial();
             }
-            Value = Canvas.GetDefaultCanvasMaterial();
             return Value;
         }
     }

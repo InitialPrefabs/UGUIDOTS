@@ -38,7 +38,12 @@ namespace UGUIDOTS.Conversions.Systems {
                 DstEntityManager.SetName(materialEntity, $"[Material]: {material.name}");
                 #endif
 
-                DstEntityManager.AddComponentData(imgEntity, new AppliedColor { Value = image.color });
+                var color = image.color;
+                if (image.TryGetComponent(out Button button)) {
+                    color = button.colors.normalColor;
+                }
+
+                DstEntityManager.AddComponentData(imgEntity, new AppliedColor { Value = color });
                 ImageConversionUtils.SetImageType(imgEntity, image, DstEntityManager);
 
                 // Set up the texture
