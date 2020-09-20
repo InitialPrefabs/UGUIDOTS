@@ -15,15 +15,13 @@ namespace UGUIDOTS.Conversions.Systems {
 
                 // TODO: Test out writing a shader that is a complete rewrite of unity's default UI shader.
                 var material = image.material;
-                material = material != null ? material : Canvas.GetDefaultCanvasMaterial();
-
                 var texture = image.sprite != null ? image.sprite.texture : Texture2D.whiteTexture;
 
                 var materialEntity = GetPrimaryEntity(material);
                 var textureEntity  = GetPrimaryEntity(texture);
                 var imgEntity      = GetPrimaryEntity(image);
 
-                DstEntityManager.AddComponentData(materialEntity, new SharedMaterial { Value =  material });
+                DstEntityManager.AddComponentData(materialEntity, new SharedMaterial { Value = material });
                 DstEntityManager.AddComponentData(textureEntity, new SharedTexture   { Value = texture });
 
                 DstEntityManager.AddComponentData(imgEntity, new LinkedMaterialEntity {

@@ -13,9 +13,12 @@ namespace UGUIDOTS.Conversions.Systems {
                     var current = b0[i];
                     var block = new MaterialPropertyBlock();
 
-                    if (EntityManager.HasComponent<SharedTexture>(current.TextureEntity)) {
+                    if (current.TextureEntity != Entity.Null && EntityManager.HasComponent<SharedTexture>(current.TextureEntity)) {
                         var texture = EntityManager.GetComponentData<SharedTexture>(current.TextureEntity).Value;
-                        block.SetTexture(ShaderIDConstants.MainTex, texture);
+
+                        if (texture != null) {
+                            block.SetTexture(ShaderIDConstants.MainTex, texture);
+                        }
                     }
 
                     blocks[i] = block;

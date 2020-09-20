@@ -12,7 +12,7 @@ namespace UGUIDOTS.Conversions.Systems {
                 var texture = image.sprite != null ? image.sprite.texture : Texture2D.whiteTexture;
                 DeclareReferencedAsset(texture);
 
-                var material = image.material != null ? image.material : Canvas.GetDefaultCanvasMaterial();
+                var material = image.material;
                 DeclareReferencedAsset(material);
             });
 

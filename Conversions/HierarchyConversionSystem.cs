@@ -14,7 +14,7 @@ using TMPro;
 namespace UGUIDOTS.Conversions.Systems {
 
     [UpdateInGroup(typeof(GameObjectAfterConversionGroup))]
-    internal class HierarchyConversionSystem : GameObjectConversionSystem {
+    public class HierarchyConversionSystem : GameObjectConversionSystem {
 
         protected override void OnUpdate() {
             Entities.ForEach((Canvas canvas) => {

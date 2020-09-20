@@ -32,7 +32,7 @@ namespace UGUIDOTS.Render.Systems {
                 for (int i = 0; i < mesh.Value.subMeshCount && mesh.Value.subMeshCount == submeshKeys.Length; i++) {
                     var materialKey = submeshKeys[i].MaterialEntity;
                     var prop        = batch.Value[i];
-                    var mat         = EntityManager.GetComponentData<SharedMaterial>(materialKey).Value;
+                    var mat         = EntityManager.GetComponentData<SharedMaterial>(materialKey).GetMaterial();
 
                     cmd.DrawMesh(mesh.Value, Matrix4x4.identity, mat, i, -1, prop);
                 }

@@ -29,6 +29,14 @@ namespace UGUIDOTS.Render {
         public bool Equals(SharedMaterial other) {
             return other.Value == Value;
         }
+
+        public Material GetMaterial() {
+            if (Value != null) {
+                return Value;
+            }
+            Value = Canvas.GetDefaultCanvasMaterial();
+            return Value;
+        }
     }
 
     /// <summary>
