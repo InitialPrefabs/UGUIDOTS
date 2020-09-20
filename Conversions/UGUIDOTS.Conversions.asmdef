@@ -1,8 +1,8 @@
 {
     "name": "UGUIDOTS.Conversions",
+    "rootNamespace": "",
     "references": [
         "GUID:fef50387be9e4be4ca3d64c31f370667",
-        "GUID:3430abf52b53b5c4ba9083ed24e0e54b",
         "GUID:d33a885a34af140b7ac6735751616c27",
         "GUID:2665a8d13d1b3f18800f46e256720795",
         "GUID:734d92eba21c94caba915361bd5ac177",

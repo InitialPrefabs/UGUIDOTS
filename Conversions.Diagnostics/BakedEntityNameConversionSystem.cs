@@ -17,14 +17,17 @@ namespace UGUIDOTS.Conversions.Editor {
         EntityQuery nameQuery;
 
         protected override void OnCreate() {
+#if UNITY_EDITOR
             nameQuery = GetEntityQuery(new EntityQueryDesc {
                 All = new ComponentType[] { ComponentType.ReadOnly<BakedEntityName>() }
             });
 
             RequireForUpdate(nameQuery);
+#endif
         }
 
         protected override void OnUpdate() {
+#if UNITY_EDITOR
             var entities = nameQuery.ToEntityArray(Allocator.TempJob);
             var names = nameQuery.ToComponentDataArray<BakedEntityName>(Allocator.TempJob);
 
@@ -36,6 +39,7 @@ namespace UGUIDOTS.Conversions.Editor {
             names.Dispose();
 
             EntityManager.RemoveComponent<BakedEntityName>(nameQuery);
+#endif
         }
     }
 
