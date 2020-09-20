@@ -24,11 +24,6 @@ namespace UGUIDOTS {
     /// </summary>
     public struct GlyphElement : IBufferElementData {
         public ushort Unicode;
-
-#if UNITY_EDITOR
-        public char Char;
-#endif
-
         public float Advance;
         public float2 Bearings;
         public float2 Size;

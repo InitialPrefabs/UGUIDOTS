@@ -65,9 +65,6 @@ namespace UGUIDOTS.Conversions.Systems {
                             Scale    = entry.Value.scale,
                             Style    = text.fontStyle,
                             RawUV    = rawUV,
-#if UNITY_EDITOR
-                            Char     = (char)entry.Key
-#endif
                         };
                         i++;
                     }
