@@ -1,11 +1,11 @@
-using UGUIDOTS.Analyzers;
+﻿using UGUIDOTS.Analyzers;
 using UGUIDOTS.Transforms;
 using UnityEngine;
 using static UGUIDOTS.Analyzers.BakedCanvasData;
 
 namespace UGUIDOTS.Conversions.Systems {
 
-    internal class CanvasPreparationConversionSystem : GameObjectConversionSystem {
+    internal class PerCanvasConversionSystem : GameObjectConversionSystem {
 
         protected override void OnUpdate() {
             Entities.ForEach((Canvas canvas) => {
@@ -23,7 +23,6 @@ namespace UGUIDOTS.Conversions.Systems {
                         Scale       = hierarchy.WScale,
                         Translation = hierarchy.WPosition
                     });
-
 
                     RecurseChildren(root, hierarchy);
                 }

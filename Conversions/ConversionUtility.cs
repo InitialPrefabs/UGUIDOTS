@@ -40,7 +40,7 @@ namespace UGUIDOTS.Conversions {
             var fontScale = textOption.Size > 0 ? textOption.Size / fontFace.PointSize : 1f;
 
             var dimension = conversion.DstEntityManager.GetComponentData<Dimensions>(textEntity);
-            var extents = conversion.DstEntityManager.GetComponentData<Dimensions>(textEntity).Extents() * ltw.Scale.y;
+            var extents = dimension.Extents() * ltw.Scale;
 
             var lines = new NativeList<TextUtil.LineInfo>(Allocator.Temp);
             var isBold = textOption.Style == FontStyles.Bold;
@@ -51,8 +51,7 @@ namespace UGUIDOTS.Conversions {
             TextUtil.CountLines(textBuffer, glyphData, dimension, padding, ref lines);
 
             var totalLineHeight = lines.Length * fontFace.LineHeight * fontScale * ltw.Scale.y;
-            var heights = new float3(fontFace.LineHeight, fontFace.AscentLine, fontFace.DescentLine) *
-                                    ltw.Scale.y;
+            var heights = new float3(fontFace.LineHeight, fontFace.AscentLine, fontFace.DescentLine) * ltw.Scale.y;
             var stylePadding = TextUtil.SelectStylePadding(textOption, fontFace);
 
             var start = new float2(
@@ -82,7 +81,7 @@ namespace UGUIDOTS.Conversions {
                 var size = (glyph.Size + new float2(stylePadding * 2)) * fontScale * ltw.Scale;
                 var uv1 = glyph.RawUV.NormalizeAdjustedUV(stylePadding, fontFace.AtlasSize);
 
-                var canvasScale = ltw.AverageScale();
+                var canvasScale = ltw.AverageScale() / 4 * 3;
                 var uv2 = new float2(glyph.Scale) * math.select(canvasScale, -canvasScale, isBold);
 
                 var right = new float3(1, 0, 0);
@@ -131,7 +130,7 @@ namespace UGUIDOTS.Conversions {
                 indexData.Add(new RootTriangleIndexElement { Value = tr }); // 2
                 indexData.Add(new RootTriangleIndexElement { Value = br }); // 3
 
-                start.x += glyph.Advance * styleSpaceMultiplier * ltw.Scale.x;
+                start.x += glyph.Advance * padding * ltw.Scale.x;
             }
         }
     }
