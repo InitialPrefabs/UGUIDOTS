@@ -1,5 +1,7 @@
+using UGUIDOTS.Transforms;
 using Unity.Entities;
 using Unity.Jobs;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -27,14 +29,15 @@ namespace UGUIDOTS.Render.Systems {
                 Matrix4x4.Ortho(0, Screen.width, 0, Screen.height, -100f, 100f), 
                 Matrix4x4.TRS(Vector3.zero, Quaternion.identity, Vector3.one));
 
-            Entities.ForEach((SharedMesh mesh, MaterialPropertyBatch batch, DynamicBuffer<SubmeshKeyElement> keys) => {
+            Entities.ForEach((SharedMesh mesh, MaterialPropertyBatch batch, DynamicBuffer<SubmeshKeyElement> keys, in LocalToWorldRect c0) => {
                 var submeshKeys = keys.AsNativeArray();
                 for (int i = 0; i < mesh.Value.subMeshCount && mesh.Value.subMeshCount == submeshKeys.Length; i++) {
                     var materialKey = submeshKeys[i].MaterialEntity;
                     var prop        = batch.Value[i];
                     var mat         = EntityManager.GetComponentData<SharedMaterial>(materialKey).GetMaterial();
 
-                    cmd.DrawMesh(mesh.Value, Matrix4x4.identity, mat, i, -1, prop);
+                    var m = Matrix4x4.TRS(default, Quaternion.identity, new float3(c0.Scale, 1));
+                    cmd.DrawMesh(mesh.Value, m, mat, i, -1, prop);
                 }
             }).WithoutBurst().Run();
         }

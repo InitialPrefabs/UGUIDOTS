@@ -17,14 +17,10 @@ namespace UGUIDOTS.Conversions.Systems {
             var canvasScaler = canvas.GetComponent<CanvasScaler>();
             switch (canvasScaler.uiScaleMode) {
                 case CanvasScaler.ScaleMode.ScaleWithScreenSize:
-                    manager.AddComponentData(entity, new ReferenceResolution {
-                        Value = canvasScaler.referenceResolution
-                    });
-
-                    // TODO: Should figure out if I want to support shrinking and expanding only...
                     if (canvasScaler.screenMatchMode == CanvasScaler.ScreenMatchMode.MatchWidthOrHeight) {
-                        manager.AddComponentData(entity, new WidthHeightRatio {
-                            Value =  canvasScaler.matchWidthOrHeight
+                        manager.AddComponentData(entity, new ReferenceResolution {
+                            Value = canvasScaler.referenceResolution,
+                            WidthHeightWeight = canvasScaler.matchWidthOrHeight
                         });
                     } else {
                         throw new NotSupportedException($"{canvasScaler.screenMatchMode} is not supported yet.");

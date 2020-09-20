@@ -1,9 +1,6 @@
-using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
-using Unity.Transforms;
 using UnityEngine;
 
 namespace UGUIDOTS.Transforms.Systems {
@@ -38,61 +35,54 @@ namespace UGUIDOTS.Transforms.Systems {
         private EntityQuery scaleQuery;
         private EntityArchetype evtArchetype;
 
-        private int2* res;
+        private int2 resolution;
 
         protected override void OnCreate() {
             scaleQuery = GetEntityQuery(new EntityQueryDesc {
                 All = new [] {
                     ComponentType.ReadOnly<ReferenceResolution>(),
-                    ComponentType.ReadOnly<WidthHeightRatio>(),
-                    ComponentType.ReadWrite<LocalToWorld>()
+                    ComponentType.ReadWrite<LocalToWorldRect>()
                 }
             });
 
+            cmdBufferSystem = World.GetOrCreateSystem<BeginPresentationEntityCommandBufferSystem>();
             evtArchetype = EntityManager.CreateArchetype(typeof(ResolutionChangeEvt));
 
-            cmdBufferSystem = World.GetOrCreateSystem<BeginPresentationEntityCommandBufferSystem>();
-
-            res = (int2*)UnsafeUtility.Malloc(UnsafeUtility.SizeOf<int2>(), UnsafeUtility.AlignOf<int2>(), Allocator.Persistent); 
-            *res = new int2(Screen.width, Screen.height);
+            resolution = new int2(Screen.width, Screen.height);
         }
 
-        protected override void OnDestroy() {
-            if (res != null) {
-                UnsafeUtility.Free(res, Allocator.Persistent);
-                res = null;
-            }
+        protected override void OnStartRunning() {
+            var local = new int2(Screen.width, Screen.height);
+            Entities.ForEach((ref LocalToWorldRect c0, in ReferenceResolution c1) => {
+                var logWidth  = math.log2(local.x / c1.Value.x);
+                var logHeight = math.log2(local.y / c1.Value.y);
+                var avg       = math.lerp(logWidth, logHeight, c1.WidthHeightWeight);
+                var scale     = math.pow(2, avg);
+
+                c0.Translation = local / 2;
+                c0.Scale = scale;
+            }).Run();
         }
 
-        protected unsafe override void OnUpdate() {
-            var current = new int2(Screen.width, Screen.height);
+        protected override void OnUpdate() {
+            var local = new int2(Screen.width, Screen.height);
+            var cmdBuffer = cmdBufferSystem.CreateCommandBuffer();
 
-            if (res->Equals(current)) {
+            if (local.Equals(resolution)) {
                 return;
             }
 
-            *res = current;
-            int2* local = res;
-
-            var cmdBuffer = cmdBufferSystem.CreateCommandBuffer();
-
-            Dependency = Entities.ForEach((ref LocalToWorld c2, in ReferenceResolution c0, in WidthHeightRatio c1) => {
-                var logWidth  = math.log2(local->x / c0.Value.x);
-                var logHeight = math.log2(local->y / c0.Value.y);
-                var avg       = math.lerp(logWidth, logHeight, c1.Value);
+            Entities.ForEach((ref LocalToWorldRect c0, in ReferenceResolution c1)  => {
+                var logWidth  = math.log2(local.x / c1.Value.x);
+                var logHeight = math.log2(local.y / c1.Value.y);
+                var avg       = math.lerp(logWidth, logHeight, c1.WidthHeightWeight);
                 var scale     = math.pow(2, avg);
-                var center    = new float3(local->xy / 2, 0);
 
-                c2 = new LocalToWorld { Value = float4x4.TRS(center, c2.Rotation, new float3(scale)) };
-            }).WithNativeDisableUnsafePtrRestriction(local).Schedule(Dependency);
+                c0.Translation = local / 2;
+                c0.Scale = scale;
+            }).Run();
 
-            var archetype = evtArchetype;
-
-            Dependency = Job.WithCode(() => {
-                cmdBuffer.CreateEntity(archetype);
-            }).Schedule(Dependency);
-
-            cmdBufferSystem.AddJobHandleForProducer(Dependency);
+            // TODO: Produce an event so that the anchor and stretch image systems runs and adjusts based on different aspect ratios.
         }
     }
 }
