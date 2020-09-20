@@ -82,8 +82,8 @@ namespace UGUIDOTS.Conversions {
                 var size = (glyph.Size + new float2(stylePadding * 2)) * fontScale * ltw.Scale;
                 var uv1 = glyph.RawUV.NormalizeAdjustedUV(stylePadding, fontFace.AtlasSize);
 
-                var canvasScale = conversion.DstEntityManager.GetComponentData<LocalToWorldRect>(canvasEntity).Scale;
-                var uv2 = new float2(glyph.Scale) * math.@select(canvasScale, -canvasScale, isBold);
+                var canvasScale = ltw.AverageScale();
+                var uv2 = new float2(glyph.Scale) * math.select(canvasScale, -canvasScale, isBold);
 
                 var right = new float3(1, 0, 0);
                 var color = ((Color32)text.color).ToNormalizedFloat4();
@@ -131,7 +131,7 @@ namespace UGUIDOTS.Conversions {
                 indexData.Add(new RootTriangleIndexElement { Value = tr }); // 2
                 indexData.Add(new RootTriangleIndexElement { Value = br }); // 3
 
-                start += new float2(glyph.Advance * padding, 0) * ltw.Scale;
+                start.x += glyph.Advance * styleSpaceMultiplier * ltw.Scale.x;
             }
         }
     }

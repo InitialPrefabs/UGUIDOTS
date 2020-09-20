@@ -63,19 +63,14 @@ MonoBehaviour:
     LocalPosition: {x: 960, y: 540, z: 0}
     LocalScale: {x: 1, y: 1, z: 1}
     Children:
-    - WorldPosition: {x: 546.15405, y: 829, z: 0}
+    - WorldPosition: {x: 947, y: 829, z: 0}
       WorldScale: {x: 1, y: 1, z: 1}
-      LocalPosition: {x: -413.84595, y: 289, z: 0}
+      LocalPosition: {x: -13, y: 289, z: 0}
       LocalScale: {x: 1, y: 1, z: 1}
       Children: []
     - WorldPosition: {x: 436.60156, y: 300, z: 0}
       WorldScale: {x: 1, y: 1, z: 1}
       LocalPosition: {x: -523.39844, y: -240, z: 0}
-      LocalScale: {x: 1, y: 1, z: 1}
-      Children: []
-    - WorldPosition: {x: 769.7999, y: 540, z: 0}
-      WorldScale: {x: 1, y: 1, z: 1}
-      LocalPosition: {x: -190.20007, y: 0, z: 0}
       LocalScale: {x: 1, y: 1, z: 1}
       Children: []
     - WorldPosition: {x: 304.82, y: 227, z: 0}
@@ -91,5 +86,10 @@ MonoBehaviour:
     - WorldPosition: {x: 960, y: 540, z: 0}
       WorldScale: {x: 1, y: 1, z: 1}
       LocalPosition: {x: 0, y: 0, z: 0}
+      LocalScale: {x: 1, y: 1, z: 1}
+      Children: []
+    - WorldPosition: {x: 769.7999, y: 540, z: 0}
+      WorldScale: {x: 1, y: 1, z: 1}
+      LocalPosition: {x: -190.20007, y: 0, z: 0}
       LocalScale: {x: 1, y: 1, z: 1}
       Children: []

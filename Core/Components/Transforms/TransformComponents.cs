@@ -12,4 +12,11 @@ namespace UGUIDOTS.Transforms {
         public float2 Translation;
         public float2 Scale;
     }
+
+    public static partial class TransformExtensions {
+
+        public static float AverageScale(this in LocalToWorldRect rect) {
+            return (rect.Scale.x + rect.Scale.y) / 2f;
+        }
+    }
 }

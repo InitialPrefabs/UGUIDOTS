@@ -5,7 +5,7 @@ using Unity.Transforms;
 
 namespace UGUIDOTS.Transforms {
 
-    public static class TransformExtensions {
+    public static partial class TransformExtensions {
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float3 Scale(this in float4x4 matrix) {
