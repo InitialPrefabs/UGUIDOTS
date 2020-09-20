@@ -8,6 +8,12 @@ namespace UGUIDOTS.Render {
         public CommandBuffer CommandBuffer;
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData) {
+#if UNITY_EDITOR
+            if (renderingData.cameraData.isSceneViewCamera) {
+                return;
+            }
+#endif
+
             if (CommandBuffer != null) {
                 context.ExecuteCommandBuffer(CommandBuffer);
             }
