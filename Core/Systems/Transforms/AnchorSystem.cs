@@ -13,7 +13,7 @@ namespace UGUIDOTS.Transforms.Systems {
     /// <summary>
     /// Recomputes the anchors if the resolution changes.
     /// </summary>
-    [UpdateInGroup(typeof(UITransformUpdateGroup))]
+    [DisableAutoCreation]
     public unsafe class AnchorSystem : SystemBase {
 
         [BurstCompile]
@@ -90,15 +90,15 @@ namespace UGUIDOTS.Transforms.Systems {
                     var mWorldSpace   = float4x4.TRS(new float3(adjustedWS, 0), worldSpace.Rotation, worldSpace.Scale());
 
                     // Get the local space and its associated translation
-                    var localSpace   = new LocalToParent { Value = math.mul(parentInversed, mWorldSpace) };
-                    var translation   = new Translation { Value = localSpace.Position };
+                    var LocalToParent   = new LocalToParent { Value = math.mul(parentInversed, mWorldSpace) };
+                    var translation   = new Translation { Value = LocalToParent.Position };
 
                     worldSpace = new LocalToWorld { 
                         Value = float4x4.TRS(new float3(adjustedWS, 0), worldSpace.Rotation, worldSpace.Scale()) 
                     };
 
                     // Update the LocalToParent and its local translation
-                    CmdBuffer.SetComponent(current.Index, current, localSpace);
+                    CmdBuffer.SetComponent(current.Index, current, LocalToParent);
                     CmdBuffer.SetComponent(current.Index, current, translation);
                     CmdBuffer.SetComponent(current.Index, current, worldSpace);
 

@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Unity.Entities;
 using Unity.Transforms;
+using Unity.Mathematics;
 
 namespace UGUIDOTS.Conversions.Systems {
     internal static class CanvasConversionUtils {
@@ -13,14 +14,17 @@ namespace UGUIDOTS.Conversions.Systems {
             manager.RemoveComponent<Scale>(canvasEntity);
         }
 
-        internal static void SetScaleMode(Entity entity, Canvas canvas, EntityManager manager) {
-            var canvasScaler = canvas.GetComponent<CanvasScaler>();
+        internal static void SetScaleMode(Entity entity, Canvas canvas, EntityManager manager, CanvasScaler canvasScaler) {
             switch (canvasScaler.uiScaleMode) {
                 case CanvasScaler.ScaleMode.ScaleWithScreenSize:
                     if (canvasScaler.screenMatchMode == CanvasScaler.ScreenMatchMode.MatchWidthOrHeight) {
                         manager.AddComponentData(entity, new ReferenceResolution {
                             Value = canvasScaler.referenceResolution,
                             WidthHeightWeight = canvasScaler.matchWidthOrHeight
+                        });
+
+                        manager.AddComponentData(entity, new Dimensions {
+                            Value = new int2(canvasScaler.referenceResolution)
                         });
                     } else {
                         throw new NotSupportedException($"{canvasScaler.screenMatchMode} is not supported yet.");

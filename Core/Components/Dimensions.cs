@@ -26,14 +26,14 @@ namespace UGUIDOTS {
     public static class DimensionsExtensions {
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float2 LocalSpaceOrigin(this in Dimensions dim) {
+        public static float2 LocalToParentOrigin(this in Dimensions dim) {
             return default;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float2 LocalSpaceUpperLeft(this in Dimensions dim) {
+        public static float2 LocalToParentUpperLeft(this in Dimensions dim) {
             var extents = dim.Extents();
-            return dim.LocalSpaceOrigin() + new float2(-extents.x, extents.y);
+            return dim.LocalToParentOrigin() + new float2(-extents.x, extents.y);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -36,7 +36,7 @@ namespace UGUIDOTS.Conversions {
             UnsafeUtility.MemCpy(textBuffer.GetUnsafePtr(), charBuffer.GetUnsafePtr(),
                 UnsafeUtility.SizeOf<CharElement>() * charBuffer.Length);
 
-            var ltw = conversion.DstEntityManager.GetComponentData<LocalToWorldRect>(textEntity);
+            var ltw = conversion.DstEntityManager.GetComponentData<ScreenSpace>(textEntity);
             var fontScale = textOption.Size > 0 ? textOption.Size / fontFace.PointSize : 1f;
 
             var dimension = conversion.DstEntityManager.GetComponentData<Dimensions>(textEntity);

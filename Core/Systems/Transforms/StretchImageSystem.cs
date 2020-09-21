@@ -1,13 +1,10 @@
-using UGUIDOTS.Render;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
-using Unity.Transforms;
 using UnityEngine;
 
 namespace UGUIDOTS.Transforms.Systems {
 
-    [UpdateInGroup(typeof(UITransformUpdateGroup))]
     [UpdateAfter(typeof(AnchorSystem))]
     public class StretchDimensionsSystem : SystemBase {
 
@@ -19,14 +16,16 @@ namespace UGUIDOTS.Transforms.Systems {
         }
 
         protected override void OnUpdate() {
-            var cmdBuffer  = cmdBufferSystem.CreateCommandBuffer().AsParallelWriter();
+            var cmdBuffer  = cmdBufferSystem.CreateCommandBuffer();
             var resolution = new float2(Screen.width, Screen.height);
 
-            Dependency = Entities.ForEach((Entity entity, ref Dimensions c1, in LocalToWorld c0, in Stretch c2) => {
-                var scale = c0.Scale().xy;
+            Entities.WithAll<Stretch>().ForEach((Entity entity, ref Dimensions c1, in ScreenSpace c2) => {
+                var scale = c2.Scale;
                 c1        = new Dimensions { Value = (int2)(resolution / scale) };
-                cmdBuffer.AddComponent<BuildUIElementTag>(entity.Index, entity);
-            }).WithBurst().ScheduleParallel(Dependency);
+
+                // TODO: Tell the UI Element that the vertices need to be rebuilt.
+                // cmdBuffer.AddComponent<BuildUIElementTag>(entity.Index, entity);
+            }).WithBurst().Run();
 
             cmdBufferSystem.AddJobHandleForProducer(Dependency);
         }

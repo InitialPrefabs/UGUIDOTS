@@ -33,7 +33,7 @@ namespace UGUIDOTS.Render.Systems {
             cmd.EnableScissorRect(rect);
 
             Entities.ForEach((SharedMesh mesh, MaterialPropertyBatch batch, DynamicBuffer<SubmeshKeyElement> keys, 
-                in LocalToWorldRect c0) => {
+                in ScreenSpace c0) => {
 
                 var submeshKeys = keys.AsNativeArray();
                 for (int i = 0; i < mesh.Value.subMeshCount && mesh.Value.subMeshCount == submeshKeys.Length; i++) {

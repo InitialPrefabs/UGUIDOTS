@@ -40,15 +40,5 @@ namespace UGUIDOTS.Transforms {
         public static quaternion LocalRotation(this in LocalToParent ltp) {
             return new quaternion(ltp.Value);
         }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float4x4 AsMatrix(this in LocalToWorldRect ltw) {
-            return float4x4.TRS(new float3(ltw.Translation, 0), quaternion.identity, new float3(ltw.Scale, 0));
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float4x4 AsMatrix(this in LocalToParentRect ltw) {
-            return float4x4.TRS(new float3(ltw.Translation, 0), quaternion.identity, new float3(ltw.Scale, 0));
-        }
     }
 }

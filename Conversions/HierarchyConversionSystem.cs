@@ -26,8 +26,8 @@ namespace UGUIDOTS.Conversions.Systems {
                 var canvasEntity = GetPrimaryEntity(canvas);
                 var batches = BatchAnalysis.BuildStaticBatch(canvas);
 
-                CanvasConversionUtils.CleanCanvas(canvasEntity, DstEntityManager);
-                CanvasConversionUtils.SetScaleMode(canvasEntity, canvas, DstEntityManager);
+                // CanvasConversionUtils.CleanCanvas(canvasEntity, DstEntityManager);
+                // CanvasConversionUtils.SetScaleMode(canvasEntity, canvas, DstEntityManager);
                 BakeRenderElements(canvasEntity, batches, out var keys);
                 ConstructMaterialPropertyBatchMessage(canvas, canvasEntity, keys);
                 BakeVertexDataToRoot(canvasEntity, batches, out var submeshSlices);
@@ -79,7 +79,7 @@ namespace UGUIDOTS.Conversions.Systems {
                         var vertexOffset = vertexData.Length;
 
                         var entity = GetPrimaryEntity(gameObject);
-                        var m      = DstEntityManager.GetComponentData<LocalToWorldRect>(entity).AsMatrix();
+                        var m      = DstEntityManager.GetComponentData<ScreenSpace>(entity).AsMatrix();
 
                         var spriteData = DstEntityManager.GetComponentData<SpriteData>(entity);
                         var resolution = DstEntityManager.GetComponentData<DefaultSpriteResolution>(entity);

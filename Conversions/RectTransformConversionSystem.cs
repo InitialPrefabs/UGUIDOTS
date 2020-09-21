@@ -34,10 +34,10 @@ namespace UGUIDOTS.Conversions.Systems {
                     DstEntityManager.AddComponentData(entity, new Dimensions { Value = rectSize });
                 }
 
-                DstEntityManager.AddComponentData(entity, new LocalToWorldRect { });
+                DstEntityManager.AddComponentData(entity, new ScreenSpace { });
 
                 if (transform.parent != null) {
-                    DstEntityManager.AddComponentData(entity, new LocalToParentRect { });
+                    DstEntityManager.AddComponentData(entity, new LocalSpace { });
                 }
 
                 // Remove all Unity Transforms

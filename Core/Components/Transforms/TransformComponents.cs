@@ -1,22 +1,39 @@
+using System.Runtime.CompilerServices;
 using Unity.Entities;
 using Unity.Mathematics;
 
 namespace UGUIDOTS.Transforms {
-
-    public struct LocalToWorldRect : IComponentData {
+    
+    /// <summary>
+    /// The local to world transformation.
+    /// </summary>
+    public struct ScreenSpace : IComponentData {
         public float2 Translation;
         public float2 Scale;
     }
 
-    public struct LocalToParentRect : IComponentData {
+    /// <summary>
+    /// The local to parent transformation.
+    /// </summary>
+    public struct LocalSpace : IComponentData {
         public float2 Translation;
         public float2 Scale;
     }
 
     public static partial class TransformExtensions {
 
-        public static float AverageScale(this in LocalToWorldRect rect) {
+        public static float AverageScale(this in ScreenSpace rect) {
             return (rect.Scale.x + rect.Scale.y) / 2f;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float4x4 AsMatrix(this in ScreenSpace ltw) {
+            return float4x4.TRS(new float3(ltw.Translation, 1), quaternion.identity, new float3(ltw.Scale, 1));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float4x4 AsMatrix(this in LocalSpace ltp) {
+            return float4x4.TRS(new float3(ltp.Translation, 1), quaternion.identity, new float3(ltp.Scale, 1));
         }
     }
 }
