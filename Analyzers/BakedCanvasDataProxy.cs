@@ -3,7 +3,8 @@
 namespace UGUIDOTS.Analyzers {
 
     [RequireComponent(typeof(Canvas))]
-    public class BakedCanvasRunner : MonoBehaviour {
+    [DisallowMultipleComponent]
+    public class BakedCanvasDataProxy : MonoBehaviour {
 
         public BakedCanvasData BakedCanvasData;
 

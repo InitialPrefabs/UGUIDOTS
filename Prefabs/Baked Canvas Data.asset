@@ -83,9 +83,9 @@ MonoBehaviour:
       LocalPosition: {x: -394, y: -312, z: 0}
       LocalScale: {x: 1, y: 1, z: 1}
       Children: []
-    - WorldPosition: {x: 960, y: 540, z: 0}
+    - WorldPosition: {x: 1074, y: 540, z: 0}
       WorldScale: {x: 1, y: 1, z: 1}
-      LocalPosition: {x: 0, y: 0, z: 0}
+      LocalPosition: {x: 114, y: 0, z: 0}
       LocalScale: {x: 1, y: 1, z: 1}
       Children: []
     - WorldPosition: {x: 769.7999, y: 540, z: 0}

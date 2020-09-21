@@ -12,7 +12,7 @@ namespace UGUIDOTS.Conversions.Systems {
                 var canvasEntity = GetPrimaryEntity(canvas);
                 DstEntityManager.RemoveComponent<Anchor>(canvasEntity);
 
-                if (canvas.TryGetComponent(out BakedCanvasRunner runner)) {
+                if (canvas.TryGetComponent(out BakedCanvasDataProxy runner)) {
                     var bakedData = runner.BakedCanvasData;
                     var idx = runner.Index;
 

@@ -29,7 +29,12 @@ namespace UGUIDOTS.Render.Systems {
                 Matrix4x4.Ortho(0, Screen.width, 0, Screen.height, -100f, 100f), 
                 Matrix4x4.TRS(Vector3.zero, Quaternion.identity, Vector3.one));
 
-            Entities.ForEach((SharedMesh mesh, MaterialPropertyBatch batch, DynamicBuffer<SubmeshKeyElement> keys, in LocalToWorldRect c0) => {
+            var rect = new Rect(0, 0, Screen.width, Screen.height);
+            cmd.EnableScissorRect(rect);
+
+            Entities.ForEach((SharedMesh mesh, MaterialPropertyBatch batch, DynamicBuffer<SubmeshKeyElement> keys, 
+                in LocalToWorldRect c0) => {
+
                 var submeshKeys = keys.AsNativeArray();
                 for (int i = 0; i < mesh.Value.subMeshCount && mesh.Value.subMeshCount == submeshKeys.Length; i++) {
                     var materialKey = submeshKeys[i].MaterialEntity;

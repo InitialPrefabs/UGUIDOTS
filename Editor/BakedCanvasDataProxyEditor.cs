@@ -26,7 +26,7 @@ namespace UGUIDOTS.EditorTools {
         }
     }
 
-    [CustomEditor(typeof(BakedCanvasRunner))]
+    [CustomEditor(typeof(BakedCanvasDataProxy))]
     public class BakedCanvasRunnerEditor : Editor {
 
         private enum ButtonState {
@@ -35,10 +35,10 @@ namespace UGUIDOTS.EditorTools {
             Success = 1,
         }
 
-        private BakedCanvasRunner canvasRunner;
+        private BakedCanvasDataProxy canvasRunner;
 
         private void OnEnable() {
-            canvasRunner = target as BakedCanvasRunner;
+            canvasRunner = target as BakedCanvasDataProxy;
         }
 
         public override void OnInspectorGUI() {
@@ -60,6 +60,8 @@ namespace UGUIDOTS.EditorTools {
                     EditorGUILayout.HelpBox("Please ensure the element was cached into the Baked Canvas Data! " +
                         "Any structural changes will need to be rebaked.", MessageType.Warning);
                 }
+
+                UpdateIndexButton();
                 
                 if (changeCheck.changed) {
                     serializedObject.ApplyModifiedProperties();
@@ -103,6 +105,15 @@ namespace UGUIDOTS.EditorTools {
             }
 
             state = ButtonState.None;
+        }
+
+        private void UpdateIndexButton() {
+            var idxProp = serializedObject.FindProperty("Index");
+            if (GUILayout.Button("Update Baked Canvas Info") && idxProp.intValue > -1) {
+                var canvasRoot = BuildHierarchy(canvasRunner.transform);
+                EditorUtility.SetDirty(canvasRunner.BakedCanvasData);
+                canvasRunner.BakedCanvasData.Transforms[idxProp.intValue] = canvasRoot;
+            }
         }
 
         private CanvasTransform BuildHierarchy(Transform transform) {

@@ -3,7 +3,8 @@ guid: 89b26bef716044be0929d7ad7b8512cf
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - BakedCanvasData: {fileID: 11400000, guid: 06a27d5b4fd9a4a3d84792e45bf249d8, type: 2}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

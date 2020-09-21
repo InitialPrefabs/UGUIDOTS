@@ -32,15 +32,15 @@ namespace UGUIDOTS.Conversions.Systems {
                     Value = textureEntity 
                 });
 
-                #if UNITY_EDITOR
+#if UNITY_EDITOR
                 // Set some names to make things convenient to view in the debugger
                 DstEntityManager.SetName(textureEntity, $"[Texture]: {texture.name}");
                 DstEntityManager.SetName(materialEntity, $"[Material]: {material.name}");
-                #endif
+#endif
 
                 var color = image.color;
                 if (image.TryGetComponent(out Button button)) {
-                    color = button.colors.normalColor;
+                    color = button.interactable ? button.colors.normalColor : button.colors.disabledColor;
                 }
 
                 DstEntityManager.AddComponentData(imgEntity, new AppliedColor { Value = color });
