@@ -39,7 +39,7 @@ namespace UGUIDOTS.Conversions {
             var ltw = conversion.DstEntityManager.GetComponentData<ScreenSpace>(textEntity);
             var fontScale = textOption.Size > 0 ? textOption.Size / fontFace.PointSize : 1f;
 
-            var dimension = conversion.DstEntityManager.GetComponentData<Dimensions>(textEntity);
+            var dimension = conversion.DstEntityManager.GetComponentData<Dimension>(textEntity);
             var extents = dimension.Extents() * ltw.Scale;
 
             var lines = new NativeList<TextUtil.LineInfo>(Allocator.Temp);

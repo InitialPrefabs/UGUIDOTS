@@ -43,7 +43,7 @@ namespace UGUIDOTS.Transforms.Systems {
             public ComponentDataFromEntity<Parent> Parents;
 
             [ReadOnly]
-            public ComponentDataFromEntity<Dimensions> Dimensions;
+            public ComponentDataFromEntity<Dimension> Dimensions;
 
             [ReadOnly]
             public ComponentDataFromEntity<LinkedMaterialEntity> LinkedMaterials;
@@ -155,7 +155,7 @@ namespace UGUIDOTS.Transforms.Systems {
                 ChildBuffers    = GetBufferFromEntity<Child>(true),
                 Anchors         = GetComponentDataFromEntity<Anchor>(true),
                 Parents         = GetComponentDataFromEntity<Parent>(true),
-                Dimensions      = GetComponentDataFromEntity<Dimensions>(true),
+                Dimensions      = GetComponentDataFromEntity<Dimension>(true),
                 EntityType      = GetEntityTypeHandle(),
                 LinkedMaterials = GetComponentDataFromEntity<LinkedMaterialEntity>(true),
                 CmdBuffer = cmdBufferSystem.CreateCommandBuffer().AsParallelWriter(),

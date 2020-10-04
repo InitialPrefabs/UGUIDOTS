@@ -25,7 +25,7 @@ namespace UGUIDOTS.Render.Systems {
             public ComponentTypeHandle<LocalToWorld> LTWType;
 
             [ReadOnly]
-            public ComponentTypeHandle<Dimensions> DimensionType;
+            public ComponentTypeHandle<Dimension> DimensionType;
 
             [ReadOnly]
             public BufferTypeHandle<CharElement> CharType;
@@ -167,7 +167,7 @@ namespace UGUIDOTS.Render.Systems {
         protected override void OnCreate() {
             graphicQuery = GetEntityQuery(new EntityQueryDesc {
                 All = new [] {
-                    ComponentType.ReadOnly<Dimensions>(), ComponentType.ReadWrite<LocalVertexData>(),
+                    ComponentType.ReadOnly<Dimension>(), ComponentType.ReadWrite<LocalVertexData>(),
                     ComponentType.ReadWrite<LocalTriangleIndexElement>(), ComponentType.ReadOnly<LocalToWorld>(),
                     ComponentType.ReadOnly<BuildUIElementTag>()
                 },
@@ -185,7 +185,7 @@ namespace UGUIDOTS.Render.Systems {
                 BuildMeshProfiler = new ProfilerMarker("BuildImageVertexDataSystem.RebuildImgMeshJob"),
                 Parents           = GetComponentDataFromEntity<Parent>(true),
                 LTWType           = GetComponentTypeHandle<LocalToWorld>(true),
-                DimensionType     = GetComponentTypeHandle<Dimensions>(true),
+                DimensionType     = GetComponentTypeHandle<Dimension>(true),
                 ColorType         = GetComponentTypeHandle<AppliedColor>(true),
                 VertexType        = GetBufferTypeHandle<LocalVertexData>(),
                 TriangleType      = GetBufferTypeHandle<LocalTriangleIndexElement>(),

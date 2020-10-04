@@ -43,7 +43,7 @@ namespace UGUIDOTS.Render.Systems {
             [ReadOnly] public ComponentTypeHandle<TextFontID> TxtFontIDType;
             [ReadOnly] public ComponentTypeHandle<AppliedColor> ColorType;
             [ReadOnly] public ComponentTypeHandle<LocalToWorld> LTWType;
-            [ReadOnly] public ComponentTypeHandle<Dimensions> DimensionType;
+            [ReadOnly] public ComponentTypeHandle<Dimension> DimensionType;
 
             public BufferTypeHandle<LocalVertexData> MeshVertexDataType;
             public BufferTypeHandle<LocalTriangleIndexElement> TriangleIndexType;
@@ -247,7 +247,7 @@ namespace UGUIDOTS.Render.Systems {
                 TxtFontIDType      = GetComponentTypeHandle<TextFontID>(true),
                 ColorType          = GetComponentTypeHandle<AppliedColor>(true),
                 LTWType            = GetComponentTypeHandle<LocalToWorld>(true),
-                DimensionType      = GetComponentTypeHandle<Dimensions>(true),
+                DimensionType      = GetComponentTypeHandle<Dimension>(true),
                 MeshVertexDataType = GetBufferTypeHandle<LocalVertexData>(),
                 TriangleIndexType  = GetBufferTypeHandle<LocalTriangleIndexElement>(),
                 CmdBuffer          = cmdBufferSystem.CreateCommandBuffer().AsParallelWriter()

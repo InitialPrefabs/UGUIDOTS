@@ -71,7 +71,7 @@ namespace UGUIDOTS.Render {
         public static float4 BuildImageVertexData(
             DefaultSpriteResolution resolution, 
             SpriteData spriteData, 
-            Dimensions dimension, 
+            Dimension dimension, 
             float4x4 matrix) {
 
             var position = matrix.c3.xyz;

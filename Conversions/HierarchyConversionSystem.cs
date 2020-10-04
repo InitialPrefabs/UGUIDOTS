@@ -83,7 +83,7 @@ namespace UGUIDOTS.Conversions.Systems {
 
                         var spriteData = DstEntityManager.GetComponentData<SpriteData>(entity);
                         var resolution = DstEntityManager.GetComponentData<DefaultSpriteResolution>(entity);
-                        var dim        = DstEntityManager.GetComponentData<Dimensions>(entity);
+                        var dim        = DstEntityManager.GetComponentData<Dimension>(entity);
                         var color      = DstEntityManager.GetComponentData<AppliedColor>(entity);
 
                         var minMax = ImageUtils.BuildImageVertexData(resolution, spriteData, dim, m);

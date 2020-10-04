@@ -17,7 +17,7 @@ namespace UGUIDOTS.Conversions.Systems {
                 var entity = GetPrimaryEntity(transform);
 
                 var rectSize = transform.Int2Size();
-                DstEntityManager.AddComponentData(entity, new Dimensions   { Value = rectSize });
+                DstEntityManager.AddComponentData(entity, new Dimension   { Value = rectSize });
 
                 // Add anchoring if the min max anchors are equal (e.g. one of the presets)
                 if (transform.anchorMin == transform.anchorMax) {

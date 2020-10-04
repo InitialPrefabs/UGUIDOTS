@@ -138,7 +138,7 @@ namespace UGUIDOTS.Controls.Systems {
             var entity = manager.CreateEntity();
             manager.AddComponentData(entity, new ClickState { });
             manager.AddComponentData(entity, ButtonVisual.Default());
-            manager.AddComponentData(entity, new Dimensions {
+            manager.AddComponentData(entity, new Dimension {
                 Value = new int2(150, 150)
             });
             manager.AddComponentData(entity, new LocalToWorld {

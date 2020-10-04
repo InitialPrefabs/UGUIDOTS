@@ -23,7 +23,7 @@ namespace UGUIDOTS.Conversions.Systems {
                     });
 
                     var rectSize = transform.Int2Size();
-                    DstEntityManager.AddComponentData(entity, new Dimensions { Value = rectSize });
+                    DstEntityManager.AddComponentData(entity, new Dimension { Value = rectSize });
                 } else {
                     DstEntityManager.AddComponentData(entity, new Stretch {
                         Value = StretchedState.StretchXY
@@ -31,7 +31,7 @@ namespace UGUIDOTS.Conversions.Systems {
 
                     var res = transform.root.GetComponent<CanvasScaler>().referenceResolution;
                     var rectSize = new int2((int)res.x, (int)res.y);
-                    DstEntityManager.AddComponentData(entity, new Dimensions { Value = rectSize });
+                    DstEntityManager.AddComponentData(entity, new Dimension { Value = rectSize });
                 }
 
                 DstEntityManager.AddComponentData(entity, new ScreenSpace { });

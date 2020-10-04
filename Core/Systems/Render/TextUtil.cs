@@ -29,7 +29,7 @@ namespace UGUIDOTS.Render {
         public static void CountLines(
             in NativeArray<CharElement> text,
             in NativeArray<GlyphElement> glyphs,
-            Dimensions dimensions,
+            Dimension dimensions,
             float padding,
             ref NativeList<LineInfo> lines) {
 

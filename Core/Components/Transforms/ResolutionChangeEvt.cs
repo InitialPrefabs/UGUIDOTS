@@ -6,4 +6,6 @@ namespace UGUIDOTS.Transforms {
     /// Marks a messaging entity that the resolution has changed.
     /// </summary>
     public struct ResolutionChangeEvt : IComponentData { }
+
+    public struct RescaleDimensionEvt : IComponentData { }
 }

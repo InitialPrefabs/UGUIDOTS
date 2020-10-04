@@ -23,7 +23,7 @@ namespace UGUIDOTS.Conversions.Systems {
                             WidthHeightWeight = canvasScaler.matchWidthOrHeight
                         });
 
-                        manager.AddComponentData(entity, new Dimensions {
+                        manager.AddComponentData(entity, new Dimension {
                             Value = new int2(canvasScaler.referenceResolution)
                         });
                     } else {

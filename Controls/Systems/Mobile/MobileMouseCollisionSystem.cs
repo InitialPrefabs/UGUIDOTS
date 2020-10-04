@@ -20,7 +20,7 @@ namespace UGUIDOTS.Controls.Systems {
 
             Entities.WithNativeDisableUnsafePtrRestriction(touches).WithNativeDisableUnsafePtrRestriction(size).
                 WithNone<NonInteractableButtontag>().
-                ForEach((ref ClickState c0, ref ButtonVisual c1, in Dimensions c2, in LocalToWorld c3, in ButtonClickType c4) => {
+                ForEach((ref ClickState c0, ref ButtonVisual c1, in Dimension c2, in LocalToWorld c3, in ButtonClickType c4) => {
                 var aabb = new AABB {
                     Center  = c3.Position,
                     Extents = new float3(c2.Extents(), c3.Position.z)

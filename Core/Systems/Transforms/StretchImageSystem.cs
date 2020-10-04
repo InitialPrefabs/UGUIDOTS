@@ -12,16 +12,25 @@ namespace UGUIDOTS.Transforms.Systems {
 
         protected override void OnCreate() {
             cmdBufferSystem = World.GetOrCreateSystem<BeginPresentationEntityCommandBufferSystem>();
-            RequireSingletonForUpdate<ResolutionChangeEvt>();
         }
 
         protected override void OnUpdate() {
             var cmdBuffer  = cmdBufferSystem.CreateCommandBuffer();
-            var resolution = new float2(Screen.width, Screen.height);
+            var resolution = new int2(Screen.width, Screen.height);
 
-            Entities.WithAll<Stretch>().ForEach((Entity entity, ref Dimensions c1, in ScreenSpace c2) => {
+            Entities.WithAll<RescaleDimensionEvt, Stretch>().ForEach((Entity entity, ref Dimension c0) => {
+                c0.Value = resolution;
+                cmdBuffer.RemoveComponent<RescaleDimensionEvt>(entity);
+            }).Run();
+
+
+            if (!HasSingleton<ResolutionChangeEvt>()) {
+                return;
+            }
+
+            Entities.WithAll<Stretch>().ForEach((Entity entity, ref Dimension c1, in ScreenSpace c2) => {
                 var scale = c2.Scale;
-                c1        = new Dimensions { Value = (int2)(resolution / scale) };
+                c1        = new Dimension { Value = (int2)(resolution / scale) };
 
                 // TODO: Tell the UI Element that the vertices need to be rebuilt.
                 // cmdBuffer.AddComponent<BuildUIElementTag>(entity.Index, entity);

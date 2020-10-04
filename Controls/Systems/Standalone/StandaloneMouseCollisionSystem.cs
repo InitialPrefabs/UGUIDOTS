@@ -32,7 +32,7 @@ namespace UGUIDOTS.Controls.Systems {
             };
 
             Entities.WithNone<NonInteractableButtontag>().ForEach((ref ClickState c0, ref ButtonVisual c1, 
-                in Dimensions c2, in LocalToWorld c3, in ButtonClickType c4) => {
+                in Dimension c2, in LocalToWorld c3, in ButtonClickType c4) => {
 
                 var aabb = new AABB {
                     Center  = c3.Position,
