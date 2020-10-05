@@ -26,16 +26,6 @@ namespace UGUIDOTS.Conversions.Systems {
                 var canvasEntity = GetPrimaryEntity(canvas);
                 var batches      = BatchAnalysis.BuildStaticBatch(canvas);
 
-                Debug.Log($"---------START: {canvas.name} ---------");
-
-                foreach (var batch in batches) {
-                    Debug.Log(batch[0].GameObject);
-                }
-
-                Debug.Log($"---------END: {canvas.name} ---------");
-
-                // CanvasConversionUtils.CleanCanvas(canvasEntity, DstEntityManager);
-                // CanvasConversionUtils.SetScaleMode(canvasEntity, canvas, DstEntityManager);
                 BakeRenderElements(canvasEntity, batches, out var keys);
                 ConstructMaterialPropertyBatchMessage(canvas, canvasEntity, keys);
                 BakeVertexDataToRoot(canvasEntity, batches, out var submeshSlices);
