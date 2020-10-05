@@ -25,12 +25,29 @@ namespace UGUIDOTS.Conversions.Analyzers {
             var batchMap = new Dictionary<int, List<RenderedElement>>();
             RecurseChildrenBatch(root.transform, batchMap);
 
-            var collection = new List<List<RenderedElement>>();
+            // TODO: Clean up this very hacky way to separate the data - won't scale well.
+            var collection            = new List<List<RenderedElement>>();
+            var textCollection        = new List<List<RenderedElement>>();
+            var dynamicTextCollection = new List<List<RenderedElement>>();
             foreach (var batch in batchMap.Values) {
-                collection.Add(batch);
+                var first = batch[0];
+
+                switch (first.Type) {
+                    case RenderedType.Image:
+                        collection.Add(batch);
+                        break;
+                    case RenderedType.Text:
+                        textCollection.Add(batch);
+                        break;
+                    case RenderedType.TextDynamic:
+                        dynamicTextCollection.Add(batch);
+                        break;
+                }
             }
 
             // TODO: Sort the collection so that all dynamic text is at the end.
+            collection.AddRange(textCollection);
+            collection.AddRange(dynamicTextCollection);
             return collection;
         }
 
