@@ -19,5 +19,5 @@ namespace UGUIDOTS.Transforms {
         }
     }
 
-    public struct RescaleDimensionEvt : IComponentData { }
+    public struct RescaleDimension : IComponentData { }
 }

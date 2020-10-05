@@ -54,7 +54,7 @@ namespace UGUIDOTS.Transforms.Systems {
                 float aspectRatio = c0.Value.x / c0.Value.y;
 
                 if (aspectRatio != currentAspectRatio) {
-                    cmdBuffer.AddComponent<RescaleDimensionEvt>(entity);
+                    cmdBuffer.AddComponent<RescaleDimension>(entity);
                 }
             }).Run();
         }
@@ -80,7 +80,8 @@ namespace UGUIDOTS.Transforms.Systems {
 
             // Generate the event which will cause everything to rebuild.
             var cmdBuffer = cmdBufferSystem.CreateCommandBuffer();
-            cmdBuffer.CreateEntity(evtArchetype);
+            var eventEntity = cmdBuffer.CreateEntity(evtArchetype);
+            cmdBuffer.SetComponent(eventEntity, new ResolutionEvent { Value = resolution });
         }
     }
 }

@@ -17,9 +17,9 @@ namespace UGUIDOTS.Transforms.Systems {
             var cmdBuffer  = cmdBufferSystem.CreateCommandBuffer();
             var resolution = new int2(Screen.width, Screen.height);
 
-            Entities.WithAll<RescaleDimensionEvt, Stretch>().ForEach((Entity entity, ref Dimension c0) => {
+            Entities.WithAll<RescaleDimension, Stretch>().ForEach((Entity entity, ref Dimension c0) => {
                 c0.Value = resolution;
-                cmdBuffer.RemoveComponent<RescaleDimensionEvt>(entity);
+                cmdBuffer.RemoveComponent<RescaleDimension>(entity);
             }).Run();
 
             if (!HasSingleton<ResolutionEvent>()) {
@@ -27,11 +27,22 @@ namespace UGUIDOTS.Transforms.Systems {
             }
 
             Entities.WithAll<Stretch>().ForEach((Entity entity, ref Dimension c1, in ScreenSpace c2) => {
+                var currentDim = c1.Value;
+ 
+                float newAspectRatio = resolution.x / resolution.y;
+                float currentAspectRatio = currentDim.x / currentDim.y;
+
+                // Always rescale the dimension.
                 c1 = new Dimension { Value = (int2)(resolution / c2.Scale ) };
 
-                // TODO: Tell the UI Element that the vertices need to be rebuilt.
-                // cmdBuffer.AddComponent<BuildUIElementTag>(entity.Index, entity);
-            }).WithBurst().Run();
+                // NOTE: This does not cover images that only stretch on 1 axis. I will need to write a function
+                // which perform multiples checks on both axis if that's the case.
+                // If the aspect ratios don't match, then mark the entity to rebuild.
+                
+                if (newAspectRatio != currentAspectRatio) {
+                    cmdBuffer.AddComponent<Update>(entity);
+                }
+            }).Run();
 
             cmdBufferSystem.AddJobHandleForProducer(Dependency);
         }
