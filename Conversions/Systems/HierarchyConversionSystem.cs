@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using UGUIDOTS.Analyzers;
+using UGUIDOTS.Conversions.Analyzers;
 using UGUIDOTS.Render;
 using UGUIDOTS.Transforms;
 using Unity.Entities;
@@ -24,7 +24,15 @@ namespace UGUIDOTS.Conversions.Systems {
                 }
 
                 var canvasEntity = GetPrimaryEntity(canvas);
-                var batches = BatchAnalysis.BuildStaticBatch(canvas);
+                var batches      = BatchAnalysis.BuildStaticBatch(canvas);
+
+                Debug.Log($"---------START: {canvas.name} ---------");
+
+                foreach (var batch in batches) {
+                    Debug.Log(batch[0].GameObject);
+                }
+
+                Debug.Log($"---------END: {canvas.name} ---------");
 
                 // CanvasConversionUtils.CleanCanvas(canvasEntity, DstEntityManager);
                 // CanvasConversionUtils.SetScaleMode(canvasEntity, canvas, DstEntityManager);
@@ -64,7 +72,7 @@ namespace UGUIDOTS.Conversions.Systems {
             DstEntityManager.AddComponentData(canvasEntity, new SharedMesh { Value = mesh });
         }
 
-        private unsafe void BakeVertexDataToRoot(Entity canvasEntity, List<List<GameObject>> batches, 
+        private unsafe void BakeVertexDataToRoot(Entity canvasEntity, List<List<BatchAnalysis.RenderedElement>> batches, 
             out NativeList<SubmeshSliceElement> submeshSlices) {
             var vertexData = new NativeList<RootVertexData>(Allocator.Temp);
             var indexData  = new NativeList<RootTriangleIndexElement>(Allocator.Temp);
@@ -73,7 +81,8 @@ namespace UGUIDOTS.Conversions.Systems {
             foreach (var batch in batches) {
                 var startVertex = vertexData.Length;
                 var startIndex  = indexData.Length;
-                foreach (var gameObject in batch) {
+                foreach (var renderedElement in batch) {
+                    var gameObject = renderedElement.GameObject;
                     if (gameObject.TryGetComponent(out Image image)) {
                         var indexOffset  = indexData.Length;
                         var vertexOffset = vertexData.Length;
@@ -146,7 +155,7 @@ namespace UGUIDOTS.Conversions.Systems {
                 UnsafeUtility.SizeOf<RootTriangleIndexElement>() * indexData.Length);
         }
 
-        private unsafe void BakeRenderElements(Entity canvasEntity, List<List<GameObject>> batches, 
+        private unsafe void BakeRenderElements(Entity canvasEntity, List<List<BatchAnalysis.RenderedElement>> batches, 
             out NativeList<SubmeshKeyElement> keys) {
 
             keys               = new NativeList<SubmeshKeyElement>(Allocator.Temp);
@@ -161,11 +170,11 @@ namespace UGUIDOTS.Conversions.Systems {
                 var currentBatch = batches[i];
 
                 for (int k = 0; k < currentBatch.Count; k++) {
-                    var uiElement = GetPrimaryEntity(currentBatch[k]);
+                    var uiElement = GetPrimaryEntity(currentBatch[k].GameObject);
                     renderEntities.Add(new RenderElement { Value = uiElement });
                 }
 
-                var first = GetPrimaryEntity(currentBatch[0]);
+                var first = GetPrimaryEntity(currentBatch[0].GameObject);
                 var key   = new SubmeshKeyElement {};
                 if (DstEntityManager.HasComponent<LinkedTextureEntity>(first)) {
                     key.TextureEntity = DstEntityManager.GetComponentData<LinkedTextureEntity>(first).Value;

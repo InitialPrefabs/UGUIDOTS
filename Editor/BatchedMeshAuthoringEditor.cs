@@ -1,11 +1,11 @@
-﻿using UGUIDOTS.Analyzers;
-using UGUIDOTS.Render.Authoring;
+﻿using UGUIDOTS.Render.Authoring;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Assertions;
 
 namespace UGUIDOTS.EditorTools {
 
+    [System.Obsolete]
     [CustomEditor(typeof(BatchedMeshAuthoring))]
     public class BatchedMeshAuthoringEditor : Editor {
 
@@ -31,23 +31,7 @@ namespace UGUIDOTS.EditorTools {
 
         private void DrawBatchButton() {
             if (GUILayout.Button("Build Batch")) {
-                serializedObject.Update();
-
-                var canvas = batcher.GetComponent<Canvas>();
-                Assert.IsNull(canvas.transform.parent, "Building a batch must only be done on the root gameObject!");
-                var collection = BatchAnalysis.BuildStaticBatch(canvas);
-
-                batchProperty.arraySize = collection.Count;
-
-                for (int i = 0; i < batchProperty.arraySize; i++) {
-                    var internalArray = batchProperty.GetArrayElementAtIndex(i).FindPropertyRelative("Elements");
-                    internalArray.arraySize = collection[i].Count;
-
-                    for (int k = 0; k < collection[i].Count; k++) {
-                        internalArray.GetArrayElementAtIndex(k).objectReferenceValue = collection[i][k];
-                    }
-                }
-                serializedObject.ApplyModifiedProperties();
+                throw new System.NotImplementedException("This functionality is deprecated");
             }
         }
     }

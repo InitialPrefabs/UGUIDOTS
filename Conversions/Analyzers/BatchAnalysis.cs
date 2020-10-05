@@ -3,25 +3,39 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Assertions;
+using UGUIDOTS.Render.Authoring;
 
-namespace UGUIDOTS.Analyzers {
+namespace UGUIDOTS.Conversions.Analyzers {
 
-    public static class BatchAnalysis {
+    internal static class BatchAnalysis {
 
-        public static List<List<GameObject>> BuildStaticBatch(Canvas root) {
+        internal enum RenderedType {
+            Image,
+            Text,
+            TextDynamic
+        }
+
+        internal struct RenderedElement {
+            internal GameObject GameObject;
+            internal RenderedType Type;
+        }
+
+        internal static List<List<RenderedElement>> BuildStaticBatch(Canvas root) {
             Assert.IsNull(root.transform.parent, $"The current Canvas: {root.name} is not a root canvas!");
-            var batchMap = new Dictionary<int, List<GameObject>>();
+            var batchMap = new Dictionary<int, List<RenderedElement>>();
             RecurseChildrenBatch(root.transform, batchMap);
 
-            var collection = new List<List<GameObject>>();
+            var collection = new List<List<RenderedElement>>();
             foreach (var batch in batchMap.Values) {
                 collection.Add(batch);
             }
+
+            // TODO: Sort the collection so that all dynamic text is at the end.
             return collection;
         }
 
-        private static void RecurseChildrenBatch(Transform parent, Dictionary<int, List<GameObject>> batchMap) {
-            if (parent.childCount <= 0) {
+        private static void RecurseChildrenBatch(Transform parent, Dictionary<int, List<RenderedElement>> batchMap) {
+            if (parent.childCount == 0) {
                 return;
             }
 
@@ -34,21 +48,41 @@ namespace UGUIDOTS.Analyzers {
                     var hash     = texture.GetHashCode() ^ material.GetHashCode();
 
                     if (!batchMap.TryGetValue(hash, out var collection)) {
-                        collection = new List<GameObject>();
+                        collection = new List<RenderedElement>();
                         batchMap.Add(hash, collection);
                     }
-                    collection.Add(child.gameObject);
+
+                    var renderedElement = new RenderedElement {
+                        GameObject      = child.gameObject,
+                        Type            = RenderedType.Image
+                    };
+
+                    collection.Add(renderedElement);
                 }
 
                 // Get the authoring component which marks the text as dynamic.
                 if (child.TryGetComponent(out TextMeshProUGUI text)) {
                     var hash = text.materialForRendering.GetHashCode();
 
+                    var type = RenderedType.Text;
+
+                    // Separate dynamic text from static text
+                    if (child.TryGetComponent(out DynamicTextAuthoring dynamic)) {
+                        hash ^= dynamic.GetHashCode();
+                        type = RenderedType.TextDynamic;
+                    }
+
                     if (!batchMap.TryGetValue(hash, out var collection)) {
-                        collection = new List<GameObject>();
+                        collection = new List<RenderedElement>();
                         batchMap.Add(hash, collection);
                     }
-                    collection.Add(text.gameObject);
+
+                    var renderedElement = new RenderedElement {
+                        GameObject      = text.gameObject,
+                        Type            = type
+                    };
+
+                    collection.Add(renderedElement);
                 }
 
                 RecurseChildrenBatch(child, batchMap);
