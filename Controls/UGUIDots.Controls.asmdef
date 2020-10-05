@@ -1,5 +1,6 @@
 {
-    "name": "UGUIDots.Controls",
+    "name": "UGUIDOTS.Controls",
+    "rootNamespace": "",
     "references": [
         "GUID:d33a885a34af140b7ac6735751616c27",
         "GUID:2665a8d13d1b3f18800f46e256720795",

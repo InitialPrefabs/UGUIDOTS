@@ -1,7 +1,8 @@
 {
-    "name": "UGUIDots.Editor",
+    "name": "UGUIDOTS.Editor",
+    "rootNamespace": "",
     "references": [
-        "GUID:fef50387be9e4be4ca3d64c31f370667",
+        "GUID:a2935620286d42c4893769a748ee2f5e",
         "GUID:d33a885a34af140b7ac6735751616c27"
     ],
     "includePlatforms": [

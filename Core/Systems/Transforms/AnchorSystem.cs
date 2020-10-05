@@ -79,7 +79,7 @@ namespace UGUIDOTS.Transforms.Systems {
                     var anchor     = Anchors[current];
                     var dimensions = Dimensions[parent].Value;
                     var ltp        = LTP[current];
-                    var worldSpace        = LTW[current];
+                    var worldSpace = LTW[current];
 
                     // Find the world space position of the anchor
                     var anchoredPos = GetAnchoredPosition(parent, in parentLTW, in rootScale, in anchor);
@@ -143,7 +143,7 @@ namespace UGUIDOTS.Transforms.Systems {
             });
 
             cmdBufferSystem = World.GetOrCreateSystem<BeginPresentationEntityCommandBufferSystem>();
-            RequireSingletonForUpdate<ResolutionChangeEvt>();
+            RequireSingletonForUpdate<ResolutionEvent>();
         }
 
         protected override void OnUpdate() {

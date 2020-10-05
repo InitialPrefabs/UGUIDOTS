@@ -5,7 +5,6 @@ using UnityEngine;
 
 namespace UGUIDOTS.Transforms.Systems {
 
-    [UpdateAfter(typeof(AnchorSystem))]
     public class StretchDimensionsSystem : SystemBase {
 
         private EntityCommandBufferSystem cmdBufferSystem;
@@ -23,14 +22,12 @@ namespace UGUIDOTS.Transforms.Systems {
                 cmdBuffer.RemoveComponent<RescaleDimensionEvt>(entity);
             }).Run();
 
-
-            if (!HasSingleton<ResolutionChangeEvt>()) {
+            if (!HasSingleton<ResolutionEvent>()) {
                 return;
             }
 
             Entities.WithAll<Stretch>().ForEach((Entity entity, ref Dimension c1, in ScreenSpace c2) => {
-                var scale = c2.Scale;
-                c1        = new Dimension { Value = (int2)(resolution / scale) };
+                c1 = new Dimension { Value = (int2)(resolution / c2.Scale ) };
 
                 // TODO: Tell the UI Element that the vertices need to be rebuilt.
                 // cmdBuffer.AddComponent<BuildUIElementTag>(entity.Index, entity);

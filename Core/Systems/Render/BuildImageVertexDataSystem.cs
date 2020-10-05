@@ -10,6 +10,7 @@ using Unity.Transforms;
 
 namespace UGUIDOTS.Render.Systems {
 
+    [System.Obsolete("BuildImageVertexDataSystem is obsolete for a CanvasRebuildSystem")]
     [UpdateInGroup(typeof(MeshBuildGroup))]
     public class BuildImageVertexDataSystem : SystemBase {
 

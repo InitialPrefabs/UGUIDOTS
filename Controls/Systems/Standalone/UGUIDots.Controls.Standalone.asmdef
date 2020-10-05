@@ -1,5 +1,6 @@
 {
-    "name": "UGUIDots.Controls.Standalone",
+    "name": "UGUIDOTS.Controls.Standalone",
+    "rootNamespace": "",
     "references": [
         "GUID:734d92eba21c94caba915361bd5ac177",
         "GUID:d33a885a34af140b7ac6735751616c27",

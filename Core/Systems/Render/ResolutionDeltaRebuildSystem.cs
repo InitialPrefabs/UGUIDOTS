@@ -11,7 +11,7 @@ namespace UGUIDOTS.Render.Systems {
 
         protected override void OnCreate() {
             cmdBufferSystem = World.GetOrCreateSystem<BeginPresentationEntityCommandBufferSystem>();
-            RequireSingletonForUpdate<ResolutionChangeEvt>();
+            RequireSingletonForUpdate<ResolutionEvent>();
         }
 
         protected override void OnUpdate() {

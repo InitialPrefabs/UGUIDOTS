@@ -9,7 +9,7 @@ namespace UGUIDOTS.Transforms.Systems {
     /// Scales all the canvases if the resolution of the window changes.
     /// </summary>
     [UpdateInGroup(typeof(InitializationSystemGroup))]
-    public unsafe class CanvasScalerSystem : SystemBase {
+    public class CanvasScalerSystem : SystemBase {
 
         private EntityCommandBufferSystem cmdBufferSystem;
         private EntityQuery scaleQuery;
@@ -26,15 +26,15 @@ namespace UGUIDOTS.Transforms.Systems {
             });
 
             cmdBufferSystem = World.GetOrCreateSystem<EndInitializationEntityCommandBufferSystem>();
-            evtArchetype = EntityManager.CreateArchetype(typeof(ResolutionChangeEvt));
+            evtArchetype = EntityManager.CreateArchetype(typeof(ResolutionEvent));
 
             resolution = new int2(Screen.width, Screen.height);
         }
 
         protected override void OnStartRunning() {
-            var local                = new int2(Screen.width, Screen.height);
-            float currentAspectRatio = Screen.width / Screen.height;
-            var cmdBuffer            = cmdBufferSystem.CreateCommandBuffer();
+            var local              = new int2(Screen.width, Screen.height);
+            var currentAspectRatio = Screen.width / Screen.height;
+            var cmdBuffer          = cmdBufferSystem.CreateCommandBuffer();
 
             Entities.ForEach((ref ScreenSpace c0, in ReferenceResolution c1) => {
                 var logWidth  = math.log2(local.x / c1.Value.x);

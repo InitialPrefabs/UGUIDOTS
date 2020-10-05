@@ -40,8 +40,9 @@ namespace UGUIDOTS.Analyzers {
                     collection.Add(child.gameObject);
                 }
 
+                // Get the authoring component which marks the text as dynamic.
                 if (child.TryGetComponent(out TextMeshProUGUI text)) {
-                    var hash = text.materialForRendering != null ? text.materialForRendering.GetHashCode() : 0;
+                    var hash = text.materialForRendering.GetHashCode();
 
                     if (!batchMap.TryGetValue(hash, out var collection)) {
                         collection = new List<GameObject>();

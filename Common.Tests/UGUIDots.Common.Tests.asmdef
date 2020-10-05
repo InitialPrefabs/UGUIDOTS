@@ -1,5 +1,6 @@
 {
-    "name": "UGUIDots.Common.Tests",
+    "name": "UGUIDOTS.Common.Tests",
+    "rootNamespace": "",
     "references": [
         "GUID:5f36bc0aeb435984fb19ecbd27b87a1f",
         "GUID:e0cd26848372d4e5c891c569017e11f1",

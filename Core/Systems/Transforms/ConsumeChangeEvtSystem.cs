@@ -14,7 +14,7 @@ namespace UGUIDOTS.Transforms.Systems {
         protected override void OnUpdate() {
             var cmdBuffer = cmdBufferSystem.CreateCommandBuffer().AsParallelWriter();
 
-            Dependency = Entities.ForEach((Entity entity, in ResolutionChangeEvt c0) => {
+            Dependency = Entities.ForEach((Entity entity, in ResolutionEvent c0) => {
                 cmdBuffer.DestroyEntity(entity.Index, entity);
             }).Schedule(Dependency);
 

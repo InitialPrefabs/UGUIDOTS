@@ -7,6 +7,7 @@ using UnityEngine.UI;
 
 namespace UGUIDOTS.Render.Authoring {
 
+    [System.Obsolete]
     public class BatchedMeshAuthoring : MonoBehaviour, IConvertGameObjectToEntity {
 
         // Used for serialization cases of jagged arrays
