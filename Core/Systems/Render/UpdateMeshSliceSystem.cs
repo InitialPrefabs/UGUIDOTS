@@ -1,6 +1,4 @@
 using UGUIDOTS.Transforms;
-using Unity.Burst;
-using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
@@ -21,13 +19,13 @@ namespace UGUIDOTS.Render.Systems {
             var vertexBuffers = GetBufferFromEntity<RootVertexData>(false);
 
             Entities.WithAll<UpdateSliceTag>().ForEach(
-                (in MeshDataSpan c0, in RootCanvasReference c1, in Dimension c2, in SpriteData c3, 
-                 in DefaultSpriteResolution c4, in ScreenSpace c5) => {
+                (Entity entity, in MeshDataSpan c0, in RootCanvasReference c1, in Dimension c2, 
+                 in SpriteData c3, in DefaultSpriteResolution c4, in ScreenSpace c5) => {
 
                 var buffer = vertexBuffers[c1.Value];
                 var position = ImageUtils.BuildImageVertexData(c4, c3, c2, c5.AsMatrix());
                 ImageUtils.UpdateVertexDimension((RootVertexData*)buffer.GetUnsafePtr(), c0.VertexSpan, position);
-                cmdBuffer.RemoveComponent<UpdateSliceTag>();
+                cmdBuffer.RemoveComponent<UpdateSliceTag>(entity);
 
                 // TODO: The canvas mesh needs to be rebuilt.
             }).Run();
