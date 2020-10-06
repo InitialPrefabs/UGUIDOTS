@@ -1,3 +1,4 @@
+using UGUIDOTS.Render;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
@@ -10,7 +11,7 @@ namespace UGUIDOTS.Transforms.Systems {
         private EntityCommandBufferSystem cmdBufferSystem;
 
         protected override void OnCreate() {
-            cmdBufferSystem = World.GetOrCreateSystem<BeginPresentationEntityCommandBufferSystem>();
+            cmdBufferSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
         }
 
         protected override void OnUpdate() {
@@ -35,12 +36,11 @@ namespace UGUIDOTS.Transforms.Systems {
                 // Always rescale the dimension.
                 c1 = new Dimension { Value = (int2)(resolution / c2.Scale ) };
 
-                // NOTE: This does not cover images that only stretch on 1 axis. I will need to write a function
-                // which perform multiples checks on both axis if that's the case.
-                // If the aspect ratios don't match, then mark the entity to rebuild.
-                
+                // TODO: This does not cover images that only stretch on 1 axis. I will need to write a function
+                // TODO: which perform multiples checks on both axis if that's the case. 
                 if (newAspectRatio != currentAspectRatio) {
-                    cmdBuffer.AddComponent<Update>(entity);
+                    // If the aspect ratios don't match, then mark the entity to rebuild.
+                    cmdBuffer.AddComponent<UpdateSliceTag>(entity);
                 }
             }).Run();
 

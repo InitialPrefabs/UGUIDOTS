@@ -7,6 +7,14 @@ using Unity.Mathematics;
 
 namespace UGUIDOTS {
 
+    public struct RootCanvasReference : IComponentData {
+        public Entity Value;
+
+        public static RootCanvasReference Default() {
+            return new RootCanvasReference { Value = Entity.Null };
+        }
+    }
+
     /// <summary>
     /// Stores data about each child's active state in an unsafe hash map.
     /// </summary>

@@ -1,24 +1,23 @@
 using Unity.Entities;
-using Unity.Jobs;
 
 namespace UGUIDOTS.Transforms.Systems {
-    [UpdateInGroup(typeof(UITransformConsumerGroup))]
+    [UpdateInGroup(typeof(PresentationSystemGroup))]
     public class ConsumeChangeEvtSystem : SystemBase {
 
-        private EntityCommandBufferSystem cmdBufferSystem;
+        private EntityQuery resolutionQuery;
 
         protected override void OnCreate() {
-            cmdBufferSystem = World.GetOrCreateSystem<BeginPresentationEntityCommandBufferSystem>();
+            resolutionQuery = GetEntityQuery(new EntityQueryDesc {
+                All = new [] { 
+                    ComponentType.ReadOnly<ResolutionEvent>()
+                }
+            });
+
+            RequireForUpdate(resolutionQuery);
         }
 
         protected override void OnUpdate() {
-            var cmdBuffer = cmdBufferSystem.CreateCommandBuffer().AsParallelWriter();
-
-            Dependency = Entities.ForEach((Entity entity, in ResolutionEvent c0) => {
-                cmdBuffer.DestroyEntity(entity.Index, entity);
-            }).Schedule(Dependency);
-
-            cmdBufferSystem.AddJobHandleForProducer(Dependency);
+            EntityManager.DestroyEntity(resolutionQuery);
         }
     }
 }

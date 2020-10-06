@@ -1,12 +1,26 @@
 using System.Runtime.CompilerServices;
 using UGUIDOTS.Transforms;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
 using UnityEngine;
 
 namespace UGUIDOTS.Render {
 
     public static class ImageUtils {
+
+        // TODO: Account for sliced images
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static unsafe void UpdateVertexDimension(
+            RootVertexData* start, 
+            int2 span, 
+            float4 position) {
+
+            (start + span.x)->Position     = new float3(position.xy, 0);
+            (start + span.x + 1)->Position = new float3(position.xw, 0);
+            (start + span.x + 2)->Position = new float3(position.zw, 0);
+            (start + span.x + 3)->Position = new float3(position.zy, 0);
+        }
    
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AddImageIndices(

@@ -73,12 +73,15 @@ namespace UGUIDOTS.Conversions.Systems {
                 var startIndex  = indexData.Length;
                 foreach (var renderedElement in batch) {
                     var gameObject = renderedElement.GameObject;
+                    
+                    var entity = GetPrimaryEntity(gameObject);
+
+                    DstEntityManager.AddComponentData(entity, new RootCanvasReference { Value = canvasEntity });
+
                     if (gameObject.TryGetComponent(out Image image)) {
                         var indexOffset  = indexData.Length;
                         var vertexOffset = vertexData.Length;
-
-                        var entity = GetPrimaryEntity(gameObject);
-                        var m      = DstEntityManager.GetComponentData<ScreenSpace>(entity).AsMatrix();
+                        var m            = DstEntityManager.GetComponentData<ScreenSpace>(entity).AsMatrix();
 
                         var spriteData = DstEntityManager.GetComponentData<SpriteData>(entity);
                         var resolution = DstEntityManager.GetComponentData<DefaultSpriteResolution>(entity);
@@ -112,8 +115,7 @@ namespace UGUIDOTS.Conversions.Systems {
                         var indexSize = indexData.Length - indexOffset;
                         var vertexSize = vertexData.Length - vertexOffset;
 
-                        var textEntity = GetPrimaryEntity(text);
-                        DstEntityManager.AddComponentData(textEntity, new MeshDataSpan {
+                        DstEntityManager.AddComponentData(entity, new MeshDataSpan {
                             VertexSpan = new int2(vertexOffset, vertexSize),
                             IndexSpan =  new int2(indexOffset, indexSize)
                         });
