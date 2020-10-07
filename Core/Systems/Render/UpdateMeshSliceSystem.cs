@@ -14,20 +14,38 @@ namespace UGUIDOTS.Render.Systems {
         }
 
         protected unsafe override void OnUpdate() {
-            var resolution = new int2(Screen.width, Screen.height);
-            var cmdBuffer = cmdBufferSystem.CreateCommandBuffer();
+            var cmdBuffer     = cmdBufferSystem.CreateCommandBuffer();
             var vertexBuffers = GetBufferFromEntity<RootVertexData>(false);
+            var screenSpace   = GetComponentDataFromEntity<ScreenSpace>(true);
 
-            Entities.WithAll<UpdateSliceTag>().ForEach(
+            Entities.WithAll<UpdateSliceTag, ScreenSpace>().ForEach(
                 (Entity entity, in MeshDataSpan c0, in RootCanvasReference c1, in Dimension c2, 
-                 in SpriteData c3, in DefaultSpriteResolution c4, in ScreenSpace c5) => {
+                 in SpriteData c3, in DefaultSpriteResolution c4) => {
 
-                var buffer = vertexBuffers[c1.Value];
-                var position = ImageUtils.BuildImageVertexData(c4, c3, c2, c5.AsMatrix());
-                ImageUtils.UpdateVertexDimension((RootVertexData*)buffer.GetUnsafePtr(), c0.VertexSpan, position);
+                var buffer  = vertexBuffers[c1.Value];
+                var current = screenSpace[entity];
+                var root    = screenSpace[c1.Value];
+
+                var adjustedWidth = c2.Value.x * root.Scale.x;
+                var scale         = (float)c2.Value.x / adjustedWidth;
+
+                var width = c2.Value.x * scale;
+                var height = c2.Value.y * scale;
+                var dim = new Dimension {
+                    Value = new int2((int)width, (int)height)
+                };
+
+                // TODO: Check if I have to do a recursive strategy - collect all the parent scales
+                var position = ImageUtils.BuildImageVertexData(c4, c3, dim, current.AsMatrix(), scale);
+
+                ImageUtils.UpdateVertexDimension(
+                    (RootVertexData*)buffer.GetUnsafePtr(), 
+                    c0.VertexSpan, 
+                    position);
+
+                // Remove the update slice tag and add the RebuildMeshTag to the root canvas
                 cmdBuffer.RemoveComponent<UpdateSliceTag>(entity);
-
-                // TODO: The canvas mesh needs to be rebuilt.
+                cmdBuffer.AddComponent<RebuildMeshTag>(c1.Value);
             }).Run();
         }
     }

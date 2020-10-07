@@ -30,4 +30,6 @@ namespace UGUIDOTS.Render {
     /// with rebuild which would cause all of the entities to be rebatched.
     /// </summary>
     public struct UpdateSliceTag : IComponentData { }
+
+    public struct RebuildMeshTag : IComponentData { }
 }

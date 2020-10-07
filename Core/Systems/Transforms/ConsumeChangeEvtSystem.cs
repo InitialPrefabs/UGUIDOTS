@@ -1,6 +1,7 @@
 using Unity.Entities;
 
 namespace UGUIDOTS.Transforms.Systems {
+
     [UpdateInGroup(typeof(PresentationSystemGroup))]
     public class ConsumeChangeEvtSystem : SystemBase {
 

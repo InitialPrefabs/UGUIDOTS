@@ -86,10 +86,11 @@ namespace UGUIDOTS.Render {
             DefaultSpriteResolution resolution, 
             SpriteData spriteData, 
             Dimension dimension, 
-            float4x4 matrix) {
+            float4x4 matrix,
+            float parentScale = 1f) {
 
             var position = matrix.c3.xyz;
-            var scale    = matrix.Scale();
+            var scale    = matrix.Scale() * parentScale;
             var extents  = dimension.Extents();
 
             var spriteScale = dimension.Value / (float2)resolution.Value;

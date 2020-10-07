@@ -5,44 +5,38 @@ using UnityEngine.Rendering;
 
 namespace UGUIDOTS.Render.Systems {
 
-    [UpdateInGroup(typeof(MeshBatchGroup)), UpdateAfter(typeof(BatchCanvasVertexSystem))]
+    [UpdateInGroup(typeof(PresentationSystemGroup))]
     public class BuildCanvasMeshSystem : SystemBase {
 
-        private EntityQuery canvasMeshQuery;
         private EntityCommandBufferSystem commandBufferSystem;
 
         protected override void OnCreate() {
-            canvasMeshQuery = GetEntityQuery(new EntityQueryDesc {
-                All = new [] {
-                    ComponentType.ReadOnly<RootVertexData>(), ComponentType.ReadOnly<RootTriangleIndexElement>(),
-                    ComponentType.ReadOnly<SubmeshSliceElement>(), ComponentType.ReadOnly<BuildCanvasTag>()
-                }
-            });
-
             commandBufferSystem = World.GetOrCreateSystem<BeginPresentationEntityCommandBufferSystem>();
-            RequireForUpdate(canvasMeshQuery);
         }
 
         protected override void OnUpdate() {
             var cmdBuffer = commandBufferSystem.CreateCommandBuffer();
 
-            Entities.WithStoreEntityQueryInField(ref canvasMeshQuery).WithoutBurst().ForEach((
+            Entities.WithAll<RebuildMeshTag>().ForEach((
                 Entity entity,
-                Mesh mesh,
-                DynamicBuffer<RootVertexData> vertices,
-                DynamicBuffer<RootTriangleIndexElement> indices,
-                DynamicBuffer<SubmeshSliceElement> submeshDesc) => {
+                SharedMesh s0,
+                DynamicBuffer<RootVertexData> b0,
+                DynamicBuffer<RootTriangleIndexElement> b1,
+                DynamicBuffer<SubmeshSliceElement> b2) => {
+
+                var mesh = s0.Value;
 
                 mesh.Clear();
-                mesh.SetVertexBufferParams(vertices.Length, MeshVertexDataExtensions.VertexDescriptors);
-                mesh.SetVertexBufferData(vertices.AsNativeArray(), 0, 0, vertices.Length);
-                mesh.SetIndexBufferParams(indices.Length, IndexFormat.UInt16);
-                mesh.SetIndexBufferData(indices.AsNativeArray(), 0, 0, indices.Length);
+                mesh.SetVertexBufferParams(b0.Length, MeshVertexDataExtensions.VertexDescriptors);
+                mesh.SetVertexBufferData(b0.AsNativeArray(), 0, 0, b0.Length);
+                mesh.SetIndexBufferParams(b1.Length, IndexFormat.UInt16);
+                mesh.SetIndexBufferData(b1.AsNativeArray(), 0, 0, b1.Length);
 
-                mesh.subMeshCount = submeshDesc.Length;
+                mesh.subMeshCount = b2.Length;
+                var submeshes = b2.AsNativeArray();
 
-                for (int i = 0; i < submeshDesc.Length; i++) {
-                    var current = submeshDesc[i];
+                for (int i = 0; i < b2.Length; i++) {
+                    var current = submeshes[i];
 
                     mesh.SetSubMesh(i, new SubMeshDescriptor {
                         bounds      = default,
@@ -56,7 +50,7 @@ namespace UGUIDOTS.Render.Systems {
 
                 mesh.UploadMeshData(false);
                 cmdBuffer.RemoveComponent<BuildCanvasTag>(entity);
-            }).Run();
+            }).WithoutBurst().Run();
         }
     }
 }

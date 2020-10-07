@@ -32,7 +32,18 @@ namespace UGUIDOTS.Conversions.Systems {
 
                 // Build the actual mesh needed to render.
                 BuildMesh(canvasEntity, submeshSlices);
+                BuildSubmesh(canvasEntity, submeshSlices);
             });
+        }
+
+        private unsafe void BuildSubmesh(Entity canvasEntity, NativeList<SubmeshSliceElement> submeshSlices) {
+            var submeshBuffer = DstEntityManager.AddBuffer<SubmeshSliceElement>(canvasEntity);
+            submeshBuffer.ResizeUninitialized(submeshSlices.Length);
+
+            UnsafeUtility.MemCpy(
+                submeshBuffer.GetUnsafePtr(), 
+                submeshSlices.GetUnsafePtr(), 
+                UnsafeUtility.SizeOf<SubmeshSliceElement>() * submeshSlices.Length);
         }
 
         private void BuildMesh(Entity canvasEntity, NativeList<SubmeshSliceElement> submeshSlices) {
@@ -40,6 +51,7 @@ namespace UGUIDOTS.Conversions.Systems {
 
             var vertices = DstEntityManager.GetBuffer<RootVertexData>(canvasEntity).AsNativeArray();
             var indices  = DstEntityManager.GetBuffer<RootTriangleIndexElement>(canvasEntity).AsNativeArray();
+
 
             mesh.subMeshCount = submeshSlices.Length;
             mesh.SetVertexBufferParams(vertices.Length, MeshVertexDataExtensions.VertexDescriptors);

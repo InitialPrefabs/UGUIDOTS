@@ -27,11 +27,13 @@ namespace UGUIDOTS.Transforms.Systems {
                 return;
             }
 
-            Entities.WithAll<Stretch>().ForEach((Entity entity, ref Dimension c1, in ScreenSpace c2) => {
+            Entities.WithAll<Stretch, SpriteData>().ForEach(
+                (Entity entity, ref Dimension c1, in ScreenSpace c2) => {
+
                 var currentDim = c1.Value;
  
-                float newAspectRatio = resolution.x / resolution.y;
-                float currentAspectRatio = currentDim.x / currentDim.y;
+                float newAspectRatio = (float)resolution.x / resolution.y;
+                float currentAspectRatio = (float)currentDim.x / currentDim.y;
 
                 // Always rescale the dimension.
                 c1 = new Dimension { Value = (int2)(resolution / c2.Scale ) };
