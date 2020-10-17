@@ -44,7 +44,7 @@ namespace UGUIDOTS.Conversions.Systems {
         }
 
         private unsafe void RecurseChildren(Transform parent, CanvasTransform parentData) {
-            var children = new ChildUI[parent.childCount];
+            var children = new ChildElement[parent.childCount];
             for (int i = 0; i < parent.childCount; i++) {
                 var child           = parent.GetChild(i);
                 var associatedXform = parentData.Children[i];
@@ -68,10 +68,10 @@ namespace UGUIDOTS.Conversions.Systems {
             }
 
             if (children.Length > 0) {
-                var buffer = DstEntityManager.AddBuffer<ChildUI>(GetPrimaryEntity(parent));
+                var buffer = DstEntityManager.AddBuffer<ChildElement>(GetPrimaryEntity(parent));
                 buffer.ResizeUninitialized(children.Length);
 
-                fixed (ChildUI* ptr = children) {
+                fixed (ChildElement* ptr = children) {
                     UnsafeUtility.MemCpy(
                         buffer.GetUnsafePtr(), 
                         ptr, 

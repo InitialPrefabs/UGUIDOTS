@@ -26,7 +26,7 @@ namespace UGUIDOTS.Transforms.Systems {
             public EntityTypeHandle EntityType;
 
             [ReadOnly]
-            public BufferFromEntity<ChildUI> Children;
+            public BufferFromEntity<ChildElement> Children;
 
             [ReadOnly]
             public ComponentDataFromEntity<LinkedMaterialEntity> LinkedMaterials;
@@ -55,7 +55,7 @@ namespace UGUIDOTS.Transforms.Systems {
                 }
             }
 
-            void RecurseAnchor(NativeArray<ChildUI> children, ScreenSpace parentSpace, Entity parent) {
+            void RecurseAnchor(NativeArray<ChildElement> children, ScreenSpace parentSpace, Entity parent) {
                 var m_Inverse = math.inverse(parentSpace.AsMatrix());
 
                 for (int i = 0; i < children.Length; i++) {
@@ -116,7 +116,7 @@ namespace UGUIDOTS.Transforms.Systems {
         protected override void OnCreate() {
             canvasQuery = GetEntityQuery(new EntityQueryDesc {
                 All = new[] {
-                    ComponentType.ReadOnly<ReferenceResolution>(), ComponentType.ReadOnly<ChildUI>(),
+                    ComponentType.ReadOnly<ReferenceResolution>(), ComponentType.ReadOnly<ChildElement>(),
                     ComponentType.ReadOnly<ScreenSpace>()
                 },
                 None = new[] {
@@ -131,7 +131,7 @@ namespace UGUIDOTS.Transforms.Systems {
         protected override void OnUpdate() {
             var anchorJob       = new AnchorJob {
                 EntityType      = GetEntityTypeHandle(),
-                Children        = GetBufferFromEntity<ChildUI>(true),
+                Children        = GetBufferFromEntity<ChildElement>(true),
                 Anchors         = GetComponentDataFromEntity<Anchor>(true),
                 Dimensions      = GetComponentDataFromEntity<Dimension>(true),
                 LinkedMaterials = GetComponentDataFromEntity<LinkedMaterialEntity>(true),
