@@ -201,11 +201,14 @@ namespace UGUIDOTS.Conversions.Systems {
             renderBatches.ResizeUninitialized(renderEntities.Length);
             UnsafeUtility.MemCpy(renderBatches.GetUnsafePtr(), renderEntities.GetUnsafePtr(), size);
 
+            // TODO: Maybe re-enable this?
+            /*
             var renderSpans = DstEntityManager.AddBuffer<BatchedSpanElement>(canvasEntity);
             size = UnsafeUtility.SizeOf<BatchedSpanElement>() * batchSpans.Length;
             
             renderSpans.ResizeUninitialized(batchSpans.Length);
             UnsafeUtility.MemCpy(renderSpans.GetUnsafePtr(), batchSpans.GetUnsafePtr(), size);
+            */
 
             var submeshKeys = DstEntityManager.AddBuffer<SubmeshKeyElement>(canvasEntity);
             size = UnsafeUtility.SizeOf<SubmeshKeyElement>() * keys.Length;

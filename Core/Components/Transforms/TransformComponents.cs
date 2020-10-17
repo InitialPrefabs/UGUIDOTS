@@ -20,8 +20,19 @@ namespace UGUIDOTS.Transforms {
         public float2 Scale;
     }
 
+    /// <summary>
+    /// Replacement to Unity's Child buffer component.
+    /// </summary>
+    public struct ChildUI : IBufferElementData {
+        public Entity Value;
+
+        public static implicit operator ChildUI(Entity entity) => new ChildUI { Value = entity };
+        public static implicit operator Entity(ChildUI value)  => value.Value;
+    }
+
     public static partial class TransformExtensions {
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float AverageScale(this in ScreenSpace rect) {
             return (rect.Scale.x + rect.Scale.y) / 2f;
         }

@@ -8,7 +8,9 @@ using Unity.Transforms;
 
 namespace UGUIDOTS.Render.Systems {
 
+    [System.Obsolete]
     [UpdateInGroup(typeof(MeshBatchGroup))]
+    [DisableAutoCreation]
     public class BatchCanvasVertexSystem : SystemBase {
 
         [BurstCompile]

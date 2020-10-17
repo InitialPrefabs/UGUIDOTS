@@ -1,8 +1,10 @@
 ﻿using System.Collections.Generic;
 using UGUIDOTS.Analyzers;
 using UGUIDOTS.Transforms;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Transforms;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -41,11 +43,12 @@ namespace UGUIDOTS.Conversions.Systems {
             });
         }
 
-        private void RecurseChildren(Transform parent, CanvasTransform parentData) {
+        private unsafe void RecurseChildren(Transform parent, CanvasTransform parentData) {
+            var children = new ChildUI[parent.childCount];
             for (int i = 0; i < parent.childCount; i++) {
-                var child = parent.GetChild(i);
+                var child           = parent.GetChild(i);
                 var associatedXform = parentData.Children[i];
-                var childEntity = GetPrimaryEntity(child);
+                var childEntity     = GetPrimaryEntity(child);
 
                 DstEntityManager.SetComponentData(childEntity, new ScreenSpace {
                     Scale       = associatedXform.WScale,
@@ -57,8 +60,22 @@ namespace UGUIDOTS.Conversions.Systems {
                     Translation = associatedXform.LPosition
                 });
 
+                children[i] = childEntity;
+
                 if (parent.childCount > 0) {
                     RecurseChildren(child, associatedXform);
+                }
+            }
+
+            if (children.Length > 0) {
+                var buffer = DstEntityManager.AddBuffer<ChildUI>(GetPrimaryEntity(parent));
+                buffer.ResizeUninitialized(children.Length);
+
+                fixed (ChildUI* ptr = children) {
+                    UnsafeUtility.MemCpy(
+                        buffer.GetUnsafePtr(), 
+                        ptr, 
+                        UnsafeUtility.SizeOf<Entity>() * children.Length);
                 }
             }
         }

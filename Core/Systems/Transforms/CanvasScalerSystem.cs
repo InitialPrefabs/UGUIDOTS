@@ -5,10 +5,11 @@ using UnityEngine;
 
 namespace UGUIDOTS.Transforms.Systems {
 
+    // TODO: Redesign the canvas scaling system because the dimension of anything stretched and the root need to change.
     /// <summary>
     /// Scales all the canvases if the resolution of the window changes.
     /// </summary>
-    [UpdateInGroup(typeof(InitializationSystemGroup))]
+    [UpdateInGroup(typeof(InitializationSystemGroup), OrderLast = true)]
     public class CanvasScalerSystem : SystemBase {
 
         private EntityCommandBufferSystem cmdBufferSystem;

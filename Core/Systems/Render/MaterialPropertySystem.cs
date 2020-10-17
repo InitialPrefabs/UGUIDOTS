@@ -4,6 +4,7 @@ namespace UGUIDOTS.Render.Systems {
 
     [UpdateInGroup(typeof(ResetMaterialGroup))]
     [DisableAutoCreation]
+    [System.Obsolete]
     public class ResetMaterialPropertySystem : SystemBase {
         protected override void OnUpdate() {
             Entities.ForEach((MaterialPropertyBatch c0) => {
@@ -16,6 +17,7 @@ namespace UGUIDOTS.Render.Systems {
 
     [UpdateInGroup(typeof(UpdateMaterialGroup))]
     [DisableAutoCreation]
+    [System.Obsolete]
     public class UpdateTextureMaterialPropertySystem : SystemBase {
         protected override void OnUpdate() {
 

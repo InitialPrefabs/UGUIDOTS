@@ -2,7 +2,7 @@ using Unity.Entities;
 
 namespace UGUIDOTS.Transforms.Systems {
 
-    [UpdateInGroup(typeof(PresentationSystemGroup))]
+    [UpdateInGroup(typeof(PresentationSystemGroup), OrderLast = true)]
     public class ConsumeChangeEvtSystem : SystemBase {
 
         private EntityQuery resolutionQuery;
