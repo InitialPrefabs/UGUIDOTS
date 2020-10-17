@@ -9,13 +9,13 @@ namespace UGUIDOTS.Transforms {
         /// <summary>
         /// Returns the root entity based on the current child entity.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Entity GetRoot(Entity child, ComponentDataFromEntity<Parent> parents) {
-            if (!parents.HasComponent(child)) {
-                return child;
-            }
+        // [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        // public static Entity GetRoot(Entity child, ComponentDataFromEntity<Parent> parents) {
+        //     if (!parents.HasComponent(child)) {
+        //         return child;
+        //     }
 
-            return GetRoot(parents[child].Value, parents);
-        }
+        //     return GetRoot(parents[child].Value, parents);
+        // }
     }
 }

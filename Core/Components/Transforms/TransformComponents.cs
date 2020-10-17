@@ -23,21 +23,21 @@ namespace UGUIDOTS.Transforms {
     /// <summary>
     /// Replacement to Unity's Child buffer component.
     /// </summary>
-    public struct ChildElement : IBufferElementData {
+    public struct Child : IBufferElementData {
         public Entity Value;
 
-        public static implicit operator ChildElement(Entity entity) => new ChildElement { Value = entity };
-        public static implicit operator Entity(ChildElement value)  => value.Value;
+        public static implicit operator Child(Entity entity) => new Child { Value = entity };
+        public static implicit operator Entity(Child value)  => value.Value;
     }
 
     /// <summary>
     /// Replacement to Unity's Parent component.
     /// </summary>
-    public struct ParentElement : IComponentData {
+    public struct Parent : IComponentData {
         public Entity Value;
 
-        public static implicit operator ParentElement(Entity entity) => new ParentElement { Value = entity };
-        public static implicit operator Entity(ParentElement value)  => value.Value;
+        public static implicit operator Parent(Entity entity) => new Parent { Value = entity };
+        public static implicit operator Entity(Parent value)  => value.Value;
     }
 
     public static partial class TransformExtensions {

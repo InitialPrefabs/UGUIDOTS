@@ -1,11 +1,9 @@
-using System.Runtime.CompilerServices;
 using UGUIDOTS.Render;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
-using Unity.Transforms;
 using UnityEngine;
 
 namespace UGUIDOTS.Transforms.Systems {
@@ -26,7 +24,7 @@ namespace UGUIDOTS.Transforms.Systems {
             public EntityTypeHandle EntityType;
 
             [ReadOnly]
-            public BufferFromEntity<ChildElement> Children;
+            public BufferFromEntity<Child> Children;
 
             [ReadOnly]
             public ComponentDataFromEntity<LinkedMaterialEntity> LinkedMaterials;
@@ -55,7 +53,7 @@ namespace UGUIDOTS.Transforms.Systems {
                 }
             }
 
-            void RecurseAnchor(NativeArray<ChildElement> children, ScreenSpace parentSpace, Entity parent) {
+            void RecurseAnchor(NativeArray<Child> children, ScreenSpace parentSpace, Entity parent) {
                 var m_Inverse = math.inverse(parentSpace.AsMatrix());
 
                 for (int i = 0; i < children.Length; i++) {
@@ -89,7 +87,7 @@ namespace UGUIDOTS.Transforms.Systems {
                     LocalSpace[current]  = localSpace;
                     ScreenSpace[current] = screenSpace;
 
-                    CommandBuffer.AddComponent<UpdateSliceTag>(current);;
+                    // CommandBuffer.AddComponent<UpdateSliceTag>(current);;
 
                     if (Children.HasComponent(current)) {
                         RecurseAnchor(Children[current].AsNativeArray(), screenSpace, current);
@@ -116,7 +114,7 @@ namespace UGUIDOTS.Transforms.Systems {
         protected override void OnCreate() {
             canvasQuery = GetEntityQuery(new EntityQueryDesc {
                 All = new[] {
-                    ComponentType.ReadOnly<ReferenceResolution>(), ComponentType.ReadOnly<ChildElement>(),
+                    ComponentType.ReadOnly<ReferenceResolution>(), ComponentType.ReadOnly<Child>(),
                     ComponentType.ReadOnly<ScreenSpace>()
                 },
                 None = new[] {
@@ -131,7 +129,7 @@ namespace UGUIDOTS.Transforms.Systems {
         protected override void OnUpdate() {
             var anchorJob       = new AnchorJob {
                 EntityType      = GetEntityTypeHandle(),
-                Children        = GetBufferFromEntity<ChildElement>(true),
+                Children        = GetBufferFromEntity<Child>(true),
                 Anchors         = GetComponentDataFromEntity<Anchor>(true),
                 Dimensions      = GetComponentDataFromEntity<Dimension>(true),
                 LinkedMaterials = GetComponentDataFromEntity<LinkedMaterialEntity>(true),

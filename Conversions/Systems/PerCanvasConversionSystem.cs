@@ -4,7 +4,6 @@ using UGUIDOTS.Transforms;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Transforms;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -44,7 +43,7 @@ namespace UGUIDOTS.Conversions.Systems {
         }
 
         private unsafe void RecurseChildren(Transform parent, CanvasTransform parentData) {
-            var children = new ChildElement[parent.childCount];
+            var children = new Child[parent.childCount];
             for (int i = 0; i < parent.childCount; i++) {
                 var child           = parent.GetChild(i);
                 var associatedXform = parentData.Children[i];
@@ -68,13 +67,19 @@ namespace UGUIDOTS.Conversions.Systems {
             }
 
             if (children.Length > 0) {
-                var buffer = DstEntityManager.AddBuffer<ChildElement>(GetPrimaryEntity(parent));
+                // Add all the parents to the children
+                foreach (var child in children) {
+                    DstEntityManager.AddComponentData(child.Value, new Parent { Value = GetPrimaryEntity(parent) });
+                }
+
+                var buffer = DstEntityManager.AddBuffer<Transforms.Child>(GetPrimaryEntity(parent));
                 buffer.ResizeUninitialized(children.Length);
 
-                fixed (ChildElement* ptr = children) {
+
+                fixed (Transforms.Child* ptr = children) {
                     UnsafeUtility.MemCpy(
                         buffer.GetUnsafePtr(), 
-                        ptr, 
+                        ptr,
                         UnsafeUtility.SizeOf<Entity>() * children.Length);
                 }
             }
