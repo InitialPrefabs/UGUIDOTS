@@ -49,9 +49,8 @@ namespace UGUIDOTS.Conversions.Systems {
         private void BuildMesh(Entity canvasEntity, NativeList<SubmeshSliceElement> submeshSlices) {
             var mesh = new Mesh();
 
-            var vertices = DstEntityManager.GetBuffer<RootVertexData>(canvasEntity).AsNativeArray();
-            var indices  = DstEntityManager.GetBuffer<RootTriangleIndexElement>(canvasEntity).AsNativeArray();
-
+            var vertices = DstEntityManager.GetBuffer<Vertex>(canvasEntity).AsNativeArray();
+            var indices  = DstEntityManager.GetBuffer<Index>(canvasEntity).AsNativeArray();
 
             mesh.subMeshCount = submeshSlices.Length;
             mesh.SetVertexBufferParams(vertices.Length, MeshVertexDataExtensions.VertexDescriptors);
@@ -76,8 +75,8 @@ namespace UGUIDOTS.Conversions.Systems {
 
         private unsafe void BakeVertexDataToRoot(Entity canvasEntity, List<List<BatchAnalysis.RenderedElement>> batches, 
             out NativeList<SubmeshSliceElement> submeshSlices) {
-            var vertexData = new NativeList<RootVertexData>(Allocator.Temp);
-            var indexData  = new NativeList<RootTriangleIndexElement>(Allocator.Temp);
+            var vertexData = new NativeList<Vertex>(Allocator.Temp);
+            var indexData  = new NativeList<Index>(Allocator.Temp);
             submeshSlices  = new NativeList<SubmeshSliceElement>(Allocator.Temp);
 
             foreach (var batch in batches) {
@@ -100,7 +99,7 @@ namespace UGUIDOTS.Conversions.Systems {
                         var dim        = DstEntityManager.GetComponentData<Dimension>(entity);
                         var color      = DstEntityManager.GetComponentData<AppliedColor>(entity);
 
-                        var minMax = ImageUtils.BuildImageVertexData(resolution, spriteData, dim, m);
+                        var minMax = ImageUtils.CreateImagePositionData(resolution, spriteData, dim, m);
                         
                         // Add 4 vertices for simple images
                         // TODO: Support 9 slicing images - which will generate 16 vertices
@@ -142,21 +141,21 @@ namespace UGUIDOTS.Conversions.Systems {
                 submeshSlices.Add(submeshSlice);
             }
 
-            var vertexBuffer = DstEntityManager.AddBuffer<RootVertexData>(canvasEntity);
+            var vertexBuffer = DstEntityManager.AddBuffer<Vertex>(canvasEntity);
             vertexBuffer.ResizeUninitialized(vertexData.Length);
 
             UnsafeUtility.MemCpy(
                 vertexBuffer.GetUnsafePtr(), 
                 vertexData.GetUnsafePtr(), 
-                UnsafeUtility.SizeOf<RootVertexData>() * vertexData.Length);
+                UnsafeUtility.SizeOf<Vertex>() * vertexData.Length);
 
-            var indexBuffer = DstEntityManager.AddBuffer<RootTriangleIndexElement>(canvasEntity);
+            var indexBuffer = DstEntityManager.AddBuffer<Index>(canvasEntity);
             indexBuffer.ResizeUninitialized(indexData.Length);
 
             UnsafeUtility.MemCpy(
                 indexBuffer.GetUnsafePtr(), 
                 indexData.GetUnsafePtr(), 
-                UnsafeUtility.SizeOf<RootTriangleIndexElement>() * indexData.Length);
+                UnsafeUtility.SizeOf<Index>() * indexData.Length);
         }
 
         private unsafe void BakeRenderElements(Entity canvasEntity, List<List<BatchAnalysis.RenderedElement>> batches, 

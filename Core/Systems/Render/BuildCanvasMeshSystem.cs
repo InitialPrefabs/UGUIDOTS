@@ -20,8 +20,8 @@ namespace UGUIDOTS.Render.Systems {
             Entities.WithAll<RebuildMeshTag>().ForEach((
                 Entity entity,
                 SharedMesh s0,
-                DynamicBuffer<RootVertexData> b0,
-                DynamicBuffer<RootTriangleIndexElement> b1,
+                DynamicBuffer<Vertex> b0,
+                DynamicBuffer<Index> b1,
                 DynamicBuffer<SubmeshSliceElement> b2) => {
 
                 var mesh = s0.Value;

@@ -12,7 +12,7 @@ namespace UGUIDOTS.Render {
         // TODO: Account for sliced images
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static unsafe void UpdateVertexDimension(
-            RootVertexData* start, 
+            Vertex* start, 
             int2 span, 
             float4 position) {
 
@@ -24,23 +24,23 @@ namespace UGUIDOTS.Render {
    
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AddImageIndices(
-            this ref NativeList<RootTriangleIndexElement> indices,
-            in NativeList<RootVertexData> vertices) {
+            this ref NativeList<Index> indices,
+            in NativeList<Vertex> vertices) {
 
             var nextStartIdx = indices.Length > 0 ? indices[indices.Length - 1] + 1 : 0;
 
-            indices.Add(new RootTriangleIndexElement { Value = (ushort)(0 + nextStartIdx) });
-            indices.Add(new RootTriangleIndexElement { Value = (ushort)(1 + nextStartIdx) });
-            indices.Add(new RootTriangleIndexElement { Value = (ushort)(2 + nextStartIdx) });
-            indices.Add(new RootTriangleIndexElement { Value = (ushort)(0 + nextStartIdx) });
-            indices.Add(new RootTriangleIndexElement { Value = (ushort)(2 + nextStartIdx) });
-            indices.Add(new RootTriangleIndexElement { Value = (ushort)(3 + nextStartIdx) });
+            indices.Add(new Index { Value = (ushort)(0 + nextStartIdx) });
+            indices.Add(new Index { Value = (ushort)(1 + nextStartIdx) });
+            indices.Add(new Index { Value = (ushort)(2 + nextStartIdx) });
+            indices.Add(new Index { Value = (ushort)(0 + nextStartIdx) });
+            indices.Add(new Index { Value = (ushort)(2 + nextStartIdx) });
+            indices.Add(new Index { Value = (ushort)(3 + nextStartIdx) });
         }
         
         // TODO: Move this to MeshUtils...
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AddImageVertices(
-            this ref NativeList<RootVertexData> buffer, 
+            this ref NativeList<Vertex> buffer, 
             float4 position,
             SpriteData data, 
             Color32 color) {
@@ -48,7 +48,7 @@ namespace UGUIDOTS.Render {
             var normalColor = color.ToNormalizedFloat4();
             var uv2         = new float2(1);
 
-            buffer.Add(new RootVertexData {
+            buffer.Add(new Vertex {
                 Color    = normalColor,
                 Normal   = new float3(0, 0, -1),
                 Position = new float3(position.xy, 0),
@@ -56,7 +56,7 @@ namespace UGUIDOTS.Render {
                 UV2      = uv2
             });
 
-            buffer.Add(new RootVertexData {
+            buffer.Add(new Vertex {
                 Color    = normalColor,
                 Normal   = new float3(0, 0, -1),
                 Position = new float3(position.xw, 0),
@@ -64,7 +64,7 @@ namespace UGUIDOTS.Render {
                 UV2      = uv2
             });
 
-            buffer.Add(new RootVertexData {
+            buffer.Add(new Vertex {
                 Color    = normalColor,
                 Normal   = new float3(0, 0, -1),
                 Position = new float3(position.zw, 0),
@@ -72,7 +72,7 @@ namespace UGUIDOTS.Render {
                 UV2      = uv2
             });
 
-            buffer.Add(new RootVertexData {
+            buffer.Add(new Vertex {
                 Color    = normalColor,
                 Normal   = new float3(0, 0, -1),
                 Position = new float3(position.zy, 0),
@@ -82,7 +82,7 @@ namespace UGUIDOTS.Render {
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float4 BuildImageVertexData(
+        public static float4 CreateImagePositionData(
             DefaultSpriteResolution resolution, 
             SpriteData spriteData, 
             Dimension dimension, 

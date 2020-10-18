@@ -13,7 +13,7 @@ namespace UGUIDOTS.Render.Systems {
         protected override void OnUpdate() {
             var cmdBuffer = commandBufferSystem.CreateCommandBuffer();
 
-            Entities.WithNone<RootVertexData>().ForEach((Entity entity, ref ChildrenActiveMetadata c0) => {
+            Entities.WithNone<Vertex>().ForEach((Entity entity, ref ChildrenActiveMetadata c0) => {
                 c0.Dispose();
 
                 cmdBuffer.RemoveComponent<ChildrenActiveMetadata>(entity);

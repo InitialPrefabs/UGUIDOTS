@@ -5,6 +5,7 @@ using UnityEngine;
 
 namespace UGUIDOTS.Render.Systems {
 
+    [UpdateAfter(typeof(BuildRenderHierarchySystem))]
     public class UpdateMeshSliceSystem : SystemBase {
 
         private EntityCommandBufferSystem cmdBufferSystem;
@@ -15,7 +16,7 @@ namespace UGUIDOTS.Render.Systems {
 
         protected unsafe override void OnUpdate() {
             var cmdBuffer     = cmdBufferSystem.CreateCommandBuffer();
-            var vertexBuffers = GetBufferFromEntity<RootVertexData>(false);
+            var vertexBuffers = GetBufferFromEntity<Vertex>(false);
             var screenSpace   = GetComponentDataFromEntity<ScreenSpace>(true);
 
             Entities.WithAll<UpdateSliceTag, ScreenSpace>().ForEach(
@@ -36,10 +37,10 @@ namespace UGUIDOTS.Render.Systems {
                 };
 
                 // TODO: Check if I have to do a recursive strategy - collect all the parent scales
-                var position = ImageUtils.BuildImageVertexData(c4, c3, dim, current.AsMatrix(), scale);
+                var position = ImageUtils.CreateImagePositionData(c4, c3, dim, current.AsMatrix(), scale);
 
                 ImageUtils.UpdateVertexDimension(
-                    (RootVertexData*)buffer.GetUnsafePtr(), 
+                    (Vertex*)buffer.GetUnsafePtr(), 
                     c0.VertexSpan, 
                     position);
 

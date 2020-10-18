@@ -87,7 +87,7 @@ namespace UGUIDOTS.Transforms.Systems {
                     LocalSpace[current]  = localSpace;
                     ScreenSpace[current] = screenSpace;
 
-                    // CommandBuffer.AddComponent<UpdateSliceTag>(current);;
+                    CommandBuffer.AddComponent<UpdateSliceTag>(current);;
 
                     if (Children.HasComponent(current)) {
                         RecurseAnchor(Children[current].AsNativeArray(), screenSpace, current);

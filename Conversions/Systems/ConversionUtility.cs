@@ -14,14 +14,14 @@ namespace UGUIDOTS.Conversions {
             GameObjectConversionSystem conversion, 
             Entity canvasEntity,
             TextMeshProUGUI text, 
-            ref NativeList<RootVertexData> vertexData, 
-            ref NativeList<RootTriangleIndexElement> indexData) {
+            ref NativeList<Vertex> vertexData, 
+            ref NativeList<Index> indexData) {
 
             // TODO: Generate an entity with all the glyphs stored as a hash map.
-            var textEntity = conversion.GetPrimaryEntity(text);
+            var textEntity     = conversion.GetPrimaryEntity(text);
             var textFontEntity = conversion.GetPrimaryEntity(text.font);
-            var glyphTable = text.font.characterLookupTable;
-            var glyphList = new NativeList<GlyphElement>(glyphTable.Count, Allocator.Temp);
+            var glyphTable     = text.font.characterLookupTable;
+            var glyphList      = new NativeList<GlyphElement>(glyphTable.Count, Allocator.Temp);
 
             var glyphBuffer = conversion.DstEntityManager.GetBuffer<GlyphElement>(textFontEntity);
             var glyphData = new NativeArray<GlyphElement>(glyphBuffer.Length, Allocator.Temp);
@@ -87,7 +87,7 @@ namespace UGUIDOTS.Conversions {
                 var right = new float3(1, 0, 0);
                 var color = ((Color32)text.color).ToNormalizedFloat4();
 
-                vertexData.Add(new RootVertexData {
+                vertexData.Add(new Vertex {
                     Position = new float3(xPos, yPos, 0),
                     Normal = right,
                     Color = color,
@@ -95,7 +95,7 @@ namespace UGUIDOTS.Conversions {
                     UV2 = uv2
                 });
 
-                vertexData.Add(new RootVertexData {
+                vertexData.Add(new Vertex {
                     Position = new float3(xPos, yPos + size.y, 0),
                     Normal = right,
                     Color = color,
@@ -122,13 +122,13 @@ namespace UGUIDOTS.Conversions {
                 var tr = (ushort)(bl + 2);
                 var br = (ushort)(bl + 3);
 
-                indexData.Add(new RootTriangleIndexElement { Value = bl }); // 0
-                indexData.Add(new RootTriangleIndexElement { Value = tl }); // 1
-                indexData.Add(new RootTriangleIndexElement { Value = tr }); // 2
+                indexData.Add(new Index { Value = bl }); // 0
+                indexData.Add(new Index { Value = tl }); // 1
+                indexData.Add(new Index { Value = tr }); // 2
 
-                indexData.Add(new RootTriangleIndexElement { Value = bl }); // 0
-                indexData.Add(new RootTriangleIndexElement { Value = tr }); // 2
-                indexData.Add(new RootTriangleIndexElement { Value = br }); // 3
+                indexData.Add(new Index { Value = bl }); // 0
+                indexData.Add(new Index { Value = tr }); // 2
+                indexData.Add(new Index { Value = br }); // 3
 
                 start.x += glyph.Advance * padding * ltw.Scale.x;
             }
