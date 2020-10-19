@@ -53,6 +53,8 @@ namespace UGUIDOTS.Render.Systems {
                 for (int i = 0; i < chunk.Count; i++) {
                     var entity = entities[i];
                     var children = Children[entity].AsNativeArray().AsReadOnly();
+
+                    RecurseChildrenDetermineType(children, entity);
                 }
             }
 
@@ -181,6 +183,7 @@ namespace UGUIDOTS.Render.Systems {
         private EntityQuery canvasQuery;
         private EntityQuery imageQuery;
         private EntityQuery textQuery;
+        private EntityCommandBufferSystem commandBufferSystem;
 
         protected override void OnCreate() {
             canvasQuery = GetEntityQuery(new EntityQueryDesc {
@@ -194,6 +197,8 @@ namespace UGUIDOTS.Render.Systems {
             textQuery = GetEntityQuery(new EntityQueryDesc {
                 All = new [] { ComponentType.ReadOnly<CharElement>() }
             });
+
+            commandBufferSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
         }
 
         // TODO: Put this on separate threads.
@@ -236,7 +241,8 @@ namespace UGUIDOTS.Render.Systems {
                 SpriteData        = spriteData,
                 SpriteResolutions = resolutions,
                 VertexData        = vertexBuffers,
-                Images            = images
+                Images            = images,
+                CommandBuffer     = commandBufferSystem.CreateCommandBuffer()
             };
 
             imageJob.Run();

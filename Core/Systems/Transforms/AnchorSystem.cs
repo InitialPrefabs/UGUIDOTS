@@ -76,7 +76,7 @@ namespace UGUIDOTS.Transforms.Systems {
 
                     if (Children.HasComponent(current)) {
                         var grandChildren = Children[current].AsNativeArray().AsReadOnly();
-                        RecurseChildren(grandChildren, screenSpace);
+                        RecurseChildren(grandChildren, screenSpace, current, 2);
                     }
 
                     CommandBuffer.AddComponent<UpdateSliceTag>(current);
@@ -84,7 +84,7 @@ namespace UGUIDOTS.Transforms.Systems {
             }
 
             // TODO: Add a level recurse.
-            void RecurseChildren(NativeArray<Child>.ReadOnly children, ScreenSpace parentSpace) {
+            void RecurseChildren(NativeArray<Child>.ReadOnly children, ScreenSpace parentSpace, Entity parent, int hierarchyLvl) {
                 for (int i = 0; i < children.Length; i++) {
                     var current = children[i].Value;
 
@@ -94,34 +94,44 @@ namespace UGUIDOTS.Transforms.Systems {
                     // If the hierarchy depth is > 1 then the rule is similar to the the first level children if it is 
                     // just an empty gameobject. Otherwise we take relative offsets based on the parent's position.
 
-                    // TODO: Any known translation on the value needs to be kept
-                    if (Anchors.HasComponent(current)) {
-                        var anchor      = Anchors[current];
-                        screenSpace.Translation = (parentSpace.Translation + anchor.Offset * screenSpace.Scale);
-                        localSpace.Translation = (screenSpace.Translation - parentSpace.Translation);
+                    var anchor = Anchors[current];
+                    var isParentRenderable = LinkedMaterials.HasComponent(parent);
+                    var parentScreenSpace = ScreenSpace[current];
+
+                    // TODO: Rules for text are different too
+                    // If the parent is an empty gameObject and we're on a hierarchy level of 2
+                    if (hierarchyLvl == 2 && !isParentRenderable) {
+                        var newScreenPos = anchor.RelativeAnchorTo(Resolution);
+
+                        screenSpace.Translation = newScreenPos;
+                        localSpace.Translation = (newScreenPos - (Resolution / 2));
 
                         ScreenSpace[current] = screenSpace;
                         LocalSpace[current] = localSpace;
+                    } else if (Anchors.HasComponent(current)) {
+                        // TODO: Any known translation on the value needs to be kept
+                        // TODO: Scale is not taken into account.                       
+                        if (isParentRenderable) {
+                            var parentDims = Dimensions[parent];
+                            var pos = anchor.RelativeAnchorTo(parentDims.Int2Size(), parentScreenSpace.Translation);
+
+                            screenSpace.Translation = pos;
+                            localSpace.Translation  = (pos - parentScreenSpace.Translation);
+                            
+                        } else {
+                            screenSpace.Translation = (parentSpace.Translation + anchor.Offset * screenSpace.Scale);
+                            localSpace.Translation  = (screenSpace.Translation - parentSpace.Translation);
+                        }
+
+                        ScreenSpace[current] = screenSpace;
+                        LocalSpace[current]  = localSpace;
                     }
 
                     if (Children.HasComponent(current)) {
-                        RecurseChildren(Children[current].AsNativeArray().AsReadOnly(), screenSpace);
+                        RecurseChildren(Children[current].AsNativeArray().AsReadOnly(), screenSpace, current, hierarchyLvl + 1);
                     }
                     CommandBuffer.AddComponent<UpdateSliceTag>(current);
                 }
-            }
-
-            float2 GetAnchoredPosition(Entity current, float2 parentLTW, float2 scale, Anchor anchor) {
-                // var isParentVisual = Parents.HasComponent(current) && LinkedMaterials.HasComponent(current);
-
-                // if (isParentVisual) {
-                //     var dimenions      = Dimensions[current].Value;
-                //     var relativeAnchor = anchor.State.AnchoredToRelative(dimenions) * scale;
-                //     return parentLTW + relativeAnchor;
-                // }
-
-                // return anchor.State.AnchoredToRelative(Resolution);
-                return default;
             }
         }
 

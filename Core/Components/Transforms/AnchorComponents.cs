@@ -124,6 +124,12 @@ namespace UGUIDOTS.Transforms {
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float2 RelativeAnchorTo(this in Anchor anchor, int2 size, float2 center) {
+            var relativeAnchorOffset = anchor.RelativeAnchorTo(size);
+            return relativeAnchorOffset + center;
+        }
+
         /// <summary>
         /// Switches TextAnchor to their AnchoredState equivalent.
         /// </summary>
