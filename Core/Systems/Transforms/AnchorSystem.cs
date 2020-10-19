@@ -60,64 +60,54 @@ namespace UGUIDOTS.Transforms.Systems {
                 for (int i = 0; i < rootChildren.Length; i++) {
                     var current = rootChildren[i].Value;
 
-                    if (Streched.HasComponent(current)) {
-                        continue;
-                    }
-
-                    var anchor       = Anchors[current];
                     var screenSpace  = ScreenSpace[current];
-                    var newScreenPos = anchor.RelativeAnchorTo(Resolution);
                     var localSpace   = LocalSpace[current];
 
-                    localSpace.Translation = (newScreenPos - (Resolution / 2));
+                    if (!Streched.HasComponent(current)) {
+                        var anchor       = Anchors[current];
+                        var newScreenPos = anchor.RelativeAnchorTo(Resolution);
 
-                    screenSpace.Translation = newScreenPos;
-                    ScreenSpace[current]    = screenSpace;
-                    LocalSpace[current]     = localSpace;
+                        localSpace.Translation = (newScreenPos - (Resolution / 2));
+
+                        screenSpace.Translation = newScreenPos;
+                        ScreenSpace[current]    = screenSpace;
+                        LocalSpace[current]     = localSpace;
+                    }
+
+                    if (Children.HasComponent(current)) {
+                        var grandChildren = Children[current].AsNativeArray().AsReadOnly();
+                        RecurseChildren(grandChildren, screenSpace);
+                    }
 
                     CommandBuffer.AddComponent<UpdateSliceTag>(current);
                 }
             }
 
-            void RecurseChildren(NativeArray<Child>.ReadOnly children, ScreenSpace parentSpace, Entity parent) {
-                var m_Inverse = math.inverse(parentSpace.AsMatrix());
-
+            // TODO: Add a level recurse.
+            void RecurseChildren(NativeArray<Child>.ReadOnly children, ScreenSpace parentSpace) {
                 for (int i = 0; i < children.Length; i++) {
                     var current = children[i].Value;
 
-                    if (!Anchors.HasComponent(current)) {
-                        continue;
-                    }
-
-                    var anchor      = Anchors[current];
-                    var dimensions  = Dimensions[parent];
-                    var localSpace  = LocalSpace[current];
                     var screenSpace = ScreenSpace[current];
+                    var localSpace  = LocalSpace[current];
 
-                    var anchoredPos   = GetAnchoredPosition(current, parentSpace.Translation, parentSpace.Scale, anchor);
-                    var adjustedSpace = anchoredPos + (anchor.Offset * parentSpace.Scale);
+                    // If the hierarchy depth is > 1 then the rule is similar to the the first level children if it is 
+                    // just an empty gameobject. Otherwise we take relative offsets based on the parent's position.
 
-                    var mWorld        = float4x4.TRS(new float3(anchoredPos, 0), quaternion.identity, new float3(screenSpace.Scale, 1));
-                    var localToParent = math.mul(m_Inverse, mWorld);
+                    // TODO: Any known translation on the value needs to be kept
+                    if (Anchors.HasComponent(current)) {
+                        var anchor      = Anchors[current];
+                        screenSpace.Translation = (parentSpace.Translation + anchor.Offset * screenSpace.Scale);
+                        localSpace.Translation = (screenSpace.Translation - parentSpace.Translation);
 
-                    // localSpace      = new LocalSpace {
-                    //     Scale       = localToParent.Scale().xy,
-                    //     Translation = localToParent.Position().xy
-                    // };
-
-                    screenSpace = new ScreenSpace {
-                        Scale            = screenSpace.Scale,
-                        Translation      = anchoredPos
-                    };
-
-                    LocalSpace[current]  = localSpace;
-                    ScreenSpace[current] = screenSpace;
-
-                    CommandBuffer.AddComponent<UpdateSliceTag>(current);;
+                        ScreenSpace[current] = screenSpace;
+                        LocalSpace[current] = localSpace;
+                    }
 
                     if (Children.HasComponent(current)) {
-                        RecurseChildren(Children[current].AsNativeArray().AsReadOnly(), screenSpace, current);
+                        RecurseChildren(Children[current].AsNativeArray().AsReadOnly(), screenSpace);
                     }
+                    CommandBuffer.AddComponent<UpdateSliceTag>(current);
                 }
             }
 
