@@ -32,7 +32,7 @@ namespace UGUIDOTS.Conversions.Systems {
                     var hierarchy = bakedData.Transforms[idx];
                     var root = canvas.transform;
 
-                    DstEntityManager.SetComponentData(canvasEntity, new ScreenSpace {
+                    DstEntityManager.AddComponentData(canvasEntity, new ScreenSpace {
                         Scale       = hierarchy.WScale,
                         Translation = hierarchy.WPosition
                     });

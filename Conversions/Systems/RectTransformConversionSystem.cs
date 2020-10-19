@@ -18,8 +18,8 @@ namespace UGUIDOTS.Conversions.Systems {
 
                     // Adding the anchors - which is taking the anchored position
                     DstEntityManager.AddComponentData(entity, new Anchor {
-                        Distance = transform.anchoredPosition,
-                        State    = transform.ToAnchor()
+                        Offset = transform.anchoredPosition,
+                        State  = transform.ToAnchor()
                     });
 
                     var rectSize = transform.Int2Size();

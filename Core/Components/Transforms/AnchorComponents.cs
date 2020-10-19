@@ -30,11 +30,11 @@ namespace UGUIDOTS.Transforms {
 
     /// <summary>
     /// Attempts to mimic Unity's anchoring data. This stores an unscaled distance to an anchor 
-    /// relative to its aprents and the anchor state.
+    /// relative to its parent's position.
     /// </summary>
     public struct Anchor : IComponentData {
+        public float2 Offset;
         public AnchoredState State;
-        public float2 Distance;
     }
 
     public static class AnchorExtensions {
@@ -43,68 +43,6 @@ namespace UGUIDOTS.Transforms {
         internal static int ShiftRightBy(this AnchoredState state, int shift) {
             var value = (int)state;
             return value >> shift;
-        }
-
-        /// <summary>
-        /// Returns the position that the anchor is supposedly anchored to.
-        /// </summary>
-        /// <param name="state">The current state of the anchor.</param>
-        /// <param name="res">The current resolution we want to consider.</param>
-        /// <returns>The relative screenspace position that the anchor is referencing.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int2 AnchoredTo(this AnchoredState state, int2 res) {
-            switch (state) {
-                case AnchoredState.BottomLeft:
-                    return default;
-                case AnchoredState.MiddleLeft:
-                    return new int2(0, res.y / 2);
-                case AnchoredState.TopLeft:
-                    return new int2(0, res.y);
-                case AnchoredState.BottomCenter:
-                    return new int2(res.x / 2, 0);
-                case AnchoredState.MiddleCenter:
-                    return res / 2;
-                case AnchoredState.TopCenter:
-                    return new int2(res.x / 2, res.y);
-                case AnchoredState.BottomRight:
-                    return new int2(res.x, 0);
-                case AnchoredState.MiddleRight:
-                    return new int2(res.x, res.y / 2);
-                case AnchoredState.TopRight:
-                    return res;
-                default:
-                    throw new System.ArgumentException($"{state} is not a valid anchor!");
-            }
-        }
-
-        /// <summary>
-        /// Computes the relative anchor in local space given a resolution.
-        /// </summary>
-        /// <param name="res">The element's parent's current dimension</param><z
-        /// <returns>The anchor in local space</returns>
-        public static int2 AnchoredToRelative(this AnchoredState state, int2 res) {
-            switch (state) {
-                case AnchoredState.BottomLeft:
-                    return -res / 2;
-                case AnchoredState.MiddleLeft:
-                    return new int2(-res.x / 2, 0);
-                case AnchoredState.TopLeft:
-                    return new int2(-res.x / 2, res.y / 2);
-                case AnchoredState.BottomCenter:
-                    return new int2(0, -res.y / 2);
-                case AnchoredState.MiddleCenter:
-                    return new int2(0, 0);
-                case AnchoredState.TopCenter:
-                    return new int2(0, res.y / 2);
-                case AnchoredState.BottomRight:
-                    return new int2(res.x / 2, -res.y / 2);
-                case AnchoredState.MiddleRight:
-                    return new int2(res.x / 2, 0);
-                case AnchoredState.TopRight:
-                    return res / 2;
-                default:
-                    throw new System.ArgumentException($"{state} is not a valid anchor!");
-            }
         }
 
         /// <summary>
@@ -158,6 +96,32 @@ namespace UGUIDOTS.Transforms {
             }
 
             return anchor;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float2 RelativeAnchorTo(this in Anchor anchor, int2 resolution) {
+            switch (anchor.State) {
+                case AnchoredState.BottomLeft:
+                    return float2.zero + anchor.Offset;
+                case AnchoredState.MiddleLeft:
+                    return new float2(0, resolution.y / 2) + anchor.Offset;
+                case AnchoredState.TopLeft:
+                    return new float2(0, resolution.y) + anchor.Offset;
+                case AnchoredState.BottomCenter:
+                    return new float2(resolution.x / 2, 0) + anchor.Offset;
+                case AnchoredState.MiddleCenter:
+                    return new float2(resolution / 2) + anchor.Offset;
+                case AnchoredState.TopCenter:
+                    return new float2(resolution.x / 2, resolution.y) + anchor.Offset;
+                case AnchoredState.BottomRight:
+                    return new float2(resolution.x, 0) + anchor.Offset;
+                case AnchoredState.MiddleRight:
+                    return new float2(resolution.x, resolution.y / 2) + anchor.Offset;
+                case AnchoredState.TopRight:
+                    return resolution + anchor.Offset;
+                default:
+                    throw new System.ArgumentException("Anchored State is invalid!");
+            }
         }
 
         /// <summary>
