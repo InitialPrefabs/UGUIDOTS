@@ -99,24 +99,24 @@ namespace UGUIDOTS.Transforms {
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float2 RelativeAnchorTo(this in Anchor anchor, int2 resolution) {
+        public static float2 RelativeAnchorTo(this in Anchor anchor, int2 resolution, float2 scale) {
             switch (anchor.State) {
                 case AnchoredState.BottomLeft:
-                    return float2.zero + anchor.Offset;
+                    return float2.zero + anchor.Offset * scale;
                 case AnchoredState.MiddleLeft:
-                    return new float2(0, resolution.y / 2) + anchor.Offset;
+                    return new float2(0, resolution.y / 2) + anchor.Offset * scale;
                 case AnchoredState.TopLeft:
-                    return new float2(0, resolution.y) + anchor.Offset;
+                    return new float2(0, resolution.y) + anchor.Offset * scale;
                 case AnchoredState.BottomCenter:
-                    return new float2(resolution.x / 2, 0) + anchor.Offset;
+                    return new float2(resolution.x / 2, 0) + anchor.Offset * scale;
                 case AnchoredState.MiddleCenter:
-                    return new float2(resolution / 2) + anchor.Offset;
+                    return new float2(resolution / 2) + anchor.Offset * scale;
                 case AnchoredState.TopCenter:
-                    return new float2(resolution.x / 2, resolution.y) + anchor.Offset;
+                    return new float2(resolution.x / 2, resolution.y) + anchor.Offset * scale;
                 case AnchoredState.BottomRight:
-                    return new float2(resolution.x, 0) + anchor.Offset;
+                    return new float2(resolution.x, 0) + anchor.Offset * scale;
                 case AnchoredState.MiddleRight:
-                    return new float2(resolution.x, resolution.y / 2) + anchor.Offset;
+                    return new float2(resolution.x, resolution.y / 2) + anchor.Offset * scale;
                 case AnchoredState.TopRight:
                     return resolution + anchor.Offset;
                 default:
@@ -125,8 +125,8 @@ namespace UGUIDOTS.Transforms {
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float2 RelativeAnchorTo(this in Anchor anchor, int2 size, float2 center) {
-            var relativeAnchorOffset = anchor.RelativeAnchorTo(size);
+        public static float2 RelativeAnchorTo(this in Anchor anchor, int2 size, float2 scale, float2 center) {
+            var relativeAnchorOffset = anchor.RelativeAnchorTo(size, scale);
             return relativeAnchorOffset + center;
         }
 

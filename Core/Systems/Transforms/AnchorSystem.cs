@@ -65,13 +65,14 @@ namespace UGUIDOTS.Transforms.Systems {
 
                     if (!Streched.HasComponent(current)) {
                         var anchor       = Anchors[current];
-                        var newScreenPos = anchor.RelativeAnchorTo(Resolution);
+                        var newScreenPos = anchor.RelativeAnchorTo(Resolution, root.Scale);
 
                         localSpace.Translation = (newScreenPos - (Resolution / 2));
 
                         screenSpace.Translation = newScreenPos;
                         ScreenSpace[current]    = screenSpace;
                         LocalSpace[current]     = localSpace;
+                        Debug.DrawLine(new float3(newScreenPos, 0), new float3(newScreenPos + new float2(0, 1), 0));
                     }
 
                     if (Children.HasComponent(current)) {
@@ -83,8 +84,9 @@ namespace UGUIDOTS.Transforms.Systems {
                 }
             }
 
-            // TODO: Add a level recurse.
             void RecurseChildren(NativeArray<Child>.ReadOnly children, ScreenSpace parentSpace, Entity parent, int hierarchyLvl) {
+
+                // TODO: Rework the Anchor System because I still don't have all the rules down.
                 for (int i = 0; i < children.Length; i++) {
                     var current = children[i].Value;
 
@@ -94,21 +96,25 @@ namespace UGUIDOTS.Transforms.Systems {
                     // If the hierarchy depth is > 1 then the rule is similar to the the first level children if it is 
                     // just an empty gameobject. Otherwise we take relative offsets based on the parent's position.
 
-                    var anchor = Anchors[current];
                     var isParentRenderable = LinkedMaterials.HasComponent(parent);
                     var parentScreenSpace = ScreenSpace[current];
 
                     // TODO: Rules for text are different too
                     // If the parent is an empty gameObject and we're on a hierarchy level of 2
                     if (hierarchyLvl == 2 && !isParentRenderable) {
-                        var newScreenPos = anchor.RelativeAnchorTo(Resolution);
+                        var anchor = Anchors[current];
+                        // TODO: Properly handle scale.
+                        var newScreenPos = anchor.RelativeAnchorTo(Resolution, new float2(1));
 
                         screenSpace.Translation = newScreenPos;
                         localSpace.Translation = (newScreenPos - (Resolution / 2));
 
                         ScreenSpace[current] = screenSpace;
                         LocalSpace[current] = localSpace;
-                    } else if (Anchors.HasComponent(current)) {
+                    } 
+                    else if (Anchors.HasComponent(current)) {
+                        var anchor = Anchors[current];
+
                         // TODO: Any known translation on the value needs to be kept
                         // TODO: Scale is not taken into account.                       
                         if (isParentRenderable) {

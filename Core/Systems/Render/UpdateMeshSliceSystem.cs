@@ -30,19 +30,19 @@ namespace UGUIDOTS.Render.Systems {
                 var adjustedWidth = c2.Value.x * root.Scale.x;
                 var scale         = (float)c2.Value.x / adjustedWidth;
 
-                var width = c2.Value.x * scale;
-                var height = c2.Value.y * scale;
-                var dim = new Dimension {
-                    Value = new int2((int)width, (int)height)
-                };
+                // var width = c2.Value.x * scale;
+                // var height = c2.Value.y * scale;
+                // var dim = new Dimension {
+                //     Value = new int2((int)width, (int)height)
+                // };
 
-                // TODO: Check if I have to do a recursive strategy - collect all the parent scales
-                var position = ImageUtils.CreateImagePositionData(c4, c3, dim, current.AsMatrix(), scale);
+                // // TODO: Check if I have to do a recursive strategy - collect all the parent scales
+                // var position = ImageUtils.CreateImagePositionData(c4, c3, dim, current, scale);
 
-                ImageUtils.UpdateVertexDimension(
-                    (Vertex*)buffer.GetUnsafePtr(), 
-                    c0.VertexSpan, 
-                    position);
+                // ImageUtils.UpdateVertexDimension(
+                //     (Vertex*)buffer.GetUnsafePtr(), 
+                //     c0.VertexSpan, 
+                //     position);
 
                 // Remove the update slice tag and add the RebuildMeshTag to the root canvas
                 cmdBuffer.RemoveComponent<UpdateSliceTag>(entity);

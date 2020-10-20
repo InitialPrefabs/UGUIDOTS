@@ -13,7 +13,6 @@ namespace UGUIDOTS.Render.Systems {
     /**
      * Maybe per canvas, grab all of the Images and Text entities. Build all static content first.
      */
-    [UpdateAfter(typeof(AnchorSystem))]
     public class BuildRenderHierarchySystem : SystemBase {
 
         struct Pair {
@@ -122,18 +121,22 @@ namespace UGUIDOTS.Render.Systems {
                     var rootTransform = ScreenSpaces[pair.Root];
 
                     // Build the image data
-                    var spriteData = SpriteData[pair.Child];
-                    var resolution = SpriteResolutions[pair.Child];
-                    var dimension  = Dimensions[pair.Child];
-                    var m          = ScreenSpaces[pair.Child].AsMatrix();
-                    var color      = Colors[pair.Child].Value.ToNormalizedFloat4();
+                    var spriteData  = SpriteData[pair.Child];
+                    var resolution  = SpriteResolutions[pair.Child];
+                    var dimension   = Dimensions[pair.Child];
+                    var screenSpace = ScreenSpaces[pair.Child];
+                    var color       = Colors[pair.Child].Value.ToNormalizedFloat4();
 
-                    var minMax = ImageUtils.CreateImagePositionData(
-                        resolution, spriteData, dimension, m, rootTransform.Scale.x);
+                    var minMax = ImageUtils.CreateImagePositionData(resolution, spriteData, dimension, screenSpace, 
+                        rootTransform.Scale.x);
 
                     var span = MeshDataSpans[pair.Child];
 
-                    UpdateVertexSpan(tempImageData, pair.Child, minMax, spriteData, color);
+                    if (span.VertexSpan.Equals(new int2(0, 4)) && color.Equals(new float4(1, 0, 0, 1))) {
+                        UnityEngine.Debug.Log($"MinMax: {minMax}, Screen: {screenSpace.Translation}");
+                    }
+
+                    UpdateVertexSpan(tempImageData, minMax, spriteData, color);
 
                     unsafe {
                         var dst  = (Vertex*)vertices.GetUnsafePtr() + span.VertexSpan.x;
@@ -145,7 +148,7 @@ namespace UGUIDOTS.Render.Systems {
                 }
             }
 
-            void UpdateVertexSpan(NativeArray<Vertex> vertices, Entity image, float4 minMax, SpriteData data, float4 color) {
+            void UpdateVertexSpan(NativeArray<Vertex> vertices, float4 minMax, SpriteData data, float4 color) {
                 vertices[0]  = new Vertex {
                     Color    = color,
                     Normal   = new float3(0, 0, -1),

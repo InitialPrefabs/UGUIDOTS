@@ -92,14 +92,14 @@ namespace UGUIDOTS.Conversions.Systems {
                     if (gameObject.TryGetComponent(out Image image)) {
                         var indexOffset  = indexData.Length;
                         var vertexOffset = vertexData.Length;
-                        var m            = DstEntityManager.GetComponentData<ScreenSpace>(entity).AsMatrix();
+                        var screenSpace  = DstEntityManager.GetComponentData<ScreenSpace>(entity);
 
                         var spriteData = DstEntityManager.GetComponentData<SpriteData>(entity);
                         var resolution = DstEntityManager.GetComponentData<DefaultSpriteResolution>(entity);
                         var dim        = DstEntityManager.GetComponentData<Dimension>(entity);
                         var color      = DstEntityManager.GetComponentData<AppliedColor>(entity);
 
-                        var minMax = ImageUtils.CreateImagePositionData(resolution, spriteData, dim, m);
+                        var minMax = ImageUtils.CreateImagePositionData(resolution, spriteData, dim, screenSpace);
                         
                         // Add 4 vertices for simple images
                         // TODO: Support 9 slicing images - which will generate 16 vertices
