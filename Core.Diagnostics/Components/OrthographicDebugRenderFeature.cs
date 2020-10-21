@@ -8,11 +8,9 @@ namespace UGUIDOTS.Core.Diagnostics {
         internal CommandBuffer CommandBuffer;
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData) {
-#if UNITY_EDITOR
-            if (CommandBuffer == null) {
+            if (CommandBuffer == null || renderingData.cameraData.isSceneViewCamera) {
                 return;
             }
-#endif
             context.ExecuteCommandBuffer(CommandBuffer);
         }
     }
