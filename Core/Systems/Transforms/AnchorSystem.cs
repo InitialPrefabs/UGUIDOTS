@@ -72,19 +72,18 @@ namespace UGUIDOTS.Transforms.Systems {
                         screenSpace.Translation = newScreenPos;
                         ScreenSpace[current]    = screenSpace;
                         LocalSpace[current]     = localSpace;
-                        Debug.DrawLine(new float3(newScreenPos, 0), new float3(newScreenPos + new float2(0, 1), 0));
                     }
 
                     if (Children.HasComponent(current)) {
                         var grandChildren = Children[current].AsNativeArray().AsReadOnly();
-                        RecurseChildren(grandChildren, screenSpace, current, 2);
+                        RecurseChildren(grandChildren, screenSpace, current, root.Scale, 2);
                     }
 
                     CommandBuffer.AddComponent<UpdateSliceTag>(current);
                 }
             }
 
-            void RecurseChildren(NativeArray<Child>.ReadOnly children, ScreenSpace parentSpace, Entity parent, int hierarchyLvl) {
+            void RecurseChildren(NativeArray<Child>.ReadOnly children, ScreenSpace parentSpace, Entity parent, float2 rootScale, int hierarchyLvl) {
 
                 // TODO: Rework the Anchor System because I still don't have all the rules down.
                 for (int i = 0; i < children.Length; i++) {
@@ -104,10 +103,10 @@ namespace UGUIDOTS.Transforms.Systems {
                     if (hierarchyLvl == 2 && !isParentRenderable) {
                         var anchor = Anchors[current];
                         // TODO: Properly handle scale.
-                        var newScreenPos = anchor.RelativeAnchorTo(Resolution, new float2(1));
+                        var newScreenPos = anchor.RelativeAnchorTo(Resolution, new float2(rootScale));
 
                         screenSpace.Translation = newScreenPos;
-                        localSpace.Translation = (newScreenPos - (Resolution / 2));
+                        localSpace.Translation = (newScreenPos - Resolution / 2);
 
                         ScreenSpace[current] = screenSpace;
                         LocalSpace[current] = localSpace;
@@ -116,14 +115,15 @@ namespace UGUIDOTS.Transforms.Systems {
                         var anchor = Anchors[current];
 
                         // TODO: Any known translation on the value needs to be kept
-                        // TODO: Scale is not taken into account.                       
                         if (isParentRenderable) {
                             var parentDims = Dimensions[parent];
-                            var pos = anchor.RelativeAnchorTo(parentDims.Int2Size(), parentScreenSpace.Translation);
+                            var pos = anchor.RelativeAnchorTo(
+                                parentDims.Int2Size(), 
+                                parentScreenSpace.Scale, 
+                                parentScreenSpace.Translation);
 
                             screenSpace.Translation = pos;
                             localSpace.Translation  = (pos - parentScreenSpace.Translation);
-                            
                         } else {
                             screenSpace.Translation = (parentSpace.Translation + anchor.Offset * screenSpace.Scale);
                             localSpace.Translation  = (screenSpace.Translation - parentSpace.Translation);
@@ -134,7 +134,8 @@ namespace UGUIDOTS.Transforms.Systems {
                     }
 
                     if (Children.HasComponent(current)) {
-                        RecurseChildren(Children[current].AsNativeArray().AsReadOnly(), screenSpace, current, hierarchyLvl + 1);
+                        var grandChildren = Children[current].AsNativeArray().AsReadOnly();
+                        RecurseChildren(grandChildren, screenSpace, current, rootScale, hierarchyLvl + 1);
                     }
                     CommandBuffer.AddComponent<UpdateSliceTag>(current);
                 }

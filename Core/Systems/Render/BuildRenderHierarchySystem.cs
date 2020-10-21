@@ -13,6 +13,7 @@ namespace UGUIDOTS.Render.Systems {
     /**
      * Maybe per canvas, grab all of the Images and Text entities. Build all static content first.
      */
+    [DisableAutoCreation]
     public class BuildRenderHierarchySystem : SystemBase {
 
         struct Pair {

@@ -7,7 +7,7 @@ using UnityEngine.Rendering;
 
 namespace UGUIDOTS.Render.Systems {
 
-    [UpdateInGroup(typeof(MeshRenderGroup))]
+    [DisableAutoCreation]
     public class OrthographicRenderSystem : SystemBase {
 
         private CommandBuffer cmd;

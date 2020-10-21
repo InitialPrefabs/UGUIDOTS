@@ -5,6 +5,7 @@ using UnityEngine;
 
 namespace UGUIDOTS.Render.Systems {
 
+    [DisableAutoCreation]
     [UpdateAfter(typeof(BuildRenderHierarchySystem))]
     public class UpdateMeshSliceSystem : SystemBase {
 
