@@ -1,18 +1,19 @@
-using System.Collections;
-using System.Collections.Generic;
+using System;
+using Unity.Entities;
 using UnityEngine;
 
-public class DebugRenderComponents : MonoBehaviour
-{
-    // Start is called before the first frame update
-    void Start()
-    {
-        
+namespace UGUIDOTS.Core.Diagnostics {
+
+    internal struct DebugColor : IComponentData {
+        internal Color32 Value;
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
+    internal class DebugRenderCommand : IComponentData, IEquatable<DebugRenderCommand> {
+
+        internal OrthographicDebugRenderFeature Value;
+
+        public bool Equals(DebugRenderCommand other) {
+            return other.Value == Value;
+        }
     }
 }

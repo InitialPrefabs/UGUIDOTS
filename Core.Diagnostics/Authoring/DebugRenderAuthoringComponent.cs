@@ -1,18 +1,19 @@
-using System.Collections;
-using System.Collections.Generic;
+using Unity.Entities;
 using UnityEngine;
 
-public class DebugRenderAuthoringComponent : MonoBehaviour
-{
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+namespace UGUIDOTS.Core.Diagnostics {
 
-    // Update is called once per frame
-    void Update()
-    {
-        
+    public class DebugRenderAuthoringComponent : MonoBehaviour, IConvertGameObjectToEntity {
+
+#pragma warning disable 649
+        [SerializeField]
+        private OrthographicDebugRenderFeature renderFeature;
+#pragma warning restore 649
+
+        public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem) {
+            dstManager.AddComponentData(entity, new DebugRenderCommand {
+                Value = renderFeature
+            });
+        }
     }
 }

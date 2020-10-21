@@ -1,18 +1,29 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+using UGUIDOTS.Transforms;
+using Unity.Entities;
+using UnityEngine.Rendering;
 
-public class OrthographicDebugRenderSystem : MonoBehaviour
-{
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+namespace UGUIDOTS.Core.Diagnostics.Systems {
 
-    // Update is called once per frame
-    void Update()
-    {
+    [UpdateInGroup(typeof(SimulationSystemGroup), OrderLast = true)]
+    public class OrthographicDebugRenderSystem : SystemBase {
+
+        private CommandBuffer cmdBuffer;
+
+        protected override void OnCreate() {
+            cmdBuffer = CommandBufferPool.Get("Orthographic Render Debug");
+        }
         
+        protected override void OnStartRunning() {
+            Entities.ForEach((DebugRenderCommand c0) => {
+                c0.Value.CommandBuffer = cmdBuffer;
+            }).WithoutBurst().Run();
+        }
+
+        protected override void OnUpdate() {
+            Entities.ForEach((in ScreenSpace c0) => {
+                // TODO: Generate a mesh - pretty much a dot.
+                // Draw all the dots in screen space.
+            }).WithoutBurst().Run();;
+        }
     }
 }
