@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 using Unity.Burst;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
@@ -56,4 +57,12 @@ namespace UGUIDOTS {
     /// Marks the vertex/index buffers need to be copied into the mesh.
     /// </summary>
     public struct BatchCanvasTag : IComponentData { }
+
+    public static class CanvasExtensions {
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float AspectRatio(this in ReferenceResolution value) {
+            return value.Value.x / value.Value.y;
+        }
+    }
 }

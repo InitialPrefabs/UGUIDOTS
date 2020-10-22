@@ -11,7 +11,6 @@ namespace UGUIDOTS.Transforms.Systems {
     /// <summary>
     /// Recomputes the anchors if the resolution changes.
     /// </summary>
-    [UpdateAfter(typeof(CanvasScalerSystem))]
     public unsafe class AnchorSystem : SystemBase {
 
         [BurstCompile]
@@ -47,7 +46,8 @@ namespace UGUIDOTS.Transforms.Systems {
             public ComponentDataFromEntity<ScreenSpace> ScreenSpace;
 
             public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex) {
-                var entities        = chunk.GetNativeArray(EntityType);
+                var entities    = chunk.GetNativeArray(EntityType);
+
                 for (int i          = 0; i < chunk.Count; i++) {
                     var parent      = entities[i];
                     var screenSpace = ScreenSpace[parent];
@@ -68,12 +68,15 @@ namespace UGUIDOTS.Transforms.Systems {
                         var anchor       = Anchors[current];
                         var newScreenPos = anchor.RelativeAnchorTo(Resolution, root.Scale);
 
-                        localSpace.Translation = (newScreenPos - (Resolution / 2));
-
+                        localSpace.Translation = (newScreenPos - (Resolution / 2)) / root.Scale;
                         screenSpace.Translation = newScreenPos;
-                        ScreenSpace[current]    = screenSpace;
-                        LocalSpace[current]     = localSpace;
+                    } else {
+                        localSpace.Translation = default;
+                        screenSpace.Translation = Resolution / 2;
                     }
+
+                    ScreenSpace[current]    = screenSpace;
+                    LocalSpace[current]     = localSpace;
 
                     if (Children.HasComponent(current)) {
                         var grandChildren = Children[current].AsNativeArray().AsReadOnly();
@@ -98,17 +101,16 @@ namespace UGUIDOTS.Transforms.Systems {
                     // just an empty gameobject. Otherwise we take relative offsets based on the parent's position.
 
                     var isParentRenderable = LinkedMaterials.HasComponent(parent);
-                    var parentScreenSpace = ScreenSpace[current];
 
                     // TODO: Rules for text are different too
                     // If the parent is an empty gameObject and we're on a hierarchy level of 2
                     if (hierarchyLvl == 2 && !isParentRenderable) {
                         var anchor = Anchors[current];
                         // TODO: Properly handle scale.
-                        var newScreenPos = anchor.RelativeAnchorTo(Resolution, new float2(rootScale));
+                        var newScreenPos = anchor.RelativeAnchorTo(Resolution, rootScale);
 
                         screenSpace.Translation = newScreenPos;
-                        localSpace.Translation = (newScreenPos - Resolution / 2);
+                        localSpace.Translation = (newScreenPos - Resolution / 2) / rootScale;
 
                         ScreenSpace[current] = screenSpace;
                         LocalSpace[current] = localSpace;
@@ -121,14 +123,14 @@ namespace UGUIDOTS.Transforms.Systems {
                             var parentDims = Dimensions[parent];
                             var pos = anchor.RelativeAnchorTo(
                                 parentDims.Int2Size(), 
-                                parentScreenSpace.Scale, 
-                                parentScreenSpace.Translation);
+                                parentSpace.Scale, 
+                                parentSpace.Translation);
 
                             screenSpace.Translation = pos;
-                            localSpace.Translation  = (pos - parentScreenSpace.Translation);
+                            localSpace.Translation  = (pos - parentSpace.Translation) / parentSpace.Scale;
                         } else {
                             screenSpace.Translation = (parentSpace.Translation + anchor.Offset * screenSpace.Scale);
-                            localSpace.Translation  = (screenSpace.Translation - parentSpace.Translation);
+                            localSpace.Translation  = (screenSpace.Translation - parentSpace.Translation) / parentSpace.Scale;
                         }
 
                         ScreenSpace[current] = screenSpace;
