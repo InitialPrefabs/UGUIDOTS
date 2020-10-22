@@ -11,6 +11,7 @@ namespace UGUIDOTS.Transforms.Systems {
     /// <summary>
     /// Recomputes the anchors if the resolution changes.
     /// </summary>
+    [UpdateAfter(typeof(CanvasScalerSystem))]
     public unsafe class AnchorSystem : SystemBase {
 
         [BurstCompile]
@@ -83,7 +84,8 @@ namespace UGUIDOTS.Transforms.Systems {
                 }
             }
 
-            void RecurseChildren(NativeArray<Child>.ReadOnly children, ScreenSpace parentSpace, Entity parent, float2 rootScale, int hierarchyLvl) {
+            void RecurseChildren(NativeArray<Child>.ReadOnly children, ScreenSpace parentSpace, Entity parent, 
+                float2 rootScale, int hierarchyLvl) {
 
                 // TODO: Rework the Anchor System because I still don't have all the rules down.
                 for (int i = 0; i < children.Length; i++) {
@@ -149,15 +151,15 @@ namespace UGUIDOTS.Transforms.Systems {
             canvasQuery = GetEntityQuery(new EntityQueryDesc {
                 All = new[] {
                     ComponentType.ReadOnly<ReferenceResolution>(), ComponentType.ReadOnly<Child>(),
-                    ComponentType.ReadOnly<ScreenSpace>()
+                    ComponentType.ReadOnly<ScreenSpace>(), ComponentType.ReadOnly<OnResolutionChangeTag>()
                 },
                 None = new[] {
                     ComponentType.ReadOnly<Parent>()
-                }
+                },
+                Options = EntityQueryOptions.IncludeDisabled
             });
 
-            cmdBufferSystem = World.GetOrCreateSystem<BeginPresentationEntityCommandBufferSystem>();
-            // RequireSingletonForUpdate<ResolutionEvent>();
+            cmdBufferSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
         }
 
         protected override void OnUpdate() {

@@ -7,7 +7,6 @@ using UnityEngine.Rendering;
 
 namespace UGUIDOTS.Render.Systems {
 
-    [DisableAutoCreation]
     public class OrthographicRenderSystem : SystemBase {
 
         private CommandBuffer cmd;

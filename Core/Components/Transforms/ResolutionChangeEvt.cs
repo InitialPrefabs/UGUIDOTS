@@ -4,6 +4,8 @@ using Unity.Mathematics;
 
 namespace UGUIDOTS.Transforms {
 
+    public struct OnResolutionChangeTag : IComponentData { }
+
     /// <summary>
     /// Marks a messaging entity that the resolution has changed.
     /// </summary>
