@@ -1,12 +1,11 @@
 using UGUIDOTS.Transforms;
 using Unity.Entities;
-using Unity.Mathematics;
-using UnityEngine;
 
 namespace UGUIDOTS.Render.Systems {
 
     [DisableAutoCreation]
     [UpdateAfter(typeof(BuildRenderHierarchySystem))]
+    [System.Obsolete]
     public class UpdateMeshSliceSystem : SystemBase {
 
         private EntityCommandBufferSystem cmdBufferSystem;

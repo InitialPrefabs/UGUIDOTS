@@ -11,6 +11,7 @@ namespace UGUIDOTS.Transforms.Systems {
     /// <summary>
     /// Recomputes the anchors if the resolution changes.
     /// </summary>
+    [UpdateInGroup(typeof(SimulationSystemGroup), OrderFirst = true)]
     public unsafe class AnchorSystem : SystemBase {
 
         [BurstCompile]
@@ -75,8 +76,8 @@ namespace UGUIDOTS.Transforms.Systems {
                         screenSpace.Translation = Resolution / 2;
                     }
 
-                    ScreenSpace[current]    = screenSpace;
-                    LocalSpace[current]     = localSpace;
+                    ScreenSpace[current] = screenSpace;
+                    LocalSpace[current]  = localSpace;
 
                     if (Children.HasComponent(current)) {
                         var grandChildren = Children[current].AsNativeArray().AsReadOnly();
@@ -125,6 +126,9 @@ namespace UGUIDOTS.Transforms.Systems {
                                 parentDims.Int2Size(), 
                                 parentSpace.Scale, 
                                 parentSpace.Translation);
+
+                            // Check if this is correct.
+                            pos += anchor.Offset;
 
                             screenSpace.Translation = pos;
                             localSpace.Translation  = (pos - parentSpace.Translation) / parentSpace.Scale;

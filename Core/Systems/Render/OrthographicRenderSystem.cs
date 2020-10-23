@@ -42,7 +42,7 @@ namespace UGUIDOTS.Render.Systems {
                     var prop        = batch.Value[i];
                     var mat         = EntityManager.GetComponentData<SharedMaterial>(materialKey).GetMaterial();
 
-                    var m = Matrix4x4.TRS(default, Quaternion.identity, new float3(c0.Scale, 1));
+                    var m = Matrix4x4.TRS(default, Quaternion.identity, new float3(1));
                     cmd.DrawMesh(mesh.Value, m, mat, i, -1, prop);
                 }
             }).WithoutBurst().Run();

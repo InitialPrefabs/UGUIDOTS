@@ -5,13 +5,13 @@ using UnityEngine.Rendering;
 
 namespace UGUIDOTS.Render.Systems {
 
-    [UpdateInGroup(typeof(PresentationSystemGroup))]
+    [UpdateInGroup(typeof(PresentationSystemGroup), OrderLast = true)]
     public class BuildCanvasMeshSystem : SystemBase {
 
         private EntityCommandBufferSystem commandBufferSystem;
 
         protected override void OnCreate() {
-            commandBufferSystem = World.GetOrCreateSystem<BeginPresentationEntityCommandBufferSystem>();
+            commandBufferSystem = World.GetOrCreateSystem<BeginInitializationEntityCommandBufferSystem>();
         }
 
         protected override void OnUpdate() {
@@ -49,8 +49,9 @@ namespace UGUIDOTS.Render.Systems {
                 }
 
                 mesh.UploadMeshData(false);
-                cmdBuffer.RemoveComponent<BuildCanvasTag>(entity);
+                cmdBuffer.RemoveComponent<RebuildMeshTag>(entity);
             }).WithoutBurst().Run();
+
         }
     }
 }

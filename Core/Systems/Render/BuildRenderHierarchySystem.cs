@@ -1,5 +1,4 @@
 using UGUIDOTS.Transforms;
-using UGUIDOTS.Transforms.Systems;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
@@ -13,13 +12,8 @@ namespace UGUIDOTS.Render.Systems {
     /**
      * Maybe per canvas, grab all of the Images and Text entities. Build all static content first.
      */
-    [DisableAutoCreation]
+    [UpdateInGroup(typeof(SimulationSystemGroup), OrderLast = true)]
     public class BuildRenderHierarchySystem : SystemBase {
-
-        struct Pair {
-            public Entity Child;
-            public Entity Root;
-        }
 
         [BurstCompile]
         struct CollectEntitiesJob : IJobChunk {
@@ -35,6 +29,9 @@ namespace UGUIDOTS.Render.Systems {
             [ReadOnly]
             public ComponentDataFromEntity<SpriteData> SpriteData;
 
+            [ReadOnly]
+            public ComponentDataFromEntity<Stretch> Stretched;
+
             // Text
             // -----------------------------------------
             [ReadOnly]
@@ -42,10 +39,13 @@ namespace UGUIDOTS.Render.Systems {
 
             // TODO: When parallelizing this, best to have per thread containers.
             [WriteOnly]
-            public NativeList<Pair> ImageEntities;
+            public NativeList<Entity> SimpleImgEntities;
 
             [WriteOnly]
-            public NativeList<Pair> TextEntities;
+            public NativeList<Entity> StretchedImgEntities;
+
+            [WriteOnly]
+            public NativeList<Entity> TextEntities;
 
             public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex) {
                 var entities = chunk.GetNativeArray(EntityType);
@@ -62,17 +62,15 @@ namespace UGUIDOTS.Render.Systems {
                 for (int i = 0; i < children.Length; i++) {
                     var entity = children[i];
                     if (SpriteData.HasComponent(entity)) {
-                        ImageEntities.Add(new Pair {
-                            Child = entity,
-                            Root  = root
-                        });
+                        if (Stretched.HasComponent(entity)) {
+                            StretchedImgEntities.Add(entity);
+                        } else {
+                            SimpleImgEntities.Add(entity);
+                        }
                     }
 
                     if (CharBuffers.HasComponent(entity)) {
-                        TextEntities.Add(new Pair {
-                            Child = entity,
-                            Root  = root
-                        });
+                        TextEntities.Add(entity);
                     }
 
                     if (Children.HasComponent(entity)) {
@@ -84,14 +82,14 @@ namespace UGUIDOTS.Render.Systems {
         }
 
         // NOTE: Assume all static
-        struct BuildImageVertexData : IJob {
+        struct BuildSimpleImgVertexDataJob : IJob {
 
             public EntityCommandBuffer CommandBuffer;
 
             public BufferFromEntity<Vertex> VertexData;
 
             [ReadOnly]
-            public NativeList<Pair> Images;
+            public NativeList<Entity> Images;
 
             [ReadOnly]
             public ComponentDataFromEntity<SpriteData> SpriteData;
@@ -111,31 +109,35 @@ namespace UGUIDOTS.Render.Systems {
             [ReadOnly]
             public ComponentDataFromEntity<MeshDataSpan> MeshDataSpans;
 
+            [ReadOnly]
+            public ComponentDataFromEntity<RootCanvasReference> Root;
+
             public void Execute() {
                 var tempImageData = new NativeArray<Vertex>(4, Allocator.Temp);
 
                 for (int i = 0; i < Images.Length; i++) {
-                    var pair = Images[i];
+                    var entity = Images[i];
+                    var root = Root[entity].Value;
 
                     // Get the root data
-                    var vertices      = VertexData[pair.Root];
-                    var rootTransform = ScreenSpaces[pair.Root];
+                    var vertices      = VertexData[root];
+                    var rootTransform = ScreenSpaces[root];
 
                     // Build the image data
-                    var spriteData  = SpriteData[pair.Child];
-                    var resolution  = SpriteResolutions[pair.Child];
-                    var dimension   = Dimensions[pair.Child];
-                    var screenSpace = ScreenSpaces[pair.Child];
-                    var color       = Colors[pair.Child].Value.ToNormalizedFloat4();
+                    var spriteData  = SpriteData[entity];
+                    var resolution  = SpriteResolutions[entity];
+                    var dimension   = Dimensions[entity];
+                    var screenSpace = ScreenSpaces[entity];
+                    var color       = Colors[entity].Value.ToNormalizedFloat4();
 
                     var minMax = ImageUtils.CreateImagePositionData(resolution, spriteData, dimension, screenSpace, 
                         rootTransform.Scale.x);
 
-                    var span = MeshDataSpans[pair.Child];
+                    var span = MeshDataSpans[entity];
 
-                    if (span.VertexSpan.Equals(new int2(0, 4)) && color.Equals(new float4(1, 0, 0, 1))) {
-                        UnityEngine.Debug.Log($"MinMax: {minMax}, Screen: {screenSpace.Translation}");
-                    }
+                    // if (span.VertexSpan.Equals(new int2(0, 4)) && color.Equals(new float4(1, 0, 0, 1))) {
+                    //     UnityEngine.Debug.Log($"MinMax: {minMax}, Screen: {screenSpace.Translation}");
+                    // }
 
                     UpdateVertexSpan(tempImageData, minMax, spriteData, color);
 
@@ -145,7 +147,7 @@ namespace UGUIDOTS.Render.Systems {
                         UnsafeUtility.MemCpy(dst, tempImageData.GetUnsafePtr(), size);
                     }
 
-                    CommandBuffer.AddComponent<RebuildMeshTag>(pair.Root);
+                    CommandBuffer.AddComponent<RebuildMeshTag>(root);
                 }
             }
 
@@ -191,7 +193,10 @@ namespace UGUIDOTS.Render.Systems {
 
         protected override void OnCreate() {
             canvasQuery = GetEntityQuery(new EntityQueryDesc {
-                All = new [] {  ComponentType.ReadOnly<ReferenceResolution>(), ComponentType.ReadOnly<Child>() }
+                All = new [] { 
+                    ComponentType.ReadOnly<ReferenceResolution>(), ComponentType.ReadOnly<Child>(),
+                    ComponentType.ReadOnly<OnResolutionChangeTag>()
+                }
             });
 
             imageQuery = GetEntityQuery(new EntityQueryDesc {
@@ -203,6 +208,8 @@ namespace UGUIDOTS.Render.Systems {
             });
 
             commandBufferSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
+
+            RequireForUpdate(canvasQuery);
         }
 
         // TODO: Put this on separate threads.
@@ -211,33 +218,44 @@ namespace UGUIDOTS.Render.Systems {
             var spriteData  = GetComponentDataFromEntity<SpriteData>(true);
             var children    = GetBufferFromEntity<Child>(true);
 
-            var images = new NativeList<Pair>(
+            var images = new NativeList<Entity>(
                 imageQuery.CalculateEntityCountWithoutFiltering(), 
                 Allocator.TempJob);
 
-            var texts  = new NativeList<Pair>(
-                textQuery.CalculateChunkCountWithoutFiltering(), 
+            var stretched = new NativeList<Entity>(
+                imageQuery.CalculateChunkCountWithoutFiltering(),
                 Allocator.TempJob);
 
-            var collectJob    = new CollectEntitiesJob {
-                CharBuffers   = charBuffers,
-                Children      = children,
-                EntityType    = GetEntityTypeHandle(),
-                SpriteData    = spriteData,
-                ImageEntities = images,
-                TextEntities  = texts
-            };
-
-            collectJob.Run(canvasQuery);
+            var texts  = new NativeList<Entity>(
+                textQuery.CalculateChunkCountWithoutFiltering(), 
+                Allocator.TempJob);
 
             var dimensions    = GetComponentDataFromEntity<Dimension>(true);
             var colors        = GetComponentDataFromEntity<AppliedColor>(true);
             var spans         = GetComponentDataFromEntity<MeshDataSpan>(true);
             var screenSpaces  = GetComponentDataFromEntity<ScreenSpace>(true);
             var resolutions   = GetComponentDataFromEntity<DefaultSpriteResolution>(true);
+            var stretch       = GetComponentDataFromEntity<Stretch>(true);
+            var root          = GetComponentDataFromEntity<RootCanvasReference>(true);
             var vertexBuffers = GetBufferFromEntity<Vertex>(false);
 
-            var imageJob          = new BuildImageVertexData {
+            var collectJob           = new CollectEntitiesJob {
+                CharBuffers          = charBuffers,
+                Children             = children,
+                Stretched            = stretch,
+                EntityType           = GetEntityTypeHandle(),
+                SpriteData           = spriteData,
+                SimpleImgEntities    = images,
+                StretchedImgEntities = stretched,
+                TextEntities         = texts
+            };
+
+            collectJob.Run(canvasQuery);
+
+            UnityEngine.Debug.Log($"Building Screen Size: {UnityEngine.Screen.width} {UnityEngine.Screen.height}, {images.Length}");
+
+            var imageJob          = new BuildSimpleImgVertexDataJob {
+                Root              = root,
                 Colors            = colors,
                 Dimensions        = dimensions,
                 MeshDataSpans     = spans,
@@ -251,8 +269,13 @@ namespace UGUIDOTS.Render.Systems {
 
             imageJob.Run();
 
+            // Dispose all the temp containers
+            // --------------------------
             images.Dispose();
+            stretched.Dispose();
             texts.Dispose();
+
+            commandBufferSystem.AddJobHandleForProducer(Dependency);
         }
     }
 }
