@@ -1,13 +1,47 @@
 using System.Runtime.CompilerServices;
 using UGUIDOTS.Transforms;
 using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
 using UnityEngine;
 
 namespace UGUIDOTS.Render {
 
     public static class ImageUtils {
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void FillVertexSpan(NativeArray<Vertex> vertices, float4 minMax, SpriteData data, float4 color) {
+            vertices[0]  = new Vertex {
+                Color    = color,
+                Normal   = new float3(0, 0, -1),
+                Position = new float3(minMax.xy, 0),
+                UV1      = data.OuterUV.xy,
+                UV2      = new float2(1)
+            };
+
+            vertices[1]  = new Vertex {
+                Color    = color,
+                Normal   = new float3(0, 0, -1),
+                Position = new float3(minMax.xw, 0),
+                UV1      = data.OuterUV.xw,
+                UV2      = new float2(1)
+            };
+
+            vertices[2]  = new Vertex {
+                Color    = color,
+                Normal   = new float3(0, 0, -1),
+                Position = new float3(minMax.zw, 0),
+                UV1      = data.OuterUV.zw,
+                UV2      = new float2(1)
+            };
+
+            vertices[3]  = new Vertex {
+                Color    = color,
+                Normal   = new float3(0, 0, -1),
+                Position = new float3(minMax.zy, 0),
+                UV1      = data.OuterUV.zy,
+                UV2      = new float2(1)
+            };
+        }
 
         // TODO: Account for sliced images
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

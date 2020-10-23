@@ -18,6 +18,8 @@ namespace UGUIDOTS.Render.Systems {
         [BurstCompile]
         struct CollectEntitiesJob : IJobChunk {
 
+            public EntityCommandBuffer CommandBuffer;
+
             [ReadOnly]
             public BufferFromEntity<Child> Children;
 
@@ -55,6 +57,8 @@ namespace UGUIDOTS.Render.Systems {
                     var children = Children[entity].AsNativeArray().AsReadOnly();
 
                     RecurseChildrenDetermineType(children, entity);
+
+                    CommandBuffer.AddComponent<RebuildMeshTag>(entity);
                 }
             }
 
@@ -82,14 +86,17 @@ namespace UGUIDOTS.Render.Systems {
         }
 
         // NOTE: Assume all static
-        struct BuildSimpleImgVertexDataJob : IJob {
+        struct BuildImageJob : IJob {
 
             public EntityCommandBuffer CommandBuffer;
 
             public BufferFromEntity<Vertex> VertexData;
 
             [ReadOnly]
-            public NativeList<Entity> Images;
+            public NativeList<Entity> Simple;
+
+            [ReadOnly]
+            public NativeList<Entity> Stretched;
 
             [ReadOnly]
             public ComponentDataFromEntity<SpriteData> SpriteData;
@@ -112,77 +119,44 @@ namespace UGUIDOTS.Render.Systems {
             [ReadOnly]
             public ComponentDataFromEntity<RootCanvasReference> Root;
 
-            public void Execute() {
-                var tempImageData = new NativeArray<Vertex>(4, Allocator.Temp);
+            void UpdateImageVertices(Entity entity, NativeArray<Vertex> tempImageData, bool useRootScale) {
+                var root = Root[entity].Value;
 
-                for (int i = 0; i < Images.Length; i++) {
-                    var entity = Images[i];
-                    var root = Root[entity].Value;
+                // Get the root data
+                var vertices      = VertexData[root];
+                var rootTransform = ScreenSpaces[root];
 
-                    // Get the root data
-                    var vertices      = VertexData[root];
-                    var rootTransform = ScreenSpaces[root];
+                // Build the image data
+                var spriteData  = SpriteData[entity];
+                var resolution  = SpriteResolutions[entity];
+                var dimension   = Dimensions[entity];
+                var screenSpace = ScreenSpaces[entity];
+                var color       = Colors[entity].Value.ToNormalizedFloat4();
 
-                    // Build the image data
-                    var spriteData  = SpriteData[entity];
-                    var resolution  = SpriteResolutions[entity];
-                    var dimension   = Dimensions[entity];
-                    var screenSpace = ScreenSpaces[entity];
-                    var color       = Colors[entity].Value.ToNormalizedFloat4();
+                var scale  = math.select(1, rootTransform.Scale.x, useRootScale);
+                var minMax = ImageUtils.CreateImagePositionData(resolution, spriteData, dimension, screenSpace, scale);
+                var span   = MeshDataSpans[entity];
 
-                    var minMax = ImageUtils.CreateImagePositionData(resolution, spriteData, dimension, screenSpace, 
-                        rootTransform.Scale.x);
+                ImageUtils.FillVertexSpan(tempImageData, minMax, spriteData, color);
 
-                    var span = MeshDataSpans[entity];
-
-                    // if (span.VertexSpan.Equals(new int2(0, 4)) && color.Equals(new float4(1, 0, 0, 1))) {
-                    //     UnityEngine.Debug.Log($"MinMax: {minMax}, Screen: {screenSpace.Translation}");
-                    // }
-
-                    UpdateVertexSpan(tempImageData, minMax, spriteData, color);
-
-                    unsafe {
-                        var dst  = (Vertex*)vertices.GetUnsafePtr() + span.VertexSpan.x;
-                        var size = UnsafeUtility.SizeOf<Vertex>() * span.VertexSpan.y;
-                        UnsafeUtility.MemCpy(dst, tempImageData.GetUnsafePtr(), size);
-                    }
-
-                    CommandBuffer.AddComponent<RebuildMeshTag>(root);
+                unsafe {
+                    var dst  = (Vertex*)vertices.GetUnsafePtr() + span.VertexSpan.x;
+                    var size = UnsafeUtility.SizeOf<Vertex>() * span.VertexSpan.y;
+                    UnsafeUtility.MemCpy(dst, tempImageData.GetUnsafePtr(), size);
                 }
             }
 
-            void UpdateVertexSpan(NativeArray<Vertex> vertices, float4 minMax, SpriteData data, float4 color) {
-                vertices[0]  = new Vertex {
-                    Color    = color,
-                    Normal   = new float3(0, 0, -1),
-                    Position = new float3(minMax.xy, 0),
-                    UV1      = data.OuterUV.xy,
-                    UV2      = new float2(1)
-                };
+            public void Execute() {
+                var tempImageData = new NativeArray<Vertex>(4, Allocator.Temp);
 
-                vertices[1]  = new Vertex {
-                    Color    = color,
-                    Normal   = new float3(0, 0, -1),
-                    Position = new float3(minMax.xw, 0),
-                    UV1      = data.OuterUV.xw,
-                    UV2      = new float2(1)
-                };
+                // TODO: I think I can just combine both loops into 1
+                for (int i = 0; i < Simple.Length; i++) {
+                    UpdateImageVertices(Simple[i], tempImageData, true);
+                }
 
-                vertices[2]  = new Vertex {
-                    Color    = color,
-                    Normal   = new float3(0, 0, -1),
-                    Position = new float3(minMax.zw, 0),
-                    UV1      = data.OuterUV.zw,
-                    UV2      = new float2(1)
-                };
-
-                vertices[3]  = new Vertex {
-                    Color    = color,
-                    Normal   = new float3(0, 0, -1),
-                    Position = new float3(minMax.zy, 0),
-                    UV1      = data.OuterUV.zy,
-                    UV2      = new float2(1)
-                };
+                for (int i = 0; i < Stretched.Length; i++) {
+                    UpdateImageVertices(Stretched[i], tempImageData, false);
+                }
             }
         }
 
@@ -240,6 +214,7 @@ namespace UGUIDOTS.Render.Systems {
             var vertexBuffers = GetBufferFromEntity<Vertex>(false);
 
             var collectJob           = new CollectEntitiesJob {
+                CommandBuffer        = commandBufferSystem.CreateCommandBuffer(),
                 CharBuffers          = charBuffers,
                 Children             = children,
                 Stretched            = stretch,
@@ -252,9 +227,7 @@ namespace UGUIDOTS.Render.Systems {
 
             collectJob.Run(canvasQuery);
 
-            UnityEngine.Debug.Log($"Building Screen Size: {UnityEngine.Screen.width} {UnityEngine.Screen.height}, {images.Length}");
-
-            var imageJob          = new BuildSimpleImgVertexDataJob {
+            var imageJob          = new BuildImageJob {
                 Root              = root,
                 Colors            = colors,
                 Dimensions        = dimensions,
@@ -263,7 +236,8 @@ namespace UGUIDOTS.Render.Systems {
                 SpriteData        = spriteData,
                 SpriteResolutions = resolutions,
                 VertexData        = vertexBuffers,
-                Images            = images,
+                Simple            = images,
+                Stretched         = stretched,
                 CommandBuffer     = commandBufferSystem.CreateCommandBuffer()
             };
 
