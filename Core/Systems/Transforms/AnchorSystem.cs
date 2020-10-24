@@ -37,7 +37,7 @@ namespace UGUIDOTS.Transforms.Systems {
             public ComponentDataFromEntity<Dimension> Dimensions;
 
             [ReadOnly]
-            public ComponentDataFromEntity<Stretch> Streched;
+            public ComponentDataFromEntity<Stretch> Stretched;
 
             [ReadOnly]
             public ComponentDataFromEntity<Parent> Parents;
@@ -65,7 +65,7 @@ namespace UGUIDOTS.Transforms.Systems {
                     var screenSpace  = ScreenSpace[current];
                     var localSpace   = LocalSpace[current];
 
-                    if (!Streched.HasComponent(current)) {
+                    if (!Stretched.HasComponent(current)) {
                         var anchor       = Anchors[current];
                         var newScreenPos = anchor.RelativeAnchorTo(Resolution, root.Scale);
 
@@ -139,6 +139,12 @@ namespace UGUIDOTS.Transforms.Systems {
 
                         ScreenSpace[current] = screenSpace;
                         LocalSpace[current]  = localSpace;
+                    } else if (Stretched.HasComponent(current)) {
+                        screenSpace.Translation = parentSpace.Translation;
+                        localSpace.Translation = float2.zero;
+
+                        ScreenSpace[current] = screenSpace;
+                        LocalSpace[current] = localSpace;
                     }
 
                     if (Children.HasComponent(current)) {
@@ -178,7 +184,7 @@ namespace UGUIDOTS.Transforms.Systems {
                 Parents         = GetComponentDataFromEntity<Parent>(true),
                 LocalSpace      = GetComponentDataFromEntity<LocalSpace>(),
                 ScreenSpace     = GetComponentDataFromEntity<ScreenSpace>(),
-                Streched        = GetComponentDataFromEntity<Stretch>(),
+                Stretched        = GetComponentDataFromEntity<Stretch>(),
                 Resolution      = new int2(Screen.width, Screen.height),
                 CommandBuffer   = cmdBufferSystem.CreateCommandBuffer()
             };

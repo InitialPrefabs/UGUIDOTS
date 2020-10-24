@@ -25,7 +25,6 @@ namespace UGUIDOTS.Conversions.Systems {
 #endif
 
                 var textEntity = GetPrimaryEntity(text);
-                DstEntityManager.RemoveComponent<Stretch>(textEntity);
                 DstEntityManager.AddComponentData(textEntity, new LinkedMaterialEntity { Value = materialEntity });
                 DstEntityManager.AddComponentData(textEntity, new AppliedColor { Value = text.color });
                 DstEntityManager.AddComponentData(textEntity, new TextOptions {
