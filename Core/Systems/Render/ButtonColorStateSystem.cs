@@ -5,6 +5,7 @@ using UnityEngine;
 namespace UGUIDOTS.Render.Systems {
 
     [UpdateInGroup(typeof(MeshUpdateGroup))]
+    [DisableAutoCreation]
     public class ButtonColorStateSystem : SystemBase {
 
         private EntityCommandBufferSystem cmdBufferSystem;

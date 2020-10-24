@@ -40,16 +40,8 @@ namespace UGUIDOTS {
     /// <summary>
     /// Stores the unique identifier for the text component's font.
     /// </summary>
-    public struct TextFontID : IComponentData, IEquatable<TextFontID> {
-        public int Value;
-
-        public bool Equals(TextFontID other) {
-            return other.Value == Value;
-        }
-
-        public override int GetHashCode() {
-            return Value.GetHashCode();
-        }
+    public struct LinkedTextFontEntity : IComponentData {
+        public Entity Value;
     }
 
     /// <summary>
@@ -104,6 +96,12 @@ namespace UGUIDOTS {
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool TryGetGlyph(this in NativeArray<GlyphElement> glyphs, in char c, out GlyphElement glyph) {
+            var readonlyGlyphs = glyphs.AsReadOnly();
+            return readonlyGlyphs.TryGetGlyph(c, out glyph);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool TryGetGlyph(this in NativeArray<GlyphElement>.ReadOnly glyphs, in char c, out GlyphElement glyph) {
             for (int i = 0; i < glyphs.Length; i++) {
                 var current = glyphs[i];
 

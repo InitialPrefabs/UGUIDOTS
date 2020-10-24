@@ -33,6 +33,10 @@ namespace UGUIDOTS.Conversions.Systems {
                     Alignment = text.alignment.FromTextAnchor()
                 });
 
+                DstEntityManager.AddComponentData(textEntity, new LinkedTextFontEntity {
+                    Value = GetPrimaryEntity(text.font)
+                });
+
                 AddTextData(textEntity, text.text);
             });
         }

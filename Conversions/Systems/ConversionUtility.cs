@@ -103,14 +103,14 @@ namespace UGUIDOTS.Conversions {
                     UV2 = uv2
                 });
 
-                vertexData.Add(new LocalVertexData {
+                vertexData.Add(new Vertex {
                     Position = new float3(xPos + size.x, yPos + size.y, 0),
                     Normal = right,
                     Color = color,
                     UV1 = uv1.c2,
                     UV2 = uv2
                 });
-                vertexData.Add(new LocalVertexData {
+                vertexData.Add(new Vertex {
                     Position = new float3(xPos + size.x, yPos, 0),
                     Normal = right,
                     Color = color,
