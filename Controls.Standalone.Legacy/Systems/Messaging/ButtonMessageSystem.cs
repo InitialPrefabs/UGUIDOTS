@@ -2,8 +2,8 @@
 
 namespace UGUIDOTS.Controls.Messaging.Systems {
 
+    [DisableAutoCreation]
     // TODO: Rename the accompanying file
-    [UpdateInGroup(typeof(MessagingConsumptionGroup))]
     public class ButtonMessageConsumerSystem : SystemBase {
 
         private EntityCommandBufferSystem cmdBufferSystem;
@@ -23,7 +23,7 @@ namespace UGUIDOTS.Controls.Messaging.Systems {
         }
     }
 
-    [UpdateInGroup(typeof(MessagingProductionGroup))]
+    [DisableAutoCreation]
     public class ButtonMessageProducerSystem : SystemBase {
 
         private EntityCommandBufferSystem cmdBufferSystem;

@@ -7,7 +7,7 @@ namespace UGUIDOTS.Controls.Systems {
     /// <summary>
     /// Copies data from the Input engine into a TouchElement buffer.
     /// </summary>
-    [UpdateInGroup(typeof(InputGroup))]
+    [DisableAutoCreation]
     public class CopyTouchDataSystem : SystemBase {
 
         protected override void OnUpdate() {

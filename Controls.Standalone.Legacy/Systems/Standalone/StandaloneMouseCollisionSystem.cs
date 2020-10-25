@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace UGUIDOTS.Controls.Systems {
 
-    [UpdateInGroup(typeof(InputGroup))]
+    [DisableAutoCreation]
     public class StandaloneMouseCollisionSystem : SystemBase {
 
         private struct MouseInfo {

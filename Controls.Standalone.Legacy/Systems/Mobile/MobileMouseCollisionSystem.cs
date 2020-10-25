@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace UGUIDOTS.Controls.Systems {
 
-    [UpdateInGroup(typeof(InputGroup))]
+    // [UpdateInGroup(typeof(InputGroup))]
     public unsafe class MobileMouseCollisionSystem : SystemBase {
 
         protected unsafe override void OnUpdate() {
