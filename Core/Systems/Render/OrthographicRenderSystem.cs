@@ -7,7 +7,7 @@ using UnityEngine.Rendering;
 
 namespace UGUIDOTS.Render.Systems {
 
-    [UpdateInGroup(typeof(SimulationSystemGroup), OrderLast = true)]
+    [UpdateInGroup(typeof(PresentationSystemGroup), OrderLast = true)]
     public class OrthographicRenderSystem : SystemBase {
 
         private CommandBuffer cmd;
