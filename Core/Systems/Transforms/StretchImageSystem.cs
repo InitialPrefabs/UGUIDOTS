@@ -6,6 +6,8 @@ using UnityEngine;
 
 namespace UGUIDOTS.Transforms.Systems {
 
+    [DisableAutoCreation]
+    [System.Obsolete]
     public class StretchDimensionsSystem : SystemBase {
 
         private EntityCommandBufferSystem cmdBufferSystem;

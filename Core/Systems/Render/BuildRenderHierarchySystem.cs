@@ -1,25 +1,33 @@
 using TMPro;
+using UGUIDOTS.Collections;
 using UGUIDOTS.Transforms;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Jobs;
+using Unity.Jobs.LowLevel.Unsafe;
 using Unity.Mathematics;
 
 namespace UGUIDOTS.Render.Systems {
 
-    // TODO: Switch to a multithreaded system.
     /**
      * Maybe per canvas, grab all of the Images and Text entities. Build all static content first.
      */
     [UpdateInGroup(typeof(SimulationSystemGroup), OrderLast = true)]
-    public class BuildRenderHierarchySystem : SystemBase {
+    public unsafe class BuildRenderHierarchySystem : SystemBase {
+
+        struct EntityContainer : IStruct<EntityContainer> {
+            public Entity Value;
+
+            public static implicit operator EntityContainer(Entity value) => new EntityContainer { Value = value };
+            public static implicit operator Entity(EntityContainer value) => value.Value;
+        }
 
         [BurstCompile]
-        struct CollectEntitiesJob : IJobChunk {
+        unsafe struct CollectEntitiesJob : IJobChunk {
 
-            public EntityCommandBuffer CommandBuffer;
+            public EntityCommandBuffer.ParallelWriter CommandBuffer;
 
             [ReadOnly]
             public BufferFromEntity<Child> Children;
@@ -40,15 +48,18 @@ namespace UGUIDOTS.Render.Systems {
             [ReadOnly]
             public BufferFromEntity<CharElement> CharBuffers;
 
-            // TODO: When parallelizing this, best to have per thread containers.
-            [WriteOnly]
-            public NativeList<Entity> SimpleImgEntities;
+            // Parallel Containers
+            // -----------------------------------------
+            [NativeDisableUnsafePtrRestriction]
+            public UnsafeList<EntityContainer>* ImageContainer;
 
-            [WriteOnly]
-            public NativeList<Entity> StretchedImgEntities;
+            [NativeDisableUnsafePtrRestriction]
+            public UnsafeList<EntityContainer>* TextContainer;
 
-            [WriteOnly]
-            public NativeList<Entity> TextEntities;
+#pragma warning disable 649
+            [NativeSetThreadIndex]
+            public int NativeThreadIndex;
+#pragma warning restore 649
 
             public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex) {
                 var entities = chunk.GetNativeArray(EntityType);
@@ -57,30 +68,31 @@ namespace UGUIDOTS.Render.Systems {
                     var entity = entities[i];
                     var children = Children[entity].AsNativeArray().AsReadOnly();
 
-                    RecurseChildrenDetermineType(children, entity);
+                    var index = NativeThreadIndex - 1;
 
-                    CommandBuffer.AddComponent<RebuildMeshTag>(entity);
+                    UnsafeList<EntityContainer>* img = ImageContainer + index;
+                    UnsafeList<EntityContainer>* txt = TextContainer + index;
+                    RecurseChildrenDetermineType(children, entity, img, txt);
+
+                    CommandBuffer.AddComponent<RebuildMeshTag>(firstEntityIndex + i, entity);
                 }
             }
 
-            void RecurseChildrenDetermineType(NativeArray<Child>.ReadOnly children, Entity root) {
+            void RecurseChildrenDetermineType(
+                NativeArray<Child>.ReadOnly children, Entity root, UnsafeList<EntityContainer>* imgContainer, UnsafeList<EntityContainer>* txtContainer) {
                 for (int i = 0; i < children.Length; i++) {
-                    var entity = children[i];
+                    var entity = children[i].Value;
                     if (SpriteData.HasComponent(entity)) {
-                        if (Stretched.HasComponent(entity)) {
-                            StretchedImgEntities.Add(entity);
-                        } else {
-                            SimpleImgEntities.Add(entity);
-                        }
+                        imgContainer->Add(entity);
                     }
 
                     if (CharBuffers.HasComponent(entity)) {
-                        TextEntities.Add(entity);
+                        txtContainer->Add(entity);
                     }
 
                     if (Children.HasComponent(entity)) {
                         var grandChildren = Children[entity].AsNativeArray().AsReadOnly();
-                        RecurseChildrenDetermineType(grandChildren, root);
+                        RecurseChildrenDetermineType(grandChildren, root, imgContainer, txtContainer);
                     }
                 }
             }
@@ -90,15 +102,11 @@ namespace UGUIDOTS.Render.Systems {
         [BurstCompile]
         struct BuildImageJob : IJob {
 
-            public EntityCommandBuffer CommandBuffer;
-
+            [NativeDisableParallelForRestriction]
             public BufferFromEntity<Vertex> VertexData;
 
-            [ReadOnly]
-            public NativeList<Entity> Simple;
-
-            [ReadOnly]
-            public NativeList<Entity> Stretched;
+            [NativeDisableUnsafePtrRestriction]
+            public PerThreadContainer<EntityContainer> ThreadContainer;
 
             [ReadOnly]
             public ComponentDataFromEntity<SpriteData> SpriteData;
@@ -121,6 +129,9 @@ namespace UGUIDOTS.Render.Systems {
             [ReadOnly]
             public ComponentDataFromEntity<RootCanvasReference> Root;
 
+            [ReadOnly]
+            public ComponentDataFromEntity<Stretch> Stretched;
+
             void UpdateImageVertices(Entity entity, NativeArray<Vertex> tempImageData, bool useRootScale) {
                 var root = Root[entity].Value;
 
@@ -141,23 +152,21 @@ namespace UGUIDOTS.Render.Systems {
 
                 ImageUtils.FillVertexSpan(tempImageData, minMax, spriteData, color);
 
-                unsafe {
-                    var dst  = (Vertex*)vertices.GetUnsafePtr() + span.VertexSpan.x;
-                    var size = UnsafeUtility.SizeOf<Vertex>() * span.VertexSpan.y;
-                    UnsafeUtility.MemCpy(dst, tempImageData.GetUnsafePtr(), size);
-                }
+                var dst  = (Vertex*)vertices.GetUnsafePtr() + span.VertexSpan.x;
+                var size = UnsafeUtility.SizeOf<Vertex>() * span.VertexSpan.y;
+                UnsafeUtility.MemCpy(dst, tempImageData.GetUnsafePtr(), size);
             }
 
             public void Execute() {
                 var tempImageData = new NativeArray<Vertex>(4, Allocator.Temp);
 
-                // TODO: I think I can just combine both loops into 1
-                for (int i = 0; i < Simple.Length; i++) {
-                    UpdateImageVertices(Simple[i], tempImageData, true);
-                }
+                for (int i = 0; i < ThreadContainer.Length; i++) {
+                    var list = ThreadContainer.Ptr[i];
 
-                for (int i = 0; i < Stretched.Length; i++) {
-                    UpdateImageVertices(Stretched[i], tempImageData, false);
+                    for (int k = 0; k < list.Length; k++) {
+                        var useRoot = Stretched.HasComponent(list[k].Value);
+                        UpdateImageVertices(list[k], tempImageData, !useRoot);
+                    }
                 }
             }
         }
@@ -165,10 +174,11 @@ namespace UGUIDOTS.Render.Systems {
         [BurstCompile]
         struct BuildTextJob : IJob {
 
+            [NativeDisableParallelForRestriction]
+            [NativeDisableUnsafePtrRestriction]
             public BufferFromEntity<Vertex> Vertices;
 
-            [ReadOnly]
-            public NativeList<Entity> Text;
+            public PerThreadContainer<EntityContainer> TextEntities;
 
             // Font info
             // ------------------------------------------------------------------
@@ -207,45 +217,47 @@ namespace UGUIDOTS.Render.Systems {
             public void Execute() {
                 var lines = new NativeList<TextUtil.LineInfo>(10, Allocator.Temp);
                 var tempVertexData = new NativeList<Vertex>(Allocator.Temp);
-                for (int i = 0; i < Text.Length; i++) {
-                    var entity = Text[i];
-                    var linked = LinkedTextFonts[entity].Value;
 
-                    var glyphs   = Glyphs[linked].AsNativeArray();
-                    var fontFace = FontFace[linked];
+                for (int i = 0; i < TextEntities.Length; i++) {
+                    var list = TextEntities.Ptr[i];
+                    for (int k = 0; k < list.Length; k++) {
+                        var entity = list[k];
+                        var linked = LinkedTextFonts[entity].Value;
 
-                    var root = Roots[entity].Value;
+                        var glyphs   = Glyphs[linked].AsNativeArray();
+                        var fontFace = FontFace[linked];
 
-                    var chars       = CharBuffers[entity].AsNativeArray();
-                    var dimension   = Dimensions[entity];
-                    var screenSpace = ScreenSpace[entity];
-                    var textOptions = TextOptions[entity];
-                    var color       = AppliedColors[entity].Value.ToNormalizedFloat4();
-                    var rootScreen  = ScreenSpace[root];
+                        var root = Roots[entity].Value;
 
-                    CreateVertexForChars(
-                        chars, 
-                        glyphs, 
-                        lines, 
-                        tempVertexData, 
-                        fontFace, 
-                        dimension, 
-                        screenSpace, 
-                        rootScreen.Scale,
-                        textOptions, 
-                        color);
+                        var chars       = CharBuffers[entity].AsNativeArray();
+                        var dimension   = Dimensions[entity];
+                        var screenSpace = ScreenSpace[entity];
+                        var textOptions = TextOptions[entity];
+                        var color       = AppliedColors[entity].Value.ToNormalizedFloat4();
+                        var rootScreen  = ScreenSpace[root];
 
-                    var span = Spans[entity];
-                    var vertices = Vertices[root];
+                        CreateVertexForChars(
+                            chars, 
+                            glyphs, 
+                            lines, 
+                            tempVertexData, 
+                            fontFace, 
+                            dimension, 
+                            screenSpace, 
+                            rootScreen.Scale,
+                            textOptions, 
+                            color);
 
-                    unsafe {
+                        var span = Spans[entity];
+                        var vertices = Vertices[root];
+
                         var dst = (Vertex*)vertices.GetUnsafePtr() + span.VertexSpan.x;
                         var size = span.VertexSpan.y * UnsafeUtility.SizeOf<Vertex>();
                         UnsafeUtility.MemCpy(dst, tempVertexData.GetUnsafePtr(), size);
-                    }
 
-                    tempVertexData.Clear();
-                    lines.Clear();
+                        tempVertexData.Clear();
+                        lines.Clear();
+                    }
                 }
             }
 
@@ -283,7 +295,6 @@ namespace UGUIDOTS.Render.Systems {
 
                 for (int i = 0, row = 0; i < chars.Length; i++) {
                     var c = chars[i];
-                    // TODO: Generate the actual vertices for all the elements.
                     if (!FindGlyphWithChar(glyphs, c, out GlyphElement glyph)) {
                         continue;
                     }
@@ -362,6 +373,8 @@ namespace UGUIDOTS.Render.Systems {
         private EntityQuery imageQuery;
         private EntityQuery textQuery;
         private EntityCommandBufferSystem commandBufferSystem;
+        private PerThreadContainer<EntityContainer> perThreadImageContainer;
+        private PerThreadContainer<EntityContainer> perThreadTextContainer;
 
         protected override void OnCreate() {
             canvasQuery = GetEntityQuery(new EntityQueryDesc {
@@ -382,25 +395,36 @@ namespace UGUIDOTS.Render.Systems {
             commandBufferSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
 
             RequireForUpdate(canvasQuery);
+
+            perThreadImageContainer = new PerThreadContainer<EntityContainer>(
+                JobsUtility.JobWorkerCount + 1, 
+                20, 
+                Allocator.Persistent);
+
+            perThreadTextContainer = new PerThreadContainer<EntityContainer>(
+                JobsUtility.JobWorkerCount + 1, 
+                20, 
+                Allocator.Persistent);
         }
 
-        // TODO: Put this on separate threads.
+        protected override void OnDestroy() {
+            perThreadImageContainer.Dispose();
+            perThreadTextContainer.Dispose();
+        }
+
         protected override void OnUpdate() {
+            /*
+             * So we know we're building static images and texts first so it makes much more sense
+             * that the image and text jobs can run in parallel. But obviously, BufferFromEntity<T> 
+             * doesn't allow parallel write access. It makes much more sense to store pointers and 
+             * access the data in parallel. I'll need to a custom container for this which I'll get to 
+             * another day.
+             */
+            perThreadImageContainer.Reset();
+
             var charBuffers = GetBufferFromEntity<CharElement>();
             var spriteData  = GetComponentDataFromEntity<SpriteData>(true);
             var children    = GetBufferFromEntity<Child>(true);
-
-            var images = new NativeList<Entity>(
-                imageQuery.CalculateEntityCountWithoutFiltering(), 
-                Allocator.TempJob);
-
-            var stretched = new NativeList<Entity>(
-                imageQuery.CalculateChunkCountWithoutFiltering(),
-                Allocator.TempJob);
-
-            var texts  = new NativeList<Entity>(
-                textQuery.CalculateChunkCountWithoutFiltering(), 
-                Allocator.TempJob);
 
             var dimensions    = GetComponentDataFromEntity<Dimension>(true);
             var colors        = GetComponentDataFromEntity<AppliedColor>(true);
@@ -411,23 +435,21 @@ namespace UGUIDOTS.Render.Systems {
             var root          = GetComponentDataFromEntity<RootCanvasReference>(true);
             var vertexBuffers = GetBufferFromEntity<Vertex>(false);
 
-            var commandBuffer = commandBufferSystem.CreateCommandBuffer();
+            var commandBuffer = commandBufferSystem.CreateCommandBuffer().AsParallelWriter();
 
-            var collectJob           = new CollectEntitiesJob {
-                CommandBuffer        = commandBufferSystem.CreateCommandBuffer(),
-                CharBuffers          = charBuffers,
-                Children             = children,
-                Stretched            = stretch,
-                EntityType           = GetEntityTypeHandle(),
-                SpriteData           = spriteData,
-                SimpleImgEntities    = images,
-                StretchedImgEntities = stretched,
-                TextEntities         = texts
-            };
+            // TODO: Collect -> Build Image + Build Text can work here
+            Dependency = new CollectEntitiesJob {
+                CommandBuffer  = commandBuffer,
+                CharBuffers    = charBuffers,
+                Children       = children,
+                Stretched      = stretch,
+                EntityType     = GetEntityTypeHandle(),
+                SpriteData     = spriteData,
+                ImageContainer = perThreadImageContainer.Ptr,
+                TextContainer  = perThreadTextContainer.Ptr
+            }.ScheduleParallel(canvasQuery, Dependency);
 
-            collectJob.Run(canvasQuery);
-
-            var imageJob          = new BuildImageJob {
+            Dependency = new BuildImageJob {
                 Root              = root,
                 Colors            = colors,
                 Dimensions        = dimensions,
@@ -436,19 +458,16 @@ namespace UGUIDOTS.Render.Systems {
                 SpriteData        = spriteData,
                 SpriteResolutions = resolutions,
                 VertexData        = vertexBuffers,
-                Simple            = images,
-                Stretched         = stretched,
-                CommandBuffer     = commandBuffer
-            };
-
-            imageJob.Run();
+                Stretched         = stretch,
+                ThreadContainer   = perThreadImageContainer,
+            }.Schedule(Dependency);
 
             var fontFaces   = GetComponentDataFromEntity<FontFaceInfo>(true);
             var glyphs      = GetBufferFromEntity<GlyphElement>(true);
             var linkedFonts = GetComponentDataFromEntity<LinkedTextFontEntity>(true);
             var textOptions = GetComponentDataFromEntity<TextOptions>(true);
 
-            var textJob         = new BuildTextJob {
+            Dependency = new BuildTextJob {
                 AppliedColors   = colors,
                 CharBuffers     = charBuffers,
                 Dimensions      = dimensions,
@@ -457,19 +476,11 @@ namespace UGUIDOTS.Render.Systems {
                 LinkedTextFonts = linkedFonts,
                 ScreenSpace     = screenSpaces,
                 Spans           = spans,
-                Text            = texts,
                 TextOptions     = textOptions,
                 Roots           = root,
                 Vertices        = vertexBuffers,
-            };
-
-            textJob.Run();
-
-            // Dispose all the temp containers
-            // --------------------------
-            images.Dispose();
-            stretched.Dispose();
-            texts.Dispose();
+                TextEntities    = perThreadTextContainer
+            }.Schedule(Dependency);
 
             commandBufferSystem.AddJobHandleForProducer(Dependency);
         }
