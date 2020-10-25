@@ -206,7 +206,7 @@ namespace UGUIDOTS.Render.Systems {
 
             public void Execute() {
                 var lines = new NativeList<TextUtil.LineInfo>(10, Allocator.Temp);
-                var vertices = new NativeList<Vertex>(Allocator.Temp);
+                var tempVertexData = new NativeList<Vertex>(Allocator.Temp);
                 for (int i = 0; i < Text.Length; i++) {
                     var entity = Text[i];
                     var linked = LinkedTextFonts[entity].Value;
@@ -221,28 +221,31 @@ namespace UGUIDOTS.Render.Systems {
                     var screenSpace = ScreenSpace[entity];
                     var textOptions = TextOptions[entity];
                     var color       = AppliedColors[entity].Value.ToNormalizedFloat4();
+                    var rootScreen  = ScreenSpace[root];
 
                     CreateVertexForChars(
                         chars, 
                         glyphs, 
                         lines, 
-                        vertices, 
+                        tempVertexData, 
                         fontFace, 
                         dimension, 
                         screenSpace, 
+                        rootScreen.Scale,
                         textOptions, 
                         color);
 
                     var span = Spans[entity];
-                    var vertexData = Vertices[root];
+                    var vertices = Vertices[root];
 
                     unsafe {
-                        var dst = (Vertex*)vertexData.GetUnsafePtr() + span.VertexSpan.x;
+                        var dst = (Vertex*)vertices.GetUnsafePtr() + span.VertexSpan.x;
                         var size = span.VertexSpan.y * UnsafeUtility.SizeOf<Vertex>();
-                        UnsafeUtility.MemCpy(dst, vertexData.GetUnsafePtr(), size);
+                        UnsafeUtility.MemCpy(dst, tempVertexData.GetUnsafePtr(), size);
                     }
 
-                    vertices.Clear();
+                    tempVertexData.Clear();
+                    lines.Clear();
                 }
             }
 
@@ -254,6 +257,7 @@ namespace UGUIDOTS.Render.Systems {
                 FontFaceInfo fontFace,
                 Dimension dimension,
                 ScreenSpace screenSpace,
+                float2 rootScale,
                 TextOptions options,
                 float4 color) {
 
@@ -267,12 +271,14 @@ namespace UGUIDOTS.Render.Systems {
                 var totalLineHeight = lines.Length * fontFace.LineHeight * fontScale * screenSpace.Scale.y;
                 var stylePadding = TextUtil.SelectStylePadding(options, fontFace);
 
-                var extents = dimension.Extents() * screenSpace.Scale;
-                var height = new float3(fontFace.LineHeight, fontFace.AscentLine, fontFace.DescentLine) * screenSpace.Scale.y;
+                var extents = dimension.Extents() * screenSpace.Scale * rootScale;
+                var heights = new float3(fontFace.LineHeight, fontFace.AscentLine, fontFace.DescentLine) * 
+                    screenSpace.Scale.y * rootScale.y;
 
                 var start = new float2(
-                    TextUtil.GetHorizontalAlignment(options.Alignment, extents, lines[0].LineWidth * screenSpace.Scale.x),
-                    TextUtil.GetVerticalAlignment(height, fontScale, options.Alignment, extents, totalLineHeight, lines.Length)
+                    TextUtil.GetHorizontalAlignment(options.Alignment, extents, lines[0].LineWidth * 
+                        screenSpace.Scale.x * rootScale.x),
+                    TextUtil.GetVerticalAlignment(heights, fontScale, options.Alignment, extents, totalLineHeight, lines.Length)
                 ) + screenSpace.Translation;
 
                 for (int i = 0, row = 0; i < chars.Length; i++) {
@@ -283,21 +289,24 @@ namespace UGUIDOTS.Render.Systems {
                     }
 
                     if (row < lines.Length && i == lines[row].StartIndex) {
-                        var heightOffset = fontFace.LineHeight * fontScale * screenSpace.Scale.y * (row > 0 ? 1f : 0f);
-                        start.y -= heightOffset;
-                        start.x -= TextUtil.GetHorizontalAlignment(
+                        var height = fontFace.LineHeight * fontScale * screenSpace.Scale.y * rootScale.y * 
+                            math.select(0, 1f, row > 0);
+                        start.y -= height;
+                        start.x = TextUtil.GetHorizontalAlignment(
                             options.Alignment, 
                             extents, 
-                            lines[row].LineWidth * screenSpace.Scale.x) + screenSpace.Translation.x;
+                            lines[row].LineWidth * screenSpace.Scale.x * rootScale.x) + screenSpace.Translation.x;
                         row++;
                     }
 
-                    var xPos = start.x + (glyph.Bearings.x - stylePadding) * fontScale * screenSpace.Scale.x;
-                    var yPos = start.y - (glyph.Size.y - glyph.Bearings.y - stylePadding) * fontScale * screenSpace.Scale.y;
-                    var size = (glyph.Size + new float2(stylePadding * 2)) * fontScale * screenSpace.Scale;
+                    var xPos = start.x + (glyph.Bearings.x - stylePadding) * fontScale * 
+                        screenSpace.Scale.x * rootScale.x;
+                    var yPos = start.y - (glyph.Size.y - glyph.Bearings.y - stylePadding) * fontScale * 
+                        screenSpace.Scale.y * rootScale.y;
+                    var size = (glyph.Size + new float2(stylePadding * 2)) * fontScale * screenSpace.Scale * rootScale.y;
                     var uv1  = glyph.RawUV.NormalizeAdjustedUV(stylePadding, fontFace.AtlasSize);
 
-                    var canvasScale = screenSpace.Scale.x / 4 * 3;
+                    var canvasScale = rootScale.x * screenSpace.Scale.x / 4 * 3;
                     var uv2         = new float2(glyph.Scale) * math.select(canvasScale, -canvasScale, isBold);
                     var normal      = new float3(1, 0, 0);
 
@@ -330,7 +339,7 @@ namespace UGUIDOTS.Render.Systems {
                         UV2 = uv2
                     });
 
-                    start.x += glyph.Advance * padding * screenSpace.Scale.x;
+                    start.x += glyph.Advance * padding * screenSpace.Scale.x * rootScale.x;
                 }
             }
 
