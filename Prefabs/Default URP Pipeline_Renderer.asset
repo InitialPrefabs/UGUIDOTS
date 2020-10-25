@@ -51,7 +51,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bd90a5b234786b14dadb9c4fb9dd5536, type: 3}
   m_Name: Debug UGUIDOTS
   m_EditorClassIdentifier: 
-  m_Active: 1
+  m_Active: 0
   RenderPassEvent: 600
 --- !u!114 &5773635822035489810
 MonoBehaviour:
