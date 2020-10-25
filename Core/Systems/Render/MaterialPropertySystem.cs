@@ -2,7 +2,6 @@ using Unity.Entities;
 
 namespace UGUIDOTS.Render.Systems {
 
-    [UpdateInGroup(typeof(ResetMaterialGroup))]
     [DisableAutoCreation]
     [System.Obsolete]
     public class ResetMaterialPropertySystem : SystemBase {
@@ -15,7 +14,6 @@ namespace UGUIDOTS.Render.Systems {
         }
     }
 
-    [UpdateInGroup(typeof(UpdateMaterialGroup))]
     [DisableAutoCreation]
     [System.Obsolete]
     public class UpdateTextureMaterialPropertySystem : SystemBase {

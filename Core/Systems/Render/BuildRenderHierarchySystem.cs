@@ -102,10 +102,8 @@ namespace UGUIDOTS.Render.Systems {
         [BurstCompile]
         struct BuildImageJob : IJob {
 
-            [NativeDisableParallelForRestriction]
             public BufferFromEntity<Vertex> VertexData;
 
-            [NativeDisableUnsafePtrRestriction]
             public PerThreadContainer<EntityContainer> ThreadContainer;
 
             [ReadOnly]

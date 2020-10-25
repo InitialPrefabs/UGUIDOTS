@@ -17,7 +17,10 @@ namespace UGUIDOTS.Core.Diagnostics {
 
     internal class OrthographicDebugRenderFeature : ScriptableRendererFeature {
 
+#pragma warning disable 649
         public RenderPassEvent RenderPassEvent;
+#pragma warning restore 649
+
         internal CommandBuffer CommandBuffer;
 
         private OrthographicDebugRenderPass debugPass;

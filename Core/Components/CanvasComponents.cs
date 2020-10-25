@@ -41,14 +41,6 @@ namespace UGUIDOTS {
     }
 
     /// <summary>
-    /// The weight of whether the scaled canvas should try to match the width of the current window or its height.
-    /// </summary>
-    [Obsolete("WidthHeightRatio is now an entry in `ReferenceResolution`")]
-    public struct WidthHeightRatio : IComponentData {
-        public float Value;
-    }
-
-    /// <summary>
     /// Marks the Canvas root entity to rebuild its current mesh based on the vertex/index buffer.
     /// </summary>
     public struct BuildCanvasTag : IComponentData { }

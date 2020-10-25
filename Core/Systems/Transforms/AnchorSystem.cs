@@ -83,8 +83,6 @@ namespace UGUIDOTS.Transforms.Systems {
                         var grandChildren = Children[current].AsNativeArray().AsReadOnly();
                         RecurseChildren(grandChildren, screenSpace, current, root.Scale, 2);
                     }
-
-                    CommandBuffer.AddComponent<UpdateSliceTag>(current);
                 }
             }
 

@@ -4,7 +4,6 @@ using UnityEngine;
 
 namespace UGUIDOTS.Render.Systems {
 
-    [UpdateInGroup(typeof(MeshUpdateGroup))]
     [DisableAutoCreation]
     public class ButtonColorStateSystem : SystemBase {
 
@@ -47,7 +46,7 @@ namespace UGUIDOTS.Render.Systems {
 
                 if (delta) {
                     cmdBuffer.SetComponent(entityInQueryIndex, entity, new AppliedColor { Value = color });
-                    cmdBuffer.AddComponent<UpdateVertexColorTag>(entityInQueryIndex, entity);
+                    // TODO: Make sure that the vertex data is updated.
                 }
             }).WithBurst().ScheduleParallel(Dependency);
 
