@@ -1,3 +1,4 @@
+using System;
 using TMPro;
 using UGUIDOTS.Collections;
 using UGUIDOTS.Transforms;
@@ -29,11 +30,18 @@ namespace UGUIDOTS.Render.Systems {
 
             public EntityCommandBuffer.ParallelWriter CommandBuffer;
 
+            [WriteOnly]
+            public NativeHashMap<Entity, IntPtr>.ParallelWriter CanvasVertexMap;
+
             [ReadOnly]
             public BufferFromEntity<Child> Children;
 
             [ReadOnly]
             public EntityTypeHandle EntityType;
+
+            // Canvases
+            // -----------------------------------------
+            public BufferTypeHandle<Vertex> VertexBufferType;
 
             // Images
             // -----------------------------------------
@@ -63,6 +71,7 @@ namespace UGUIDOTS.Render.Systems {
 
             public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex) {
                 var entities = chunk.GetNativeArray(EntityType);
+                var vertexBuffers = chunk.GetBufferAccessor(VertexBufferType);
 
                 for (int i = 0; i < chunk.Count; i++) {
                     var entity = entities[i];
@@ -73,6 +82,12 @@ namespace UGUIDOTS.Render.Systems {
                     UnsafeList<EntityContainer>* img = ImageContainer + index;
                     UnsafeList<EntityContainer>* txt = TextContainer + index;
                     RecurseChildrenDetermineType(children, entity, img, txt);
+
+                    var vertices = vertexBuffers[i];
+
+                    // Add the vertex ptr so we can write to it.
+                    void* vertexPtr = vertices.GetUnsafePtr();
+                    CanvasVertexMap.TryAdd(entity, new IntPtr(vertexPtr));
 
                     CommandBuffer.AddComponent<RebuildMeshTag>(firstEntityIndex + i, entity);
                 }
@@ -102,9 +117,10 @@ namespace UGUIDOTS.Render.Systems {
         [BurstCompile]
         struct BuildImageJob : IJob {
 
-            public BufferFromEntity<Vertex> VertexData;
-
             public PerThreadContainer<EntityContainer> ThreadContainer;
+
+            [ReadOnly]
+            public NativeHashMap<Entity, IntPtr> CanvasMap;
 
             [ReadOnly]
             public ComponentDataFromEntity<SpriteData> SpriteData;
@@ -134,7 +150,7 @@ namespace UGUIDOTS.Render.Systems {
                 var root = Root[entity].Value;
 
                 // Get the root data
-                var vertices      = VertexData[root];
+                var vertexPtr     = (Vertex*)CanvasMap[root].ToPointer();
                 var rootTransform = ScreenSpaces[root];
 
                 // Build the image data
@@ -150,7 +166,7 @@ namespace UGUIDOTS.Render.Systems {
 
                 ImageUtils.FillVertexSpan(tempImageData, minMax, spriteData, color);
 
-                var dst  = (Vertex*)vertices.GetUnsafePtr() + span.VertexSpan.x;
+                var dst  = (Vertex*)vertexPtr + span.VertexSpan.x;
                 var size = UnsafeUtility.SizeOf<Vertex>() * span.VertexSpan.y;
                 UnsafeUtility.MemCpy(dst, tempImageData.GetUnsafePtr(), size);
             }
@@ -172,11 +188,10 @@ namespace UGUIDOTS.Render.Systems {
         [BurstCompile]
         struct BuildTextJob : IJob {
 
-            [NativeDisableParallelForRestriction]
-            [NativeDisableUnsafePtrRestriction]
-            public BufferFromEntity<Vertex> Vertices;
-
             public PerThreadContainer<EntityContainer> TextEntities;
+
+            [ReadOnly]
+            public NativeHashMap<Entity, IntPtr> CanvasMap;
 
             // Font info
             // ------------------------------------------------------------------
@@ -246,10 +261,10 @@ namespace UGUIDOTS.Render.Systems {
                             textOptions, 
                             color);
 
-                        var span = Spans[entity];
-                        var vertices = Vertices[root];
+                        var span      = Spans[entity];
+                        var vertexPtr = (Vertex*)CanvasMap[root].ToPointer();
 
-                        var dst = (Vertex*)vertices.GetUnsafePtr() + span.VertexSpan.x;
+                        var dst = (Vertex*)vertexPtr + span.VertexSpan.x;
                         var size = span.VertexSpan.y * UnsafeUtility.SizeOf<Vertex>();
                         UnsafeUtility.MemCpy(dst, tempVertexData.GetUnsafePtr(), size);
 
@@ -431,23 +446,25 @@ namespace UGUIDOTS.Render.Systems {
             var resolutions   = GetComponentDataFromEntity<DefaultSpriteResolution>(true);
             var stretch       = GetComponentDataFromEntity<Stretch>(true);
             var root          = GetComponentDataFromEntity<RootCanvasReference>(true);
-            var vertexBuffers = GetBufferFromEntity<Vertex>(false);
 
+            var canvasMap = new NativeHashMap<Entity, IntPtr>(canvasQuery.CalculateEntityCount(), Allocator.TempJob);
             var commandBuffer = commandBufferSystem.CreateCommandBuffer().AsParallelWriter();
 
             // TODO: Collect -> Build Image + Build Text can work here
-            Dependency = new CollectEntitiesJob {
-                CommandBuffer  = commandBuffer,
-                CharBuffers    = charBuffers,
-                Children       = children,
-                Stretched      = stretch,
-                EntityType     = GetEntityTypeHandle(),
-                SpriteData     = spriteData,
-                ImageContainer = perThreadImageContainer.Ptr,
-                TextContainer  = perThreadTextContainer.Ptr
+            Dependency           = new CollectEntitiesJob {
+                CommandBuffer    = commandBuffer,
+                CharBuffers      = charBuffers,
+                Children         = children,
+                Stretched        = stretch,
+                EntityType       = GetEntityTypeHandle(),
+                SpriteData       = spriteData,
+                VertexBufferType = GetBufferTypeHandle<Vertex>(false),
+                ImageContainer   = perThreadImageContainer.Ptr,
+                TextContainer    = perThreadTextContainer.Ptr,
+                CanvasVertexMap  = canvasMap.AsParallelWriter()
             }.ScheduleParallel(canvasQuery, Dependency);
 
-            Dependency = new BuildImageJob {
+            var imgDeps           = new BuildImageJob {
                 Root              = root,
                 Colors            = colors,
                 Dimensions        = dimensions,
@@ -455,9 +472,9 @@ namespace UGUIDOTS.Render.Systems {
                 ScreenSpaces      = screenSpaces,
                 SpriteData        = spriteData,
                 SpriteResolutions = resolutions,
-                VertexData        = vertexBuffers,
                 Stretched         = stretch,
                 ThreadContainer   = perThreadImageContainer,
+                CanvasMap         = canvasMap
             }.Schedule(Dependency);
 
             var fontFaces   = GetComponentDataFromEntity<FontFaceInfo>(true);
@@ -465,7 +482,7 @@ namespace UGUIDOTS.Render.Systems {
             var linkedFonts = GetComponentDataFromEntity<LinkedTextFontEntity>(true);
             var textOptions = GetComponentDataFromEntity<TextOptions>(true);
 
-            Dependency = new BuildTextJob {
+            var textDeps        = new BuildTextJob {
                 AppliedColors   = colors,
                 CharBuffers     = charBuffers,
                 Dimensions      = dimensions,
@@ -476,9 +493,12 @@ namespace UGUIDOTS.Render.Systems {
                 Spans           = spans,
                 TextOptions     = textOptions,
                 Roots           = root,
-                Vertices        = vertexBuffers,
-                TextEntities    = perThreadTextContainer
+                TextEntities    = perThreadTextContainer,
+                CanvasMap       = canvasMap
             }.Schedule(Dependency);
+
+            var combinedDeps = JobHandle.CombineDependencies(imgDeps, textDeps);
+            Dependency = canvasMap.Dispose(combinedDeps);
 
             commandBufferSystem.AddJobHandleForProducer(Dependency);
         }
