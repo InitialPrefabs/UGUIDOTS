@@ -12,9 +12,6 @@ using Unity.Mathematics;
 
 namespace UGUIDOTS.Render.Systems {
 
-    /**
-     * Maybe per canvas, grab all of the Images and Text entities. Build all static content first.
-     */
     [UpdateInGroup(typeof(SimulationSystemGroup), OrderLast = true)]
     public unsafe class BuildRenderHierarchySystem : SystemBase {
 
@@ -186,7 +183,7 @@ namespace UGUIDOTS.Render.Systems {
         }
 
         [BurstCompile]
-        struct BuildTextJob : IJob {
+        struct BuildTextJob : IJobParallelFor {
 
             public PerThreadContainer<EntityContainer> TextEntities;
 
@@ -227,50 +224,48 @@ namespace UGUIDOTS.Render.Systems {
             [ReadOnly]
             public ComponentDataFromEntity<RootCanvasReference> Roots;
 
-            public void Execute() {
+            public void Execute(int index) {
                 var lines = new NativeList<TextUtil.LineInfo>(10, Allocator.Temp);
                 var tempVertexData = new NativeList<Vertex>(Allocator.Temp);
+                
+                var list = TextEntities.Ptr[index];
+                for (int i = 0; i < list.Length; i++) {
+                    var entity = list[i];
+                    var linked = LinkedTextFonts[entity].Value;
 
-                for (int i = 0; i < TextEntities.Length; i++) {
-                    var list = TextEntities.Ptr[i];
-                    for (int k = 0; k < list.Length; k++) {
-                        var entity = list[k];
-                        var linked = LinkedTextFonts[entity].Value;
+                    var glyphs   = Glyphs[linked].AsNativeArray();
+                    var fontFace = FontFace[linked];
 
-                        var glyphs   = Glyphs[linked].AsNativeArray();
-                        var fontFace = FontFace[linked];
+                    var root = Roots[entity].Value;
 
-                        var root = Roots[entity].Value;
+                    var chars       = CharBuffers[entity].AsNativeArray();
+                    var dimension   = Dimensions[entity];
+                    var screenSpace = ScreenSpace[entity];
+                    var textOptions = TextOptions[entity];
+                    var color       = AppliedColors[entity].Value.ToNormalizedFloat4();
+                    var rootScreen  = ScreenSpace[root];
 
-                        var chars       = CharBuffers[entity].AsNativeArray();
-                        var dimension   = Dimensions[entity];
-                        var screenSpace = ScreenSpace[entity];
-                        var textOptions = TextOptions[entity];
-                        var color       = AppliedColors[entity].Value.ToNormalizedFloat4();
-                        var rootScreen  = ScreenSpace[root];
+                    CreateVertexForChars(
+                        chars, 
+                        glyphs, 
+                        lines, 
+                        tempVertexData, 
+                        fontFace, 
+                        dimension, 
+                        screenSpace, 
+                        rootScreen.Scale,
+                        textOptions, 
+                        color);
 
-                        CreateVertexForChars(
-                            chars, 
-                            glyphs, 
-                            lines, 
-                            tempVertexData, 
-                            fontFace, 
-                            dimension, 
-                            screenSpace, 
-                            rootScreen.Scale,
-                            textOptions, 
-                            color);
+                    var span      = Spans[entity];
+                    var vertexPtr = (Vertex*)CanvasMap[root].ToPointer();
 
-                        var span      = Spans[entity];
-                        var vertexPtr = (Vertex*)CanvasMap[root].ToPointer();
+                    var dst = (Vertex*)vertexPtr + span.VertexSpan.x;
+                    var size = span.VertexSpan.y * UnsafeUtility.SizeOf<Vertex>();
+                    UnsafeUtility.MemCpy(dst, tempVertexData.GetUnsafePtr(), size);
 
-                        var dst = (Vertex*)vertexPtr + span.VertexSpan.x;
-                        var size = span.VertexSpan.y * UnsafeUtility.SizeOf<Vertex>();
-                        UnsafeUtility.MemCpy(dst, tempVertexData.GetUnsafePtr(), size);
-
-                        tempVertexData.Clear();
-                        lines.Clear();
-                    }
+                    tempVertexData.Clear();
+                    lines.Clear();
                 }
             }
 
@@ -426,13 +421,6 @@ namespace UGUIDOTS.Render.Systems {
         }
 
         protected override void OnUpdate() {
-            /*
-             * So we know we're building static images and texts first so it makes much more sense
-             * that the image and text jobs can run in parallel. But obviously, BufferFromEntity<T> 
-             * doesn't allow parallel write access. It makes much more sense to store pointers and 
-             * access the data in parallel. I'll need to a custom container for this which I'll get to 
-             * another day.
-             */
             perThreadImageContainer.Reset();
 
             var charBuffers = GetBufferFromEntity<CharElement>();
@@ -495,7 +483,7 @@ namespace UGUIDOTS.Render.Systems {
                 Roots           = root,
                 TextEntities    = perThreadTextContainer,
                 CanvasMap       = canvasMap
-            }.Schedule(Dependency);
+            }.Schedule(perThreadImageContainer.Length, 1, Dependency);
 
             var combinedDeps = JobHandle.CombineDependencies(imgDeps, textDeps);
             Dependency = canvasMap.Dispose(combinedDeps);
