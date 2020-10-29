@@ -6,6 +6,7 @@ using Unity.Transforms;
 using Unity.Mathematics;
 
 namespace UGUIDOTS.Conversions.Systems {
+
     internal static class CanvasConversionUtils {
         internal static void CleanCanvas(Entity canvasEntity, EntityManager manager) {
             manager.RemoveComponent<Rotation>(canvasEntity);

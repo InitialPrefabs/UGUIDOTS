@@ -22,11 +22,11 @@ namespace UGUIDOTS {
     /// <summary>
     /// Stores the visual state of the button.
     /// </summary>
-    public struct ButtonVisual : IComponentData {
+    public struct ButtonState : IComponentData {
         public ButtonVisualState Value;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ButtonVisual Default() => new ButtonVisual { Value = ButtonVisualState.None };
+        public static ButtonState Default() => new ButtonState { Value = ButtonVisualState.None };
     }
 
     /// <summary>

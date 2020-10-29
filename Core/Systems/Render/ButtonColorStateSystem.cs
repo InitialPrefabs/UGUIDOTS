@@ -17,7 +17,7 @@ namespace UGUIDOTS.Render.Systems {
             var cmdBuffer = cmdBufferSystem.CreateCommandBuffer().AsParallelWriter();
 
             Dependency = Entities.WithNone<NonInteractableButtontag>().
-                ForEach((Entity entity, int entityInQueryIndex, in AppliedColor c0, in ColorStates c1, in ButtonVisual c3) => {
+                ForEach((Entity entity, int entityInQueryIndex, in AppliedColor c0, in ColorStates c1, in ButtonState c3) => {
 
                 bool delta       = true;
                 Color32 color    = default;
