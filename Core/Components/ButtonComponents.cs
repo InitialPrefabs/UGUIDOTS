@@ -37,7 +37,7 @@ namespace UGUIDOTS {
     /// <summary>
     /// Marks that a button is non interactable.
     /// </summary>
-    public struct NonInteractableButtontag : IComponentData { }
+    public struct NonInteractableButtonTag : IComponentData { }
 
     /// <summary>
     /// The button is strictly a close button type.

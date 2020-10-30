@@ -1,3 +1,4 @@
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using UnityEngine;
 
@@ -9,7 +10,12 @@ namespace UGUIDOTS {
         public ushort CursorSize = 1;
 
         public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem) {
-            dstManager.AddComponentData(entity, new CursorBuffer(CursorSize));
+            var cursors = dstManager.AddBuffer<Cursor>(entity);
+            cursors.ResizeUninitialized(CursorSize);
+
+            unsafe {
+                UnsafeUtility.MemSet(cursors.GetUnsafePtr(), 0, CursorSize * UnsafeUtility.SizeOf<Cursor>());
+            }
         }
     }
 }

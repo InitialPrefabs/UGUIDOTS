@@ -1,11 +1,14 @@
+using UGUIDOTS.Transforms.Systems;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Jobs;
 using UnityEngine;
 
 namespace UGUIDOTS.Render.Systems {
 
-    [DisableAutoCreation]
-    public class ButtonColorStateSystem : SystemBase {
+    [UpdateInGroup(typeof(SimulationSystemGroup), OrderFirst = true)]
+    [UpdateAfter(typeof(CursorCollisionSystem))]
+    public unsafe class ButtonColorStateSystem : SystemBase {
 
         private EntityCommandBufferSystem cmdBufferSystem;
 
@@ -16,39 +19,43 @@ namespace UGUIDOTS.Render.Systems {
         protected override void OnUpdate() {
             var cmdBuffer = cmdBufferSystem.CreateCommandBuffer().AsParallelWriter();
 
-            Dependency = Entities.WithNone<NonInteractableButtontag>().
-                ForEach((Entity entity, int entityInQueryIndex, in AppliedColor c0, in ColorStates c1, in ButtonState c3) => {
+            var vertexBuffers = GetBufferFromEntity<Vertex>(false);
 
-                bool delta       = true;
-                Color32 color    = default;
-                var currentColor = c0.Value.ToNormalizedFloat4();
+            Entities.WithNone<NonInteractableButtonTag>().ForEach((
+                Entity entity, 
+                ref AppliedColor c0, 
+                in ColorStates c1, 
+                in ButtonState c2,
+                in RootCanvasReference c3,
+                in MeshDataSpan c4) => {
+
+                EquatableColor32 color = c0.Value;
+                bool delta = true;
                 
-                switch (c3.Value) {
-                    case var _ when ButtonVisualState.Hover == c3.Value && 
-                        !currentColor.Equals(c1.HighlightedColor.ToNormalizedFloat4()):
-                        color = c1.HighlightedColor;
+                switch (c2.Value) {
+                    case var _ when ButtonVisualState.Hover == c2.Value && !color.Equals(c1.HighlightedColor):
+                        c0.Value = c1.HighlightedColor;
                         break;
-
-                    case var _ when ButtonVisualState.Pressed == c3.Value &&
-                        !currentColor.Equals(c1.PressedColor.ToNormalizedFloat4()):
-                        color = c1.PressedColor;
+                    case var _ when ButtonVisualState.Pressed == c2.Value && !color.Equals(c1.PressedColor):
+                        c0.Value = c1.PressedColor;
                         break;
-
-                    case var _ when ButtonVisualState.None == c3.Value &&
-                        !currentColor.Equals(c1.DefaultColor.ToNormalizedFloat4()):
-                        color = c1.DefaultColor;
+                    case var _ when ButtonVisualState.None == c2.Value && !color.Equals(c1.DefaultColor):
+                        c0.Value = c1.DefaultColor;
                         break;
-
                     default:
                         delta = false;
                         break;
                 } 
 
                 if (delta) {
-                    cmdBuffer.SetComponent(entityInQueryIndex, entity, new AppliedColor { Value = color });
-                    // TODO: Make sure that the vertex data is updated.
+                    var vertices = vertexBuffers[c3.Value];
+                    var vertexSpan = c4.VertexSpan;
+                    for (int i = 0; i < vertexSpan.y; i++) {
+                        var index = i + vertexSpan.x;
+                        var vertex = vertices[index];
+                    }
                 }
-            }).WithBurst().ScheduleParallel(Dependency);
+            }).Run();
 
             cmdBufferSystem.AddJobHandleForProducer(Dependency);
         }
