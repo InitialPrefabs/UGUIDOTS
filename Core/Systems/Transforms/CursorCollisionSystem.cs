@@ -1,35 +1,45 @@
 using Unity.Entities;
 using Unity.Mathematics;
+using UnityEngine;
 
 namespace UGUIDOTS.Transforms.Systems {
 
     [UpdateInGroup(typeof(SimulationSystemGroup), OrderFirst = true)]
     public class CursorCollisionSystem : SystemBase {
 
-        protected override void OnCreate() {
-            RequireSingletonForUpdate<Cursor>();
-        }
-
         protected override void OnUpdate() {
-            var cursorEntity = GetSingletonEntity<Cursor>();
-            var cursors      = EntityManager.GetBuffer<Cursor>(cursorEntity).AsNativeArray();
+            if (!HasSingleton<CursorBuffer>()) {
+#if UNITY_EDITOR
+                Debug.LogError("No Entity with the type: CursorBuffer found!");
+#endif
+                return;
+            }
 
-            Entities.ForEach((Entity entity, in ScreenSpace c0, in Dimension c1) => {
-                var center = c1.Center() + c0.Translation;
+            var cursors = GetSingleton<CursorBuffer>();
 
-                var aabb    = new AABB {
-                    Center  = new float3(center, 0),
-                    Extents = new float3(c1.Extents(), 0)
+            // TODO: Update the button visuals
+            Entities.ForEach((Entity entity, 
+                ref ButtonState c0,
+                in RootCanvasReference c1, 
+                in ColorStates c3, 
+                in Dimension c4,
+                in ScreenSpace c5) => {
+
+                var aabb = new AABB {
+                    Center = new float3(c5.Translation, 0),
+                    Extents = new float3(c4.Extents(), 0)
                 };
 
                 for (int i = 0; i < cursors.Length; i++) {
-                    float3 current = cursors[i];
+                    var cursor = cursors[i];
+                    var position = new float3(cursor.Position, 0);
 
-                    if (aabb.Contains(current)) {
+                    if (aabb.Contains(position)) {
+                        c0.Value = ButtonVisualState.Hover;
                     }
                 }
+            }).Run();
 
-            }).WithReadOnly(cursors).Run();
         }
     }
 }
