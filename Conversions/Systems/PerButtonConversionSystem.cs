@@ -12,6 +12,10 @@ namespace UGUIDOTS.Conversions.Systems {
 
                 DstEntityManager.AddComponentData(entity, colorStates);
                 DstEntityManager.AddComponentData(entity, new ButtonState { Value = ButtonVisualState.None });
+
+                if (!button.interactable) {
+                    DstEntityManager.AddComponent<NonInteractableButtonTag>(entity);
+                }
             });
         }
     }

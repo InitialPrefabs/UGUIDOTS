@@ -7,57 +7,23 @@ using UnityEngine;
 
 namespace UGUIDOTS.Controls.Systems {
 
-    [DisableAutoCreation]
     public class StandaloneMouseCollisionSystem : SystemBase {
 
-        private struct MouseInfo {
-            public float3 Position;
-            public bool2 Pressed;
-        }
-
-        protected override void OnCreate() {
-            RequireSingletonForUpdate<PrimaryMouseKeyCode>();
-        }
-
         protected override void OnUpdate() {
-            var keycode   = GetSingleton<PrimaryMouseKeyCode>().Value;
-            var mousePos  = Input.mousePosition;
-            var clickDown = Input.GetKeyDown(keycode);
-            var clickUp   = Input.GetKeyUp(keycode);
-            var clickHeld = Input.GetKey(keycode);
+            if (HasSingleton<CursorTag>()) {
+                return;
+            }
 
-            var mouse = new MouseInfo {
-                Position = mousePos,
-                Pressed = new bool2(clickDown, clickUp)
-            };
+            // TODO: Copy the mouse input data to the Cursor data.
 
-            Entities.WithNone<NonInteractableButtontag>().ForEach((ref ClickState c0, ref ButtonVisual c1, 
-                in Dimension c2, in LocalToWorld c3, in ButtonClickType c4) => {
+            Entities.WithNone<NonInteractableButtonTag>().ForEach((
+                ref ClickState c0, 
+                ref ButtonState c1, 
+                in Dimension c2, 
+                in LocalToWorld c3, 
+                in ButtonClickType c4) => {
 
-                var aabb = new AABB {
-                    Center  = c3.Position,
-                    Extents = new float3(c2.Extents(), c3.Position.z)
-                };
-
-                if (aabb.Contains(mouse.Position)) {
-                    switch (c4.Value) {
-                        case ClickType.PressDown:
-                            c0.Value = clickDown;
-                            break;
-                        case ClickType.ReleaseUp:
-                            c0.Value = clickUp;
-                            break;
-                        case ClickType.Held:
-                            c0.Value = clickHeld;
-                            break;
-                        default:
-                            break;
-                    }
-
-                    c1.Value =  clickHeld ? ButtonVisualState.Pressed : ButtonVisualState.Hover;
-                } else {
-                    c1.Value = ButtonVisualState.None;
-                }
+                // TODO: Eventually add checks in for the Button Press Types.
             }).Run();
         }
     }

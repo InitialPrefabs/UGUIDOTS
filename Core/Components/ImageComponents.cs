@@ -71,31 +71,6 @@ namespace UGUIDOTS {
         }
     }
 
-    /// <summary>
-    /// A proxy to have an equatable version of Color32.
-    /// </summary>
-    public struct EquatableColor32 : IEquatable<EquatableColor32> {
-        public byte R, B, G, A;
-
-        public bool Equals(EquatableColor32 other) {
-            return other.A == A && other.G == G && other.B == B && other.R == R;
-        }
-
-        public static implicit operator EquatableColor32(Color other) => new EquatableColor32 {
-            R = (byte)(other.r * 255),
-            G = (byte)(other.g * 255),
-            B = (byte)(other.b * 255),
-            A = (byte)(other.a * 255)
-        };
-
-        public static implicit operator EquatableColor32(Color32 other) => new EquatableColor32 {
-            R = other.r,
-            G = other.g,
-            B = other.b,
-            A = other.a
-        };
-    }
-
     public static class ColorExtensions {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float4 ToFloat4(this in Color32 color) {
