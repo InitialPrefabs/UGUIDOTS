@@ -1,56 +1,41 @@
-using System.Runtime.CompilerServices;
 using Unity.Entities;
 
 namespace UGUIDOTS {
 
+    /// <summary>
+    /// Defines how a button should be interacted.
+    /// </summary>
+    public enum ButtonClickType : byte {
+        PressDown = 1,
+        ReleaseUp = 2,
+        Held      = 3
+    }
+
+    /// <summary>
+    /// Defines the visual state of the button.
+    /// </summary>
     public enum ButtonVisualState : byte {
-        None    = 0,
+        Default = 0,
         Hover   = 1 << 0,
         Pressed = 1 << 1,
     }
 
     /// <summary>
-    /// Stores if the button has a cursor on top of it, or if the cursor has been pressed 
+    /// Stores how the button behaves when clicked.
     /// </summary>
-    public struct ClickState : IComponentData {
-        public bool Value;
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ClickState Default() => new ClickState { Value = false };
+    public struct ButtonMouseClickType : IComponentData {
+        public ButtonClickType Value;
     }
 
     /// <summary>
     /// Stores the visual state of the button.
     /// </summary>
-    public struct ButtonState : IComponentData {
+    public struct ButtonMouseVisualState : IComponentData {
         public ButtonVisualState Value;
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ButtonState Default() => new ButtonState { Value = ButtonVisualState.None };
     }
-
-    /// <summary>
-    /// Marks an entity to have a message archetype.
-    /// </summary>
-    public struct ButtonMessageRequest : IComponentData { }
 
     /// <summary>
     /// Marks that a button is non interactable.
     /// </summary>
     public struct NonInteractableButtonTag : IComponentData { }
-
-    /// <summary>
-    /// The button is strictly a close button type.
-    /// </summary>
-    public struct CloseButtonType : IComponentData { }
-
-    /// <summary>
-    /// The button is strictly a show button type.
-    /// </summary>
-    public struct ShowButtonType : IComponentData { }
-
-    /// <summary>
-    /// The button is strictly a toggle button type.
-    /// </summary>
-    public struct ToggleButtonType : IComponentData { }
 }

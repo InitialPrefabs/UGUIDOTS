@@ -11,7 +11,9 @@ namespace UGUIDOTS.Conversions.Systems {
                 var colorStates = ColorStates.FromColorBlock(colorBlock);
 
                 DstEntityManager.AddComponentData(entity, colorStates);
-                DstEntityManager.AddComponentData(entity, new ButtonState { Value = ButtonVisualState.None });
+                DstEntityManager.AddComponentData(entity, new ButtonMouseVisualState { 
+                    Value = ButtonVisualState.Default 
+                });
 
                 if (!button.interactable) {
                     DstEntityManager.AddComponent<NonInteractableButtonTag>(entity);

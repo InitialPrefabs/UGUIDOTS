@@ -33,7 +33,7 @@ namespace UGUIDOTS.Render.Systems {
             Entities.WithNone<NonInteractableButtonTag>().ForEach((
                 ref AppliedColor c0, 
                 in ColorStates c1, 
-                in ButtonState c2,
+                in ButtonMouseVisualState c2,
                 in RootCanvasReference c3,
                 in MeshDataSpan c4) => {
 
@@ -47,7 +47,7 @@ namespace UGUIDOTS.Render.Systems {
                     case var _ when ButtonVisualState.Pressed == c2.Value && !Equals(color, c1.PressedColor):
                         c0.Value = c1.PressedColor;
                         break;
-                    case var _ when ButtonVisualState.None == c2.Value && !Equals(color, c1.DefaultColor):
+                    case var _ when ButtonVisualState.Default == c2.Value && !Equals(color, c1.DefaultColor):
                         c0.Value = c1.DefaultColor;
                         break;
                     default:
@@ -56,14 +56,13 @@ namespace UGUIDOTS.Render.Systems {
                 } 
 
                 if (delta) {
-                    var vertices = vertexBuffers[c3.Value];
+                    var vertices   = vertexBuffers[c3.Value];
+                    Vertex* ptr    = (Vertex*)vertices.GetUnsafePtr();
                     var vertexSpan = c4.VertexSpan;
 
                     for (int i = 0; i < vertexSpan.y; i++) {
-                        var index       = i + vertexSpan.x;
-                        var vertex      = vertices[index];
-                        vertex.Color    = c0.Value.ToNormalizedFloat4();
-                        vertices[index] = vertex;
+                        Vertex* current = ptr + i + vertexSpan.x;
+                        current->Color  = c0.Value.ToNormalizedFloat4();
                     }
                     hashSet.Add(c3.Value);
                 }
