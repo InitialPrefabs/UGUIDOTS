@@ -1,7 +1,7 @@
 using System.Runtime.CompilerServices;
 using Unity.Entities;
 
-namespace UGUIDOTS.Render {
+namespace UGUIDOTS {
 
     /// <summary>
     /// Fill types only support x/y axis based fills. Radial support will be coming 
