@@ -4,7 +4,7 @@ MonoImporter:
   externalObjects: {}
   serializedVersion: 2
   defaultReferences:
-  - BakedCanvasData: {fileID: 11400000, guid: 06a27d5b4fd9a4a3d84792e45bf249d8, type: 2}
+  - BakedCanvasData: {instanceID: 0}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 
