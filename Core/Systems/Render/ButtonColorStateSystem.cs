@@ -44,10 +44,10 @@ namespace UGUIDOTS.Render.Systems {
                     case var _ when ButtonVisualState.Hover == c2.Value && !Equals(color, c1.HighlightedColor):
                         c0.Value = c1.HighlightedColor;
                         break;
-                    case var _ when ButtonVisualState.Pressed == c2.Value && Equals(color, c1.PressedColor):
+                    case var _ when ButtonVisualState.Pressed == c2.Value && !Equals(color, c1.PressedColor):
                         c0.Value = c1.PressedColor;
                         break;
-                        case var _ when ButtonVisualState.None == c2.Value && Equals(color, c1.HighlightedColor):
+                    case var _ when ButtonVisualState.None == c2.Value && !Equals(color, c1.DefaultColor):
                         c0.Value = c1.DefaultColor;
                         break;
                     default:
@@ -58,10 +58,12 @@ namespace UGUIDOTS.Render.Systems {
                 if (delta) {
                     var vertices = vertexBuffers[c3.Value];
                     var vertexSpan = c4.VertexSpan;
+
                     for (int i = 0; i < vertexSpan.y; i++) {
-                        var index   = i + vertexSpan.x;
-                        var vertex = vertices[index];
-                        vertex.Color = c0.Value.ToNormalizedFloat4();
+                        var index       = i + vertexSpan.x;
+                        var vertex      = vertices[index];
+                        vertex.Color    = c0.Value.ToNormalizedFloat4();
+                        vertices[index] = vertex;
                     }
                     hashSet.Add(c3.Value);
                 }

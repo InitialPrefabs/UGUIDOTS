@@ -2,17 +2,12 @@
 using Unity.Entities;
 using UnityEngine;
 
-namespace UGUIDOTS.Controls {
+namespace UGUIDOTS.Controls.Standalone {
 
     /// <summary>
     /// Stores the primary mouse key code.
     /// </summary>
     public struct PrimaryMouseKeyCode : IComponentData {
         public KeyCode Value;
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static PrimaryMouseKeyCode Default() {
-            return new PrimaryMouseKeyCode { Value = KeyCode.Mouse0 };
-        }
     }
 }

@@ -1,4 +1,3 @@
-using System;
 using Unity.Entities;
 
 namespace UGUIDOTS.Render {

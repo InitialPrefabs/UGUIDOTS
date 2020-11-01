@@ -25,11 +25,13 @@ namespace UGUIDOTS.Transforms.Systems {
                 };
 
                 for (int i = 0; i < cursors.Length; i++) {
-                    var cursor = cursors[i].Value;
+                    var cursor = cursors[i];
                     var position = new float3(cursor.Position, 0);
 
                     if (aabb.Contains(position)) {
-                        c0.Value = cursor.Pressed ? ButtonVisualState.Hover : ButtonVisualState.Pressed;
+                        c0.Value = cursor.Pressed ? ButtonVisualState.Pressed : ButtonVisualState.Hover;
+                    } else {
+                        c0.Value = ButtonVisualState.None;
                     }
                 }
             }).WithReadOnly(cursors).Run();
