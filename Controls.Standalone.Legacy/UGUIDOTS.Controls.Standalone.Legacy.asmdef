@@ -17,7 +17,9 @@
     "overrideReferences": false,
     "precompiledReferences": [],
     "autoReferenced": true,
-    "defineConstraints": [],
+    "defineConstraints": [
+        "USE_LEGACY_INPUT"
+    ],
     "versionDefines": [],
     "noEngineReferences": false
 }
