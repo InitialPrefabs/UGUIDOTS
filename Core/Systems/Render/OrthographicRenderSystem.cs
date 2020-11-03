@@ -30,8 +30,8 @@ namespace UGUIDOTS.Render.Systems {
                 Matrix4x4.TRS(Vector3.zero, Quaternion.identity, Vector3.one));
 
             // TODO: Enable scissor rect
-            // var rect = new Rect(0, 0, Screen.width, Screen.height);
-            // cmd.EnableScissorRect(rect);
+            var rect = new Rect(0, 0, Screen.width, Screen.height);
+            cmd.EnableScissorRect(rect);
 
             Entities.ForEach((SharedMesh mesh, MaterialPropertyBatch batch, DynamicBuffer<SubmeshKeyElement> keys, 
                 in ScreenSpace c0) => {

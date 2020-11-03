@@ -3,6 +3,19 @@ using Unity.Entities;
 using Unity.Mathematics;
 
 namespace UGUIDOTS.Transforms {
+
+    /// <summary>
+    /// Marks an entity to be enabled or disabled based on the composition of the entity.
+    /// </summary>
+    public struct ToggleActiveStateTag : IComponentData { }
+
+    /// <summary>
+    /// A proxy for the "enabled" field usually found in a MonoBehaviour Component.
+    /// </summary>
+    public struct Enabled : IComponentData {
+        public bool ActiveSelf;
+        public bool ActiveInHierarchy;
+    }
     
     /// <summary>
     /// The local to world transformation.

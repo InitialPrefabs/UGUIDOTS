@@ -86,7 +86,6 @@ namespace UGUIDOTS.Conversions.Systems {
                     var gameObject = renderedElement.GameObject;
                     
                     var entity = GetPrimaryEntity(gameObject);
-
                     DstEntityManager.AddComponentData(entity, new RootCanvasReference { Value = canvasEntity });
 
                     if (gameObject.TryGetComponent(out Image image)) {
@@ -103,7 +102,7 @@ namespace UGUIDOTS.Conversions.Systems {
                         
                         // Add 4 vertices for simple images
                         // TODO: Support 9 slicing images - which will generate 16 vertices
-                        vertexData.AddImageVertices(minMax, spriteData, color.Value);
+                        vertexData.AddImageVertices(minMax, spriteData, color.Value, !gameObject.activeInHierarchy);
 
                         // After each image, the index needs to increment
                         indexData.AddImageIndices(in vertexData);
@@ -121,7 +120,8 @@ namespace UGUIDOTS.Conversions.Systems {
                         var indexOffset  = indexData.Length;
                         var vertexOffset = vertexData.Length;
 
-                        ConversionUtility.ConvertText(this, canvasEntity, text, ref vertexData, ref indexData);
+                        ConversionUtility.ConvertText(this, canvasEntity, text, ref vertexData, ref indexData, 
+                            !gameObject.activeInHierarchy);
 
                         var indexSize = indexData.Length - indexOffset;
                         var vertexSize = vertexData.Length - vertexOffset;

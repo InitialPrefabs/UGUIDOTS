@@ -15,7 +15,8 @@ namespace UGUIDOTS.Conversions {
             Entity canvasEntity,
             TextMeshProUGUI text, 
             ref NativeList<Vertex> vertexData, 
-            ref NativeList<Index> indexData) {
+            ref NativeList<Index> indexData,
+            bool isDisabled) {
 
             // TODO: Generate an entity with all the glyphs stored as a hash map.
             var textEntity     = conversion.GetPrimaryEntity(text);
@@ -87,8 +88,11 @@ namespace UGUIDOTS.Conversions {
                 var right = new float3(1, 0, 0);
                 var color = ((Color32)text.color).ToNormalizedFloat4();
 
+                var offset = math.select(float3.zero, new float3(OffsetConstants.DisabledOffset, 0), isDisabled);
+                offset = isDisabled ? new float3(OffsetConstants.DisabledOffset, 0) : float3.zero;
+
                 vertexData.Add(new Vertex {
-                    Position = new float3(xPos, yPos, 0),
+                    Position = new float3(xPos, yPos, 0) + offset,
                     Normal = right,
                     Color = color,
                     UV1 = uv1.c0,
@@ -96,7 +100,7 @@ namespace UGUIDOTS.Conversions {
                 });
 
                 vertexData.Add(new Vertex {
-                    Position = new float3(xPos, yPos + size.y, 0),
+                    Position = new float3(xPos, yPos + size.y, 0) + offset,
                     Normal = right,
                     Color = color,
                     UV1 = uv1.c1,
@@ -104,14 +108,14 @@ namespace UGUIDOTS.Conversions {
                 });
 
                 vertexData.Add(new Vertex {
-                    Position = new float3(xPos + size.x, yPos + size.y, 0),
+                    Position = new float3(xPos + size.x, yPos + size.y, 0) + offset,
                     Normal = right,
                     Color = color,
                     UV1 = uv1.c2,
                     UV2 = uv2
                 });
                 vertexData.Add(new Vertex {
-                    Position = new float3(xPos + size.x, yPos, 0),
+                    Position = new float3(xPos + size.x, yPos, 0) + offset,
                     Normal = right,
                     Color = color,
                     UV1 = uv1.c3,

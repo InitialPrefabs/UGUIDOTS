@@ -78,15 +78,18 @@ namespace UGUIDOTS {
             this ref NativeList<Vertex> buffer, 
             float4 position,
             SpriteData data, 
-            Color32 color) {
+            Color32 color,
+            bool isDisabled) {
 
             var normalColor = color.ToNormalizedFloat4();
             var uv2         = new float2(1);
+            var offset      = math.select(float2.zero, OffsetConstants.DisabledOffset, isDisabled);
+            offset = isDisabled ? OffsetConstants.DisabledOffset : float2.zero;
 
             buffer.Add(new Vertex {
                 Color    = normalColor,
                 Normal   = new float3(0, 0, -1),
-                Position = new float3(position.xy, 0),
+                Position = new float3(position.xy + offset, 0),
                 UV1      = data.OuterUV.xy,
                 UV2      = uv2
             });
@@ -94,7 +97,7 @@ namespace UGUIDOTS {
             buffer.Add(new Vertex {
                 Color    = normalColor,
                 Normal   = new float3(0, 0, -1),
-                Position = new float3(position.xw, 0),
+                Position = new float3(position.xw + offset, 0),
                 UV1      = data.OuterUV.xw,
                 UV2      = uv2
             });
@@ -102,7 +105,7 @@ namespace UGUIDOTS {
             buffer.Add(new Vertex {
                 Color    = normalColor,
                 Normal   = new float3(0, 0, -1),
-                Position = new float3(position.zw, 0),
+                Position = new float3(position.zw + offset, 0),
                 UV1      = data.OuterUV.zw,
                 UV2      = uv2
             });
@@ -110,7 +113,7 @@ namespace UGUIDOTS {
             buffer.Add(new Vertex {
                 Color    = normalColor,
                 Normal   = new float3(0, 0, -1),
-                Position = new float3(position.zy, 0),
+                Position = new float3(position.zy + offset, 0),
                 UV1      = data.OuterUV.zy,
                 UV2      = uv2
             });

@@ -40,6 +40,11 @@ namespace UGUIDOTS.Conversions.Systems {
                     DstEntityManager.AddComponentData(entity, new LocalSpace { });
                 }
 
+                DstEntityManager.AddComponentData(entity, new Enabled { 
+                    ActiveSelf        = transform.gameObject.activeSelf,
+                    ActiveInHierarchy = transform.gameObject.activeInHierarchy
+                });
+
                 // Remove all Unity Transforms
                 DstEntityManager.RemoveComponent<Rotation>(entity);
                 DstEntityManager.RemoveComponent<Translation>(entity);
