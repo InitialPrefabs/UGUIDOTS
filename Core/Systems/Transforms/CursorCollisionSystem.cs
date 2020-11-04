@@ -18,11 +18,20 @@ namespace UGUIDOTS.Transforms.Systems {
             var cursorEntity = GetSingletonEntity<CursorTag>();
             var cursors = GetBuffer<Cursor>(cursorEntity).AsNativeArray();
 
-            Entities.ForEach((Entity entity, ref ButtonMouseVisualState c0, in Dimension c1, in ScreenSpace c2) => {
+            Entities.ForEach((
+                ref ButtonMouseVisualState c0, 
+                ref ButtonInvoked c1, 
+                in ButtonMouseClickType c2,
+                in Dimension c3, 
+                in ScreenSpace c4) => {
+
                 var aabb    = new AABB {
-                    Center  = new float3(c2.Translation, 0),
-                    Extents = new float3(c1.Extents(), 0)
+                    Center  = new float3(c4.Translation, 0),
+                    Extents = new float3(c3.Extents(), 0)
                 };
+
+                var buttonState = (int)c2.Value;
+                c1.Value = false;
 
                 for (int i = 0; i < cursors.Length; i++) {
                     var cursor = cursors[i];
@@ -31,12 +40,17 @@ namespace UGUIDOTS.Transforms.Systems {
                     // TODO: Check if the cursor has been pressed
                     if (aabb.Contains(position)) {
                         c0.Value = cursor.State != ClickState.None ? ButtonVisualState.Pressed : ButtonVisualState.Hover;
+
+                        var cursorState = (int)cursor.State;
+                        if (buttonState == cursorState) {
+                            c1.Value = true;
+                        }
                     } else {
                         c0.Value = ButtonVisualState.Default;
                     }
+
                 }
             }).WithReadOnly(cursors).Run();
-
         }
     }
 }

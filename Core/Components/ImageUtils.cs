@@ -84,7 +84,7 @@ namespace UGUIDOTS {
             var normalColor = color.ToNormalizedFloat4();
             var uv2         = new float2(1);
             var offset      = math.select(float2.zero, OffsetConstants.DisabledOffset, isDisabled);
-            offset = isDisabled ? OffsetConstants.DisabledOffset : float2.zero;
+            offset          = isDisabled ? OffsetConstants.DisabledOffset : float2.zero;
 
             buffer.Add(new Vertex {
                 Color    = normalColor,

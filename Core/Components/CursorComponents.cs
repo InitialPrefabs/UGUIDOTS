@@ -9,8 +9,8 @@ namespace UGUIDOTS {
     public enum ClickState {
         None    = 0,
         Enter   = 1,
-        Stay    = 2,
-        Release = 3,
+        Release = 2,
+        Stay    = 3,
     }
 
     /// <summary>

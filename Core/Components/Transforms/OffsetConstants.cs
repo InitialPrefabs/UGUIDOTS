@@ -6,6 +6,6 @@ namespace UGUIDOTS.Transforms {
         /// <summary>
         /// The number of pixels we want to shift the vertices.
         /// </summary>
-        public static readonly float2 DisabledOffset = new float2(65536);
+        public static readonly float2 DisabledOffset = new float2(1 << 15);
     }
 }

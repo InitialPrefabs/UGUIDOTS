@@ -1,3 +1,4 @@
+using UGUIDOTS.Collections;
 using Unity.Entities;
 
 namespace UGUIDOTS {
@@ -35,7 +36,21 @@ namespace UGUIDOTS {
     }
 
     /// <summary>
+    /// Stores whether the button was invoked.
+    /// </summary>
+    public struct ButtonInvoked : IComponentData {
+        public bool Value;
+    }
+
+    /// <summary>
     /// Marks that a button is non interactable.
     /// </summary>
     public struct NonInteractableButtonTag : IComponentData { }
+
+    /// <summary>
+    /// Stores the entities which should be targetted for some kind of post processing.
+    /// </summary>
+    public struct TargetEntity : IBufferElementData, IStruct<TargetEntity> {
+        public Entity Value;
+    }
 }

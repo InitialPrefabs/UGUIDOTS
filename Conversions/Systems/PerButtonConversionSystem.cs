@@ -15,6 +15,8 @@ namespace UGUIDOTS.Conversions.Systems {
                     Value = ButtonVisualState.Default 
                 });
 
+                DstEntityManager.AddComponentData(entity, new ButtonInvoked { });
+
                 if (!button.interactable) {
                     DstEntityManager.AddComponent<NonInteractableButtonTag>(entity);
                 }
