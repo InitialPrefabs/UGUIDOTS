@@ -125,9 +125,10 @@ namespace UGUIDOTS.Transforms {
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float2 RelativeAnchorTo(this in Anchor anchor, int2 size, float2 scale, float2 center) {
-            var relativeAnchorOffset = anchor.RelativeAnchorTo(size, scale);
-            return relativeAnchorOffset + center;
+        public static float2 RelativeAnchorTo(this in Anchor anchor, float2 extents, float2 scale, float2 translation) {
+            var adjustedExtents = extents * scale;
+            var relativeAnchor = AnchoredPosition(adjustedExtents, anchor.State);
+            return relativeAnchor + translation + anchor.Offset * scale;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

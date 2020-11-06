@@ -107,9 +107,11 @@ namespace UGUIDOTS.Transforms.Systems {
                         var parentDim = Dimensions[parent];
 
                         // Get the extents
-                        var extents                = parentDim.Extents() * rootScale;
-                        var relativeAnchorPosition = AnchorExtensions.AnchoredPosition(extents, anchor.State);
-                        var adjustedWorld          = relativeAnchorPosition + parentSpace.Translation + anchor.Offset *  rootScale;
+                        // var extents                = parentDim.Extents() * rootScale;
+                        // var relativeAnchorPosition = AnchorExtensions.AnchoredPosition(extents, anchor.State);
+                        // var adjustedWorld          = relativeAnchorPosition + parentSpace.Translation + anchor.Offset *  rootScale;
+                        //
+                        var adjustedWorld = anchor.RelativeAnchorTo(parentDim.Extents(), rootScale, parentSpace.Translation);
 
                         screenSpace.Translation = adjustedWorld;
                         localSpace.Translation = parentSpace.Translation - adjustedWorld;
