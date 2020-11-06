@@ -21,6 +21,11 @@ performance capabilities and low overhead for both mobile and desktops. That sai
 * macOS
 * Windows 64 bit
 
+## Beta/Experimental Content
+Check out the `develop` branch of the repository for the redesigned system! This is something I've been working on 
+lately and it redesigns how conversion and transformations are done. I haven't decided to merge this into the `master` 
+branch as of late because I am trying to update the entire documentation and some features are missing.
+
 ## Wiki
 The [wiki](Wiki/Home.md) is currently being worked on and contains basic information about Image/Text pipelines.
 
