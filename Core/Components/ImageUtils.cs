@@ -43,19 +43,6 @@ namespace UGUIDOTS {
                 UV2      = new float2(1)
             };
         }
-
-        // TODO: Account for sliced images
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static unsafe void UpdateVertexDimension(
-            Vertex* start, 
-            int2 span, 
-            float4 position) {
-
-            (start + span.x)->Position     = new float3(position.xy, 0);
-            (start + span.x + 1)->Position = new float3(position.xw, 0);
-            (start + span.x + 2)->Position = new float3(position.zw, 0);
-            (start + span.x + 3)->Position = new float3(position.zy, 0);
-        }
    
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AddImageIndices(
@@ -72,7 +59,6 @@ namespace UGUIDOTS {
             indices.Add(new Index { Value = (ushort)(3 + nextStartIdx) });
         }
         
-        // TODO: Move this to MeshUtils...
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AddImageVertices(
             this ref NativeList<Vertex> buffer, 

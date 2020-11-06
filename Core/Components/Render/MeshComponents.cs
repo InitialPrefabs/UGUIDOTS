@@ -48,11 +48,6 @@ namespace UGUIDOTS.Render {
     }
 
     /// <summary>
-    /// Marks that an entity needs a Mesh associated with it.
-    /// </summary>
-    public struct AddMeshTag : IComponentData { }
-
-    /// <summary>
     /// Used to describe the submesh's index buffer and vertex buffer params.
     /// </summary>
     public struct SubmeshSliceElement : IBufferElementData {

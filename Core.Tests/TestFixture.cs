@@ -1,6 +1,5 @@
 ﻿using NUnit.Framework;
 using Unity.Entities;
-using Unity.Entities.CodeGeneratedJobForEach;
 
 namespace UGUIDOTS {
 

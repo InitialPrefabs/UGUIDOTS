@@ -89,7 +89,6 @@ namespace UGUIDOTS.Transforms.Systems {
             void RecurseChildren(NativeArray<Child>.ReadOnly children, ScreenSpace parentSpace, Entity parent, 
                 float2 rootScale) {
 
-                // TODO: Rework the Anchor System because I still don't have all the rules down.
                 for (int i = 0; i < children.Length; i++) {
                     var current = children[i].Value;
 
@@ -119,7 +118,7 @@ namespace UGUIDOTS.Transforms.Systems {
                         var grandChildren = Children[current].AsNativeArray().AsReadOnly();
                         RecurseChildren(grandChildren, screenSpace, current, rootScale);
                     }
-                    CommandBuffer.AddComponent<UpdateSliceTag>(current);
+                    // CommandBuffer.AddComponent<UpdateSliceTag>(current);
                 }
             }
         }

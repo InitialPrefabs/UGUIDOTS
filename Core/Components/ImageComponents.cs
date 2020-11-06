@@ -73,11 +73,6 @@ namespace UGUIDOTS {
 
     public static class ColorExtensions {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float4 ToFloat4(this in Color32 color) {
-            return new float4(color.r, color.g, color.b, color.a);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float4 ToNormalizedFloat4(this in Color32 color) {
             return new float4(color.r / 255f, color.g / 255f, color.b / 255f, color.a / 255f);
         }

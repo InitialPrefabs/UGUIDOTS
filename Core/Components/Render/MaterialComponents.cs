@@ -13,7 +13,6 @@ namespace UGUIDOTS.Render {
         public Entity Canvas;
     }
 
-    // TODO: Turn this into a managed component data instead to avoid unnecessary chunk splitting
     [Serializable]
     public class SharedMaterial : IComponentData, IEquatable<SharedMaterial> {
         public Material Value;
