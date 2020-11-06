@@ -130,6 +130,32 @@ namespace UGUIDOTS.Transforms {
             return relativeAnchorOffset + center;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float2 AnchoredPosition(in float2 extents, in AnchoredState state) {
+            switch (state) {
+                case AnchoredState.BottomLeft:
+                    return -extents;
+                case AnchoredState.MiddleLeft:
+                    return extents * new float2(-1, 0);
+                case AnchoredState.TopLeft:
+                    return extents * new float2(-1, 1f);
+                case AnchoredState.BottomCenter:
+                    return extents * new float2(0f, -1f);
+                case AnchoredState.MiddleCenter:
+                    return float2.zero;
+                case AnchoredState.TopCenter:
+                    return extents * new float2(0f, 1f);
+                case AnchoredState.BottomRight:
+                    return extents * new float2(1f, -1f);
+                case AnchoredState.MiddleRight:
+                    return extents * new float2(1f, 0);
+                case AnchoredState.TopRight:
+                    return extents;
+                default:
+                    throw new System.ArgumentException("Anchored State is invalid!");
+            }
+        }
+
         /// <summary>
         /// Switches TextAnchor to their AnchoredState equivalent.
         /// </summary>

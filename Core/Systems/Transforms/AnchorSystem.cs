@@ -101,49 +101,68 @@ namespace UGUIDOTS.Transforms.Systems {
 
                     var isParentRenderable = LinkedMaterials.HasComponent(parent);
 
-                    // TODO: Rules for text are different too
-                    // If the parent is an empty gameObject and we're on a hierarchy level of 2
-                    if (hierarchyLvl == 2 && !isParentRenderable) {
-                        var anchor = Anchors[current];
-                        // TODO: Properly handle scale.
-                        var newScreenPos = anchor.RelativeAnchorTo(Resolution, rootScale);
-
-                        screenSpace.Translation = newScreenPos;
-                        localSpace.Translation = (newScreenPos - Resolution / 2) / rootScale;
-
-                        ScreenSpace[current] = screenSpace;
-                        LocalSpace[current] = localSpace;
-                    } 
-                    else if (Anchors.HasComponent(current)) {
+                    if (Anchors.HasComponent(current)) {
                         var anchor = Anchors[current];
 
-                        // TODO: Any known translation on the value needs to be kept
-                        if (isParentRenderable) {
-                            var parentDims = Dimensions[parent];
-                            var pos = anchor.RelativeAnchorTo(
-                                parentDims.Int2Size(), 
-                                parentSpace.Scale, 
-                                parentSpace.Translation);
+                        var parentDim = Dimensions[parent];
 
-                            // Check if this is correct.
-                            pos += anchor.Offset;
+                        // Get the extents
+                        var extents                = parentDim.Extents() * rootScale;
+                        var relativeAnchorPosition = AnchorExtensions.AnchoredPosition(extents, anchor.State);
+                        var adjustedWorld          = relativeAnchorPosition + parentSpace.Translation + anchor.Offset *  rootScale;
 
-                            screenSpace.Translation = pos;
-                            localSpace.Translation  = (pos - parentSpace.Translation) / parentSpace.Scale;
-                        } else {
-                            screenSpace.Translation = (parentSpace.Translation + anchor.Offset * screenSpace.Scale);
-                            localSpace.Translation  = (screenSpace.Translation - parentSpace.Translation) / parentSpace.Scale;
-                        }
+                        screenSpace.Translation = adjustedWorld;
+                        localSpace.Translation = parentSpace.Translation - adjustedWorld;
 
                         ScreenSpace[current] = screenSpace;
                         LocalSpace[current]  = localSpace;
-                    } else if (Stretched.HasComponent(current)) {
-                        screenSpace.Translation = parentSpace.Translation;
-                        localSpace.Translation = float2.zero;
-
-                        ScreenSpace[current] = screenSpace;
-                        LocalSpace[current] = localSpace;
                     }
+
+                    // TODO: Rules for text are different too
+                    // If the parent is an empty gameObject and we're on a hierarchy level of 2
+                    // if (hierarchyLvl == 2 && !isParentRenderable) {
+                    //     var anchor = Anchors[current];
+                    //     // TODO: Properly handle scale.
+                    //     var newScreenPos = anchor.RelativeAnchorTo(Resolution, rootScale);
+
+                    //     screenSpace.Translation = newScreenPos;
+                    //     localSpace.Translation = (newScreenPos - Resolution / 2) / rootScale;
+
+                    //     ScreenSpace[current] = screenSpace;
+                    //     LocalSpace[current] = localSpace;
+
+                    //     UnityEngine.Debug.Log($"Entity: {current} anchored to root");
+                    // } 
+                    // else if (Anchors.HasComponent(current)) {
+                    //     var anchor = Anchors[current];
+
+                    //     // TODO: Any known translation on the value needs to be kept
+                    //     if (isParentRenderable) {
+                    //         var parentDims = Dimensions[parent];
+                    //         var pos = anchor.RelativeAnchorTo(
+                    //             parentDims.Int2Size(), 
+                    //             parentSpace.Scale, 
+                    //             parentSpace.Translation);
+
+                    //         // Check if this is correct.
+                    //         pos += anchor.Offset;
+
+                    //         screenSpace.Translation = pos;
+                    //         localSpace.Translation  = (pos - parentSpace.Translation) / parentSpace.Scale;
+                    //     } else {
+                    //         screenSpace.Translation = (parentSpace.Translation + anchor.Offset * screenSpace.Scale);
+                    //         localSpace.Translation  = (screenSpace.Translation - parentSpace.Translation) / parentSpace.Scale;
+                    //     }
+
+                    //     ScreenSpace[current] = screenSpace;
+                    //     LocalSpace[current]  = localSpace;
+                    // } else if (Stretched.HasComponent(current)) {
+                    //     screenSpace.Translation = parentSpace.Translation;
+                    //     localSpace.Translation = float2.zero;
+
+                    //     ScreenSpace[current] = screenSpace;
+                    //     LocalSpace[current] = localSpace;
+                    // }
 
                     if (Children.HasComponent(current)) {
                         var grandChildren = Children[current].AsNativeArray().AsReadOnly();
