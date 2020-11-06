@@ -18,16 +18,22 @@ namespace UGUIDOTS.Transforms.Systems {
             var cursorEntity = GetSingletonEntity<CursorTag>();
             var cursors = GetBuffer<Cursor>(cursorEntity).AsNativeArray();
 
-            Entities.ForEach((
+            var screenSpaces = GetComponentDataFromEntity<ScreenSpace>(true);
+
+            Entities.WithAll<ScreenSpace>().ForEach((
+                Entity entity,
                 ref ButtonMouseVisualState c0, 
                 ref ButtonInvoked c1, 
-                in ButtonMouseClickType c2,
-                in Dimension c3, 
-                in ScreenSpace c4) => {
+                in  ButtonMouseClickType c2,
+                in  Dimension c3,
+                in RootCanvasReference c4) => {
+
+                var screenSpace = screenSpaces[entity];
+                var rootSpace = screenSpaces[c4.Value];
 
                 var aabb    = new AABB {
-                    Center  = new float3(c4.Translation, 0),
-                    Extents = new float3(c3.Extents(), 0)
+                    Center  = new float3(screenSpace.Translation, 0),
+                    Extents = new float3(c3.Extents() * rootSpace.Scale, 0)
                 };
 
                 var buttonState = (int)c2.Value;
