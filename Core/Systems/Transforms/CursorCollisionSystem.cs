@@ -37,7 +37,7 @@ namespace UGUIDOTS.Transforms.Systems {
                 };
 
                 var buttonState = (int)c2.Value;
-                c1.Value = false;
+                c1.Value        = false;
 
                 for (int i = 0; i < cursors.Length; i++) {
                     var cursor = cursors[i];
@@ -56,7 +56,7 @@ namespace UGUIDOTS.Transforms.Systems {
                     }
 
                 }
-            }).WithReadOnly(cursors).Run();
+            }).WithReadOnly(cursors).WithReadOnly(screenSpaces).Run();
         }
     }
 }
