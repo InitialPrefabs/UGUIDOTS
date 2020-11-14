@@ -2,14 +2,16 @@
 #define UGUIDOTS_UNLIT_TRANSLATION
 
 #include "Common.hlsl"
+#include "ImageFill.hlsl"
 
 TEXTURE2D(_MainTex);
 SAMPLER(sampler_MainTex);
 
 UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
+    UNITY_DEFINE_INSTANCED_PROP(float, _Axis);
     UNITY_DEFINE_INSTANCED_PROP(float, _Fill)
     UNITY_DEFINE_INSTANCED_PROP(float, _FillType)
-    UNITY_DEFINE_INSTANCED_PROP(float4, _Translation)
+    UNITY_DEFINE_INSTANCED_PROP(float, _Flip)
     UNITY_DEFINE_INSTANCED_PROP(float4, _MainTex_ST)
     UNITY_DEFINE_INSTANCED_PROP(float4, _BaseColor)
 UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
@@ -18,7 +20,8 @@ struct Attributes
 {
     float3 positionOS: POSITION;
     float4 color:      COLOR;
-    float2 baseUV:     TEXCOORD0;
+    float2 uv:         TEXCOORD0;
+    float2 uv2:        TEXCOORD1;
 
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
@@ -27,7 +30,8 @@ struct Varyings
 {
     float4 positionCS: SV_POSITION;
     float4 color:      COLOR;
-    float2 baseUV:     VAR_BASE_UV;
+    float2 uv:         TEXCOORD0;
+    float2 uv2:        TEXCOORD1;
 
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
@@ -37,11 +41,12 @@ Varyings UnlitPassVertex(Attributes input)
     Varyings output;
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_TRANSFER_INSTANCE_ID(input, output);
-    float3 positionWS = TransformObjectToWorld(input.positionOS + UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Translation).xyz);
+    float3 positionWS = TransformObjectToWorld(input.positionOS);
     output.positionCS = TransformWorldToHClip(positionWS);
 
     float4 baseST = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _MainTex_ST);
-    output.baseUV = input.baseUV * baseST.xy + baseST.zw;
+    output.uv     = input.uv * baseST.xy + baseST.zw;
+    output.uv2    = input.uv2;
     output.color  = input.color;
 
     return output;
@@ -50,37 +55,27 @@ Varyings UnlitPassVertex(Attributes input)
 float4 UnlitPassFragment(Varyings input) : SV_TARGET
 {
     UNITY_SETUP_INSTANCE_ID(input);
-    float4 baseMap   = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.baseUV);
+    float4 baseMap   = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv);
     float4 baseColor = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _BaseColor);
     float4 base      = baseMap * input.color;
 
+    float axis = UNITY_ACCESS_INSTANCED_PROP(float, _Axis);
+
 #if defined (_FILL)
-    float fill = 1 - UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Fill);
-    float type = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _FillType);
 
-    float increment;
+    float fillType = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _FillType);
+    float flip     = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Flip);
 
-    if (type == 0) 
-    {
-        increment = step(input.baseUV.x, fill * baseMap.x);
+    if (fillType == 0) {
+        float fill = 1 - UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Fill);
+
+        // float increment = (axis % 2 == 0) ? 
+        //     AxisFill(input.uv.x, baseMap.x, input.uv2.x, fill, flip) :
+        //     AxisFill(input.uv.y, baseMap.y, input.uv2.y, fill, flip);
+
+        clip(input.uv.y < fill ? -1 : 1);
+        float increment = step(input.uv.y, fill * baseMap.y);
     }
-
-    if (type == 1) 
-    {
-        increment = step(1 - fill * baseMap.x, input.baseUV.x);
-    }
-
-    if (type == 2) 
-    {
-        increment = step(input.baseUV.y, fill * baseMap.y);
-    }
-
-    if (type == 3) 
-    {
-        increment = step(1 - fill * baseMap.y, input.baseUV.y);
-    }
-
-    clip(base.a - increment - 0.1);
 #endif
 
     return base;

@@ -1,6 +1,23 @@
 #ifndef UGUIDOTS_IMAGE_FILL
 #define UGUIDOTS_IMAGE_FILL
 
+/**
+ * Fill amounts we want to consider are
+ * 0: L -> R
+ * 1: R -> L
+ * 2: B -> T
+ * 3: T -> B
+ * Radial Fill
+ * 4: Fill from the top counter clockwise: 90 degrees, Arc 1
+ * 5: Fill from the top clockwise: 90 Degrees, Arc 2
+ * 6: Fill from the bottom counter clockwise: 270, Arc 1
+ * 7: Fill from the bottom clockwise: 270, Arc 2
+ * 8: Fill from the left counter clockwise: 180: Arc 1
+ * 9: Fill from the left clockwise: 180, Arc 2
+ * 10: Fill from the right counter clockwise: 360 Arc 1
+ * 11: Fill from the right clockwise: 360 Arc 2
+ */
+
 inline float4 PixelSnap(float4 pos)
 {
     float2 hpc = _ScreenParams.xy * 0.5f;
@@ -32,6 +49,25 @@ bool IsRadialDiscard(float angle, float arc1, float arc2, float2 uv)
     }
 
     return atanAngle <= offset360 || atanAngle >= offset0 || atanAngle >= startAngle && atanAngle <= endAngle;
+}
+
+inline float AxisFill(float uvCoord, float sampled, float length, float fill, int type) 
+{
+    float shiftedUV = uvCoord - saturate(length - uvCoord);
+    float normalizedUV = shiftedUV / length;
+
+    // TODO: Normalize between 0 and 1
+    float lhs;
+    float rhs;
+    if (type % 2 == 0) {
+        // lhs would be the uv, rhs would be the sampled
+        lhs = normalizedUV;
+        rhs = fill * sampled;
+    } else {
+        lhs = 1 - fill * sampled;
+        rhs = normalizedUV;
+    }
+    return step(lhs, rhs);
 }
 
 #endif

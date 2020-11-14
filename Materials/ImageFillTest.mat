@@ -91,7 +91,7 @@ Material:
     m_Floats:
     - _AlphaClip: 0
     - _Angle: 360
-    - _Arc1: 0
+    - _Arc1: 35
     - _Arc2: 0
     - _Blend: 0
     - _BumpScale: 1
