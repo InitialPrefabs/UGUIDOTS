@@ -13,7 +13,6 @@ UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
     UNITY_DEFINE_INSTANCED_PROP(float, _FillType)
     UNITY_DEFINE_INSTANCED_PROP(float, _Flip)
     UNITY_DEFINE_INSTANCED_PROP(float4, _MainTex_ST)
-    UNITY_DEFINE_INSTANCED_PROP(float4, _BaseColor)
 UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
 
 struct Attributes 
@@ -21,7 +20,6 @@ struct Attributes
     float3 positionOS: POSITION;
     float4 color:      COLOR;
     float2 uv:         TEXCOORD0;
-    float2 uv2:        TEXCOORD1;
 
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
@@ -31,7 +29,6 @@ struct Varyings
     float4 positionCS: SV_POSITION;
     float4 color:      COLOR;
     float2 uv:         TEXCOORD0;
-    float2 uv2:        TEXCOORD1;
 
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
@@ -46,7 +43,6 @@ Varyings UnlitPassVertex(Attributes input)
 
     float4 baseST = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _MainTex_ST);
     output.uv     = input.uv * baseST.xy + baseST.zw;
-    output.uv2    = input.uv2;
     output.color  = input.color;
 
     return output;
@@ -56,25 +52,22 @@ float4 UnlitPassFragment(Varyings input) : SV_TARGET
 {
     UNITY_SETUP_INSTANCE_ID(input);
     float4 baseMap   = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv);
-    float4 baseColor = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _BaseColor);
     float4 base      = baseMap * input.color;
 
     float axis = UNITY_ACCESS_INSTANCED_PROP(float, _Axis);
 
 #if defined (_FILL)
-
     float fillType = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _FillType);
-    float flip     = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Flip);
+    int flip       = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Flip);
+    float fill     = 1 - UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Fill);
 
-    if (fillType == 0) {
-        float fill = 1 - UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Fill);
-
-        // float increment = (axis % 2 == 0) ? 
-        //     AxisFill(input.uv.x, baseMap.x, input.uv2.x, fill, flip) :
-        //     AxisFill(input.uv.y, baseMap.y, input.uv2.y, fill, flip);
-
-        clip(input.uv.y < fill ? -1 : 1);
-        float increment = step(input.uv.y, fill * baseMap.y);
+    if (fillType == 0)
+    {
+        AxisFill(axis == 0 ? input.uv.x : input.uv.y, fill, flip);
+    } 
+    else 
+    {
+        // TODO: Do radial fill
     }
 #endif
 

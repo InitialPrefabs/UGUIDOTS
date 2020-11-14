@@ -32,42 +32,36 @@ inline float4 PixelSnap(float4 pos)
     return pos;
 }
 
-bool IsRadialDiscard(float angle, float arc1, float arc2, float2 uv) 
+inline void RadialFill(float angle, float arc1, float arc2, float2 uv) 
 {
-    float startAngle = angle - arc1;
-    float endAngle   = angle + arc2;
+    half startAngle = angle - arc1;
+    half endAngle   = angle + arc2;
 
-    float offset0   = clamp(0, 360, startAngle + 360);
-    float offset360 = clamp(0, 360, endAngle - 360);
+    half offset0   = clamp(0, 360, startAngle + 360);
+    half offset360 = clamp(0, 360, endAngle - 360);
 
-    float2 atan2Coord = float2(lerp(-1, 1, uv.x), lerp(-1, 1, uv.y));
-    float atanAngle   = atan2(atan2Coord.y, atan2Coord.x) * 57.3;
+    half2 atan2Coord = float2(lerp(-1, 1, uv.x), lerp(-1, 1, uv.y));
+    half atanAngle   = atan2(atan2Coord.y, atan2Coord.x) * 57.3;
 
     if (atanAngle < 0) 
     {
         atanAngle += 360;
     }
 
-    return atanAngle <= offset360 || atanAngle >= offset0 || atanAngle >= startAngle && atanAngle <= endAngle;
+    half clipped = atanAngle <= offset360 || atanAngle >= offset0 || atanAngle >= startAngle && atanAngle <= endAngle;
+    clip(clipped ? -1 : 1);
 }
 
-inline float AxisFill(float uvCoord, float sampled, float length, float fill, int type) 
+inline void AxisFill(half uvCoord, half fill, int flip) 
 {
-    float shiftedUV = uvCoord - saturate(length - uvCoord);
-    float normalizedUV = shiftedUV / length;
-
-    // TODO: Normalize between 0 and 1
-    float lhs;
-    float rhs;
-    if (type % 2 == 0) {
-        // lhs would be the uv, rhs would be the sampled
-        lhs = normalizedUV;
-        rhs = fill * sampled;
-    } else {
-        lhs = 1 - fill * sampled;
-        rhs = normalizedUV;
+    if (flip == 0) 
+    {
+        clip(uvCoord < fill ? -1 : 1);
     }
-    return step(lhs, rhs);
+    else
+    {
+        clip(uvCoord > fill ? -1 : 1);
+    }
 }
 
 #endif

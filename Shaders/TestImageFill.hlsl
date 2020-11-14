@@ -62,8 +62,8 @@ float4 UnlitFragmentPass(Varyings input) : SV_TARGET
     float arc1  = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Arc1);
     float arc2  = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Arc2);
 
-    bool isDiscarded = IsRadialDiscard(angle, arc1, arc2, input.uv);
-    clip(isDiscarded ? -1 : base.a - _CutOff);
+    RadialFill(angle, arc1, arc2, input.uv);
+    // clip(isDiscarded ? -1 : base.a - _CutOff);
     return base;
 }
 
