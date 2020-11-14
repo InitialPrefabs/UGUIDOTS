@@ -7,12 +7,12 @@
 
         // Fill options
         // ---------------------------------------------------------------------
-        [Toggle(_FILL)] _ToggleFill ("Fill?", Float) = 1
+        [Toggle(_FILL)] _ToggleFill ("Toggle Fill", Float) = 1
 
         // Axis Fill
         // ---------------------------------------------------------------------
-        [Enum(Axis, 0, Radial, 1)] _FillType ("Fill Type", Float) = 0
-        [Enum(X, 0, Y, 1)] _Axis ("Axis", Float) = 0
+        [Enum(UGUIDOTS.EditorTools.FillType)] _FillType ("Fill Type", Float) = 0
+        [Enum(UGUIDOTS.EditorTools.Axis)] _Axis ("Axis", Float) = 0
 
         _Fill("Fill", Range(0, 1)) = 1
         [Toggle] _Flip ("Flip Fill", Float) = 0
@@ -73,4 +73,5 @@
             ENDHLSL
         }
     }
+    CustomEditor "UGUIDOTS.EditorTools.DefaultImageEditor"
 }
