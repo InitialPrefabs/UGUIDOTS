@@ -59,7 +59,7 @@ half4 UnlitPassFragment(Varyings input) : SV_TARGET
 #if defined (_FILL)
     half fillType = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _FillType);
     int flip      = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Flip);
-    half fill     = 1 - UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Fill);
+    half fill     = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Fill);
 
     if (fillType == 0)
     {

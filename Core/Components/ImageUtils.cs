@@ -67,9 +67,7 @@ namespace UGUIDOTS {
             Color32 color,
             bool isDisabled) {
 
-            var outerUV = data.OuterUV;
-            var uv2     = outerUV.zw - outerUV.xy;
-
+            var uv2         = new float2(1);
             var normalColor = color.ToNormalizedFloat4();
             var offset      = math.select(float2.zero, OffsetConstants.DisabledOffset, isDisabled);
             offset          = isDisabled ? OffsetConstants.DisabledOffset : float2.zero;

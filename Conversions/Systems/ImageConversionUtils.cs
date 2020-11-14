@@ -23,37 +23,22 @@ namespace UGUIDOTS.Conversions.Systems {
             var fillMethod = image.fillMethod;
             switch (fillMethod) {
                 case Image.FillMethod.Vertical:
-                    if (image.fillOrigin == (int)Image.OriginVertical.Bottom) {
-                        manager.AddComponentData(entity, new FillAmount {
-                            Amount = image.fillAmount,
-                            Type = FillType.BottomToTop,
-                        });
-                    }
-
-                    if (image.fillOrigin == (int) Image.OriginVertical.Top) {
-                        manager.AddComponentData(entity, new FillAmount {
-                            Amount = image.fillAmount,
-                            Type = FillType.TopToBottom,
-                        });
-                    }
+                    manager.AddComponentData(entity, new AxisFillAmount {
+                        Axis = Axis.Y,
+                        FillAmount = image.fillAmount,
+                        Flip = image.fillOrigin == (int)Image.OriginVertical.Top
+                    });
                     break;
                 case Image.FillMethod.Horizontal:
-                    if (image.fillOrigin == (int)Image.OriginHorizontal.Left) {
-                        manager.AddComponentData(entity, new FillAmount {
-                            Amount = image.fillAmount,
-                            Type = FillType.LeftToRight
-                        });
-                    }
-
-                    if (image.fillOrigin == (int)Image.OriginHorizontal.Right) {
-                        manager.AddComponentData(entity, new FillAmount {
-                            Amount = image.fillAmount,
-                            Type = FillType.RightToLeft,
-                        });
-                    }
+                    manager.AddComponentData(entity, new AxisFillAmount {
+                        Axis       = Axis.X,
+                        FillAmount = image.fillAmount,
+                        Flip       = image.fillOrigin == (int)Image.OriginHorizontal.Right
+                    });
                     break;
                 default:
-                    throw new System.NotSupportedException("Radial support is not implemented yet.");
+                    // TODO: Implement radial fill
+                    break;
             }
         }
 

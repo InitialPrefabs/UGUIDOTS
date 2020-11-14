@@ -40,11 +40,11 @@ inline void AxisFill(half uvCoord, half fill, int flip)
 {
     if (flip == 0) 
     {
-        clip(uvCoord < fill ? -1 : 1);
+        clip(uvCoord > fill ? -1 : 1);
     }
     else
     {
-        clip(1 - fill < uvCoord ? -1 : 1);
+        clip(1 - fill > uvCoord ? -1 : 1);
     }
 }
 

@@ -60,21 +60,31 @@ namespace UGUIDOTS.Conversions.Analyzers {
                 var child = parent.GetChild(i);
 
                 if (child.TryGetComponent(out Image img)) {
-                    var texture  = img.sprite != null ? img.sprite.texture : (Texture)Texture2D.whiteTexture;
-                    var material = img.material != null ? img.material : Canvas.GetDefaultCanvasMaterial();
-                    var hash     = texture.GetHashCode() ^ material.GetHashCode();
+                    if (img.type == Image.Type.Simple) {
+                        var texture  = img.sprite != null ? img.sprite.texture : (Texture)Texture2D.whiteTexture;
+                        var material = img.material != null ? img.material : Canvas.GetDefaultCanvasMaterial();
+                        var hash     = texture.GetHashCode() ^ material.GetHashCode();
 
-                    if (!batchMap.TryGetValue(hash, out var collection)) {
-                        collection = new List<RenderedElement>();
-                        batchMap.Add(hash, collection);
+                        if (!batchMap.TryGetValue(hash, out var collection)) {
+                            collection = new List<RenderedElement>();
+                            batchMap.Add(hash, collection);
+                        }
+
+                        var renderedElement = new RenderedElement {
+                            GameObject      = child.gameObject,
+                            Type            = RenderedType.Image
+                        };
+
+                        collection.Add(renderedElement);
+                    } else if (img.type == Image.Type.Filled) {
+                        var collection = new List<RenderedElement>();
+
+                        collection.Add(new RenderedElement {
+                            GameObject = child.gameObject,
+                            Type       = RenderedType.Image
+                        });
+                        batchMap.Add(child.GetInstanceID(), collection);
                     }
-
-                    var renderedElement = new RenderedElement {
-                        GameObject      = child.gameObject,
-                        Type            = RenderedType.Image
-                    };
-
-                    collection.Add(renderedElement);
                 }
 
                 // Get the authoring component which marks the text as dynamic.

@@ -31,12 +31,12 @@ Material:
     - _Angle: 0
     - _Arc1: 0
     - _Arc2: 0
-    - _Axis: 1
+    - _Axis: 0
     - _ColorMask: 15
     - _DstBlend: 10
     - _Fill: 1
-    - _FillType: 1
-    - _Flip: 1
+    - _FillType: 0
+    - _Flip: 0
     - _SrcBlend: 5
     - _Stencil: 0
     - _StencilComp: 0

@@ -8,10 +8,10 @@ namespace UGUIDOTS.EditorTools {
         Radial = 1
     }
 
-    public enum Axis {
-        X = 0,
-        Y = 1
-    }
+    // public enum Axis {
+    //     X = 0,
+    //     Y = 1
+    // }
 
     public class DefaultImageEditor : ShaderGUI {
 
