@@ -1,34 +1,34 @@
 #ifndef UGUIDOTS_UNLIT_TRANSLATION
 #define UGUIDOTS_UNLIT_TRANSLATION
 
-#include "Common.hlsl"
-#include "ImageFill.hlsl"
-
 TEXTURE2D(_MainTex);
 SAMPLER(sampler_MainTex);
 
 UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
-    UNITY_DEFINE_INSTANCED_PROP(float, _Axis);
-    UNITY_DEFINE_INSTANCED_PROP(float, _Fill)
-    UNITY_DEFINE_INSTANCED_PROP(float, _FillType)
-    UNITY_DEFINE_INSTANCED_PROP(float, _Flip)
+    UNITY_DEFINE_INSTANCED_PROP(float,  _Axis);
+    UNITY_DEFINE_INSTANCED_PROP(float,  _Angle)
+    UNITY_DEFINE_INSTANCED_PROP(float,  _Arc1)
+    UNITY_DEFINE_INSTANCED_PROP(float,  _Arc2)
+    UNITY_DEFINE_INSTANCED_PROP(float,  _Fill)
+    UNITY_DEFINE_INSTANCED_PROP(float,  _FillType)
+    UNITY_DEFINE_INSTANCED_PROP(float,  _Flip)
     UNITY_DEFINE_INSTANCED_PROP(float4, _MainTex_ST)
 UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
 
 struct Attributes 
 {
-    float3 positionOS: POSITION;
-    float4 color:      COLOR;
-    float2 uv:         TEXCOORD0;
+    half3 positionOS: POSITION;
+    half4 color:      COLOR;
+    half2 uv:         TEXCOORD0;
 
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
 struct Varyings 
 {
-    float4 positionCS: SV_POSITION;
-    float4 color:      COLOR;
-    float2 uv:         TEXCOORD0;
+    half4 positionCS: SV_POSITION;
+    half4 color:      COLOR;
+    half2 uv:         TEXCOORD0;
 
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
@@ -48,18 +48,18 @@ Varyings UnlitPassVertex(Attributes input)
     return output;
 }
 
-float4 UnlitPassFragment(Varyings input) : SV_TARGET
+half4 UnlitPassFragment(Varyings input) : SV_TARGET
 {
     UNITY_SETUP_INSTANCE_ID(input);
-    float4 baseMap   = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv);
-    float4 base      = baseMap * input.color;
+    half4 baseMap   = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv);
+    half4 base      = baseMap * input.color;
 
     float axis = UNITY_ACCESS_INSTANCED_PROP(float, _Axis);
 
 #if defined (_FILL)
-    float fillType = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _FillType);
-    int flip       = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Flip);
-    float fill     = 1 - UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Fill);
+    half fillType = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _FillType);
+    int flip      = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Flip);
+    half fill     = 1 - UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Fill);
 
     if (fillType == 0)
     {
@@ -67,7 +67,11 @@ float4 UnlitPassFragment(Varyings input) : SV_TARGET
     } 
     else 
     {
-        // TODO: Do radial fill
+        half angle = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Angle);
+        half arc1  = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Arc1);
+        half arc2  = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Arc2);
+
+        RadialFill(angle, arc1, arc2, input.uv);
     }
 #endif
 

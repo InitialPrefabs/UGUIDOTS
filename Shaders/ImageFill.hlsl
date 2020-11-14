@@ -1,38 +1,22 @@
 #ifndef UGUIDOTS_IMAGE_FILL
 #define UGUIDOTS_IMAGE_FILL
 
-/**
- * Fill amounts we want to consider are
- * 0: L -> R
- * 1: R -> L
- * 2: B -> T
- * 3: T -> B
- * Radial Fill
- * 4: Fill from the top counter clockwise: 90 degrees, Arc 1
- * 5: Fill from the top clockwise: 90 Degrees, Arc 2
- * 6: Fill from the bottom counter clockwise: 270, Arc 1
- * 7: Fill from the bottom clockwise: 270, Arc 2
- * 8: Fill from the left counter clockwise: 180: Arc 1
- * 9: Fill from the left clockwise: 180, Arc 2
- * 10: Fill from the right counter clockwise: 360 Arc 1
- * 11: Fill from the right clockwise: 360 Arc 2
- */
-
-inline float4 PixelSnap(float4 pos)
+inline half4 PixelSnap(half4 pos)
 {
-    float2 hpc = _ScreenParams.xy * 0.5f;
+    half2 hpc = _ScreenParams.xy * 0.5f;
 #if  SHADER_API_PSSL
-// An old sdk used to implement round() as floor(x+0.5) current sdks use the round to even method so we manually use the old method here for compatabilty.
-    float2 temp = ((pos.xy / pos.w) * hpc) + float2(0.5f,0.5f);
-    float2 pixelPos = float2(floor(temp.x), floor(temp.y));
+    // An old sdk used to implement round() as floor(x+0.5) current sdks 
+    // use the round to even method so we manually use the old method here for compatabilty.
+    half2 temp = ((pos.xy / pos.w) * hpc) + float2(0.5f,0.5f);
+    half2 pixelPos = float2(floor(temp.x), floor(temp.y));
 #else
-    float2 pixelPos = round ((pos.xy / pos.w) * hpc);
+    half2 pixelPos = round ((pos.xy / pos.w) * hpc);
 #endif
     pos.xy = pixelPos / hpc * pos.w;
     return pos;
 }
 
-inline void RadialFill(float angle, float arc1, float arc2, float2 uv) 
+inline void RadialFill(half angle, half arc1, half arc2, half2 uv) 
 {
     half startAngle = angle - arc1;
     half endAngle   = angle + arc2;
