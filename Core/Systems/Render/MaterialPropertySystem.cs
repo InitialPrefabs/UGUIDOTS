@@ -2,8 +2,7 @@ using Unity.Entities;
 
 namespace UGUIDOTS.Render.Systems {
 
-    [DisableAutoCreation]
-    [System.Obsolete]
+    [UpdateInGroup(typeof(InitializationSystemGroup), OrderFirst = true)]
     public class ResetMaterialPropertySystem : SystemBase {
         protected override void OnUpdate() {
             Entities.ForEach((MaterialPropertyBatch c0) => {
@@ -14,29 +13,25 @@ namespace UGUIDOTS.Render.Systems {
         }
     }
 
-    [DisableAutoCreation]
-    [System.Obsolete]
+    [UpdateInGroup(typeof(PresentationSystemGroup), OrderLast = true)]
+    [UpdateBefore(typeof(OrthographicRenderSystem))]
     public class UpdateTextureMaterialPropertySystem : SystemBase {
+
         protected override void OnUpdate() {
 
-            var linkedTextures = GetComponentDataFromEntity<LinkedTextureEntity>(true);
+            Entities.ForEach((MaterialPropertyBatch c0, DynamicBuffer<SubmeshKeyElement> b0) => {
+                var keys = b0.AsNativeArray();
 
-            Entities.ForEach((MaterialPropertyBatch c0, DynamicBuffer<RenderElement> b0, 
-                DynamicBuffer<BatchedSpanElement> b1) => {
-
-                var spans          = b1.AsNativeArray();
-                var renderEntities = b0.AsNativeArray();
-
-                for (int i = 0; i < spans.Length; i++) {
-                    var entityIndex  = spans[i].Value.x;
-                    var renderEntity = renderEntities[entityIndex].Value;
-
-                    if (linkedTextures.HasComponent(renderEntity)) {
-                        var textureEntity = linkedTextures[renderEntity].Value;
-                        var texture       = EntityManager.GetComponentData<SharedTexture>(textureEntity);
-
-                        c0.Value[i].SetTexture(ShaderIDConstants.MainTex, texture.Value);
+                for (int i = 0; i < keys.Length; i++) {
+                    var current = keys[i];
+                    if (current.TextureEntity == Entity.Null) {
+                        continue;
                     }
+
+                    var texture = EntityManager.GetComponentData<SharedTexture>(current.TextureEntity).Value;
+
+                    var materialPropertyBlock = c0.Value[i];
+                    materialPropertyBlock.SetTexture(ShaderIDConstants.MainTex, texture);
                 }
             }).WithoutBurst().Run();
         }
