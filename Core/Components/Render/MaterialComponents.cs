@@ -38,18 +38,6 @@ namespace UGUIDOTS.Render {
     }
 
     /// <summary>
-    /// Stores the index of the material property that the rendered element needs to update.
-    /// </summary>
-    public struct MaterialPropertyIndex : IComponentData {
-        public ushort Value;
-
-        public static implicit operator ushort(MaterialPropertyIndex value) => value.Value;
-        public static implicit operator MaterialPropertyIndex(ushort value) => new MaterialPropertyIndex { 
-            Value = value 
-        };
-    }
-
-    /// <summary>
     /// Stores a collection of material property blocks which is batched to a single entity.
     /// </summary>
     public class MaterialPropertyBatch : IComponentData, IEquatable<MaterialPropertyBatch> {
