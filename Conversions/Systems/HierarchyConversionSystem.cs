@@ -172,13 +172,10 @@ namespace UGUIDOTS.Conversions.Systems {
             for (int i = 0; i < batches.Count; i++) {
                 var currentBatch = batches[i];
 
-                for (int k = 0; k < currentBatch.Count; k++) {
-                    var uiElement = GetPrimaryEntity(currentBatch[k].GameObject);
-                    renderEntities.Add(new RenderElement { Value = uiElement });
-                }
-
                 var first = GetPrimaryEntity(currentBatch[0].GameObject);
                 var key   = new SubmeshKeyElement {};
+
+                renderEntities.Add(new RenderElement { Value = first });
                 if (DstEntityManager.HasComponent<LinkedTextureEntity>(first)) {
                     key.TextureEntity = DstEntityManager.GetComponentData<LinkedTextureEntity>(first).Value;
                 }
@@ -200,14 +197,11 @@ namespace UGUIDOTS.Conversions.Systems {
             renderBatches.ResizeUninitialized(renderEntities.Length);
             UnsafeUtility.MemCpy(renderBatches.GetUnsafePtr(), renderEntities.GetUnsafePtr(), size);
 
-            // TODO: Maybe re-enable this?
-            /*
-            var renderSpans = DstEntityManager.AddBuffer<BatchedSpanElement>(canvasEntity);
-            size = UnsafeUtility.SizeOf<BatchedSpanElement>() * batchSpans.Length;
+            // var renderSpans = DstEntityManager.AddBuffer<BatchedSpanElement>(canvasEntity);
+            // size = UnsafeUtility.SizeOf<BatchedSpanElement>() * batchSpans.Length;
             
-            renderSpans.ResizeUninitialized(batchSpans.Length);
-            UnsafeUtility.MemCpy(renderSpans.GetUnsafePtr(), batchSpans.GetUnsafePtr(), size);
-            */
+            // renderSpans.ResizeUninitialized(batchSpans.Length);
+            // UnsafeUtility.MemCpy(renderSpans.GetUnsafePtr(), batchSpans.GetUnsafePtr(), size);
 
             var submeshKeys = DstEntityManager.AddBuffer<SubmeshKeyElement>(canvasEntity);
             size = UnsafeUtility.SizeOf<SubmeshKeyElement>() * keys.Length;

@@ -75,7 +75,6 @@ namespace UGUIDOTS.Render {
     /// <summary>
     /// Stores entities that need to be rendered as a buffer element.
     /// </summary>
-    [System.Obsolete]
     public struct RenderElement : IBufferElementData {
         public Entity Value;
     }

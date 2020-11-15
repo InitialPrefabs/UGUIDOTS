@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using Unity.Entities;
 
 namespace UGUIDOTS {
@@ -52,13 +51,5 @@ namespace UGUIDOTS {
         /// from <b>top -> bottom</b>.
         /// </summary>
         public bool Flip;
-    }
-
-    public static class FillExtensions {
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int FillTypeAsInt(ref this FillAmount value) {
-            return (int)value.Type;
-        }
     }
 }
