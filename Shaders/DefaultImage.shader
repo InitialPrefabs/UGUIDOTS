@@ -19,7 +19,7 @@
 
         // Radial Fill
         // ---------------------------------------------------------------------
-        _Angle ("Angle", Range(0, 360))    = 0
+        _Angle ("Angle Offset", Range(0, 360)) = 0
         _Arc1 ("Arc Point 1", Range(0.0, 1.0)) = 0
         _Arc2 ("Arc Point 2", Range(0.0, 1.0)) = 0
         

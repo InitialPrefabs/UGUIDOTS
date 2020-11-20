@@ -37,15 +37,17 @@ namespace UGUIDOTS.Conversions.Systems {
                     });
                     break;
                 case Image.FillMethod.Radial360:
-                    if (!image.TryGetComponent(out CustomImageFillFlag flag)) {
-                        var originType = (Image.Origin360)image.fillOrigin;
-                        manager.AddComponentData<FillDirection>(entity, originType);
+                    var originType = (Image.Origin360)image.fillOrigin;
 
-                        manager.AddComponentData(entity, new RadialFillAmount {
-                            Angle = DetermineAngleOffset(originType),
-                            Arc1  = 0,
-                            Arc2  = image.fillAmount
-                        });
+                    manager.AddComponentData(entity, new RadialFillAmount {
+                        Angle = DetermineAngleOffset(originType),
+                        Arc1  = 1f,
+                        Arc2  = image.fillAmount
+                    });
+
+                    // TODO: Check if I really need the FillDirection...
+                    if (!image.TryGetComponent(out CustomImageFillFlag flag)) {
+                        manager.AddComponentData<FillDirection>(entity, originType);
                     }
                     break;
                 default:

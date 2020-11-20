@@ -35,7 +35,7 @@ Material:
     - _ColorMask: 15
     - _DstBlend: 10
     - _Fill: 1
-    - _FillType: 0
+    - _FillType: 1
     - _Flip: 0
     - _SrcBlend: 5
     - _Stencil: 0
