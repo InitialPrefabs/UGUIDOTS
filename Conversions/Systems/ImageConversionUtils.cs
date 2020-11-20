@@ -1,7 +1,7 @@
 using System;
 using UnityEngine.UI;
 using Unity.Entities;
-using UGUIDOTS.Render;
+using UGUIDOTS.Render.Authoring;
 
 namespace UGUIDOTS.Conversions.Systems {
 
@@ -36,11 +36,36 @@ namespace UGUIDOTS.Conversions.Systems {
                         Flip       = image.fillOrigin == (int)Image.OriginHorizontal.Right
                     });
                     break;
+                case Image.FillMethod.Radial360:
+                    if (!image.TryGetComponent(out CustomImageFillFlag flag)) {
+                        var originType = (Image.Origin360)image.fillOrigin;
+                        manager.AddComponentData<FillDirection>(entity, originType);
+
+                        manager.AddComponentData(entity, new RadialFillAmount {
+                            Angle = DetermineAngleOffset(originType),
+                            Arc1  = 0,
+                            Arc2  = image.fillAmount
+                        });
+                    }
+                    break;
                 default:
-                    // TODO: Implement radial fill
                     break;
             }
         }
 
+        private static float DetermineAngleOffset(Image.Origin360 fillType) {
+            switch (fillType) {
+                case Image.Origin360.Bottom: // Arc 2
+                    return 270f;
+                case Image.Origin360.Right: // Arc 2
+                    return 0f;
+                case Image.Origin360.Left:  // Arc 2
+                    return 180f;
+                case Image.Origin360.Top: // Arc 2
+                    return 90f;
+                default:
+                    return 0f;
+            }
+        }
     }
 }

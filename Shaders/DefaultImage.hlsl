@@ -68,8 +68,8 @@ half4 UnlitPassFragment(Varyings input) : SV_TARGET
     else 
     {
         half angle = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Angle);
-        half arc1  = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Arc1);
-        half arc2  = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Arc2);
+        half arc1  = (1.0 - UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Arc1)) * 360.0;
+        half arc2  = (1.0 - UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Arc2)) * 360.0;
 
         RadialFill(angle, arc1, arc2, input.uv);
     }

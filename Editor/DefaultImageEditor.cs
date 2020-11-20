@@ -85,10 +85,10 @@ namespace UGUIDOTS.EditorTools {
             angle.floatValue = EditorGUILayout.Slider("Angle", angle.floatValue, 0f, 360f);
 
             var arc1 = FindProperty("_Arc1", properties);
-            arc1.floatValue = EditorGUILayout.Slider("Arc 1", arc1.floatValue, 0f, 360f);
+            arc1.floatValue = EditorGUILayout.Slider("Arc 1", arc1.floatValue, 0f, 1f);
 
             var arc2 = FindProperty("_Arc2", properties);
-            arc2.floatValue = EditorGUILayout.Slider("Arc 2", arc2.floatValue, 0f, 360f);
+            arc2.floatValue = EditorGUILayout.Slider("Arc 2", arc2.floatValue, 0f, 1f);
         }
 
         private void SetKeyword(string keyword, bool enabled) {

@@ -28,14 +28,14 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
-    - _Angle: 0
-    - _Arc1: 0
-    - _Arc2: 0
+    - _Angle: 180
+    - _Arc1: 1
+    - _Arc2: 1
     - _Axis: 0
     - _ColorMask: 15
     - _DstBlend: 10
     - _Fill: 1
-    - _FillType: 0
+    - _FillType: 1
     - _Flip: 0
     - _SrcBlend: 5
     - _Stencil: 0

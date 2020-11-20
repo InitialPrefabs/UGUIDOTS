@@ -1,7 +1,11 @@
 using Unity.Entities;
+using UnityEngine.UI;
 
 namespace UGUIDOTS {
-
+    
+    /// <summary>
+    /// The axis that should be affected.
+    /// </summary>
     public enum Axis {
         X = 0,
         Y = 1
@@ -11,20 +15,17 @@ namespace UGUIDOTS {
     /// Fill types only support x/y axis based fills. Radial support will be coming 
     /// in later.
     /// </summary>
-    public enum FillType : int {
-        RightToLeft = 0,
-        LeftToRight = 1,
-        BottomToTop = 2,
-        TopToBottom = 3,
-    }
+    public struct FillDirection : IComponentData {
 
-    /// <summary>
-    /// Stores a normalized value between 0 and 1 that shows how much of the image is filled.
-    /// </summary>
-    [System.Obsolete]
-    public struct FillAmount : IComponentData {
-        public float Amount;
-        public FillType Type;
+        /// <summary>
+        /// Stores the enum int value for the Origin enums found in the Image class.
+        /// </summary>
+        public int Value;
+
+        // TODO: Implement the other fill type constructors.
+        public static implicit operator FillDirection(Image.Origin360 fillType) {
+            return new FillDirection { Value = (int)fillType };
+        }
     }
 
     /// <summary>
@@ -51,5 +52,29 @@ namespace UGUIDOTS {
         /// from <b>top -> bottom</b>.
         /// </summary>
         public bool Flip;
+    }
+
+    /// <summary>
+    /// Stores the fill amount for a radial element.
+    /// </summary>
+    public struct RadialFillAmount : IComponentData {
+        /// <summary>
+        /// Stores the offset to begin the radial fill.
+        /// </summary>
+        public float Angle;
+
+        /// <summary>
+        /// The fill amount on the bottom half of the image. Putting this value to 0 will mean 
+        /// that there is no fill on the entire image, while 0.5f will cause this to be half filled.
+        /// </summary>
+        public float Arc1;
+
+        /// <summary>
+        /// This is equivalent to the Image's Radial Fill Amount.
+        ///
+        /// The fill amount on the top half of the image. Putting this value of 0 will mean that 
+        /// there is no fill on the entire image, while 0.5f will cause this to be half filled.
+        /// </summary>
+        public float Arc2;
     }
 }
