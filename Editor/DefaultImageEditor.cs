@@ -3,16 +3,6 @@ using UnityEngine;
 
 namespace UGUIDOTS.EditorTools {
 
-    public enum FillType {
-        Axis = 0,
-        Radial = 1
-    }
-
-    // public enum Axis {
-    //     X = 0,
-    //     Y = 1
-    // }
-
     public class DefaultImageEditor : ShaderGUI {
 
         private MaterialProperty[] properties;

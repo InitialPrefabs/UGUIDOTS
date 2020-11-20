@@ -12,6 +12,14 @@ namespace UGUIDOTS {
     }
 
     /// <summary>
+    /// Defines how the image is filled - used for the associative fill type in the Shader.
+    /// </summary>
+    public enum FillType {
+        Axis   = 0,
+        Radial = 1
+    }
+
+    /// <summary>
     /// Fill types only support x/y axis based fills. Radial support will be coming 
     /// in later.
     /// </summary>

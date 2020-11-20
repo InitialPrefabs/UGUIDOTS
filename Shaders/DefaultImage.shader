@@ -11,7 +11,7 @@
 
         // Axis Fill
         // ---------------------------------------------------------------------
-        [Enum(UGUIDOTS.EditorTools.FillType)] _FillType ("Fill Type", Float) = 0
+        [Enum(UGUIDOTS.FillType)] _FillType ("Fill Type", Float) = 0
         [Enum(UGUIDOTS.Axis)] _Axis ("Axis", Float) = 0
 
         _Fill("Fill", Range(0, 1)) = 1

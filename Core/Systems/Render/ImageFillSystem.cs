@@ -1,6 +1,7 @@
 using Unity.Entities;
 
 namespace UGUIDOTS.Render.Systems {
+
     [UpdateInGroup(typeof(PresentationSystemGroup), OrderLast = true)]
     [UpdateBefore(typeof(OrthographicRenderSystem))]
     public class ImageFillSystem : SystemBase {
@@ -18,9 +19,12 @@ namespace UGUIDOTS.Render.Systems {
                     if (axisFillAmounts.HasComponent(entity)) {
                         var block = materialBlocks[i];
                         var axisFillAmount = axisFillAmounts[entity];
-                        block.SetFloat(ShaderIDConstants.Fill, axisFillAmount.FillAmount);
+
+                        // Fill type of 0 means that it is an axis type
+                        block.SetInt(ShaderIDConstants.FillType, 0);
                         block.SetInt(ShaderIDConstants.Axis, (int)axisFillAmount.Axis);
                         block.SetInt(ShaderIDConstants.Flip, axisFillAmount.Flip ? 1 : 0);
+                        block.SetFloat(ShaderIDConstants.Fill, axisFillAmount.FillAmount);
                     }
                 }
             }).WithoutBurst().WithReadOnly(axisFillAmounts).Run();

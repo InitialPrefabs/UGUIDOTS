@@ -9,7 +9,7 @@ namespace UGUIDOTS.Render {
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData) {
 #if UNITY_EDITOR
-            if (renderingData.cameraData.isSceneViewCamera) {
+            if (renderingData.cameraData.isSceneViewCamera || renderingData.cameraData.isPreviewCamera) {
                 return;
             }
 #endif
