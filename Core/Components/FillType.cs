@@ -1,5 +1,4 @@
 using Unity.Entities;
-using UnityEngine.UI;
 
 namespace UGUIDOTS {
     
@@ -17,23 +16,6 @@ namespace UGUIDOTS {
     public enum FillType {
         Axis   = 0,
         Radial = 1
-    }
-
-    /// <summary>
-    /// Fill types only support x/y axis based fills. Radial support will be coming 
-    /// in later.
-    /// </summary>
-    public struct FillDirection : IComponentData {
-
-        /// <summary>
-        /// Stores the enum int value for the Origin enums found in the Image class.
-        /// </summary>
-        public int Value;
-
-        // TODO: Implement the other fill type constructors.
-        public static implicit operator FillDirection(Image.Origin360 fillType) {
-            return new FillDirection { Value = (int)fillType };
-        }
     }
 
     /// <summary>

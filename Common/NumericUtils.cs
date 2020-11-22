@@ -15,6 +15,7 @@ namespace UGUIDOTS.Common {
             var offset = value < 0 ? 0 : -1;
 
             value = math.abs(value);
+
             var stack = new NativeList<char>(Allocator.Temp);
             do {
                 var mod = value % 10;
