@@ -58,6 +58,7 @@
         {
             Blend     SrcAlpha OneMinusSrcAlpha
             ZWrite    Off
+            Cull      Off
             ZTest     [unity_GUIZTestMode]
             ColorMask [_ColorMask]
 
