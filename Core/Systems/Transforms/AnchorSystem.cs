@@ -12,7 +12,7 @@ namespace UGUIDOTS.Transforms.Systems {
     /// Recomputes the anchors if the resolution changes.
     /// </summary>
     [UpdateInGroup(typeof(SimulationSystemGroup), OrderFirst = true)]
-    public unsafe class AnchorSystem : SystemBase {
+    public class AnchorSystem : SystemBase {
 
         [BurstCompile]
         struct AnchorJob : IJobChunk {
@@ -81,13 +81,16 @@ namespace UGUIDOTS.Transforms.Systems {
 
                     if (Children.HasComponent(current)) {
                         var grandChildren = Children[current].AsNativeArray().AsReadOnly();
-                        RecurseChildren(grandChildren, screenSpace, current, root.Scale);
+                        RecurseChildren(grandChildren, screenSpace, current, root.Scale * localSpace.Scale);
                     }
                 }
             }
 
-            void RecurseChildren(NativeArray<Child>.ReadOnly children, ScreenSpace parentSpace, Entity parent, 
-                float2 rootScale) {
+            void RecurseChildren(
+                NativeArray<Child>.ReadOnly children, 
+                ScreenSpace parentSpace, 
+                Entity parent, 
+                float2 accumulatedScale) {
 
                 for (int i = 0; i < children.Length; i++) {
                     var current = children[i].Value;
@@ -99,7 +102,10 @@ namespace UGUIDOTS.Transforms.Systems {
                         var anchor = Anchors[current];
 
                         var parentDim     = Dimensions[parent];
-                        var adjustedWorld = anchor.RelativeAnchorTo(parentDim.Extents(), rootScale, parentSpace.Translation);
+                        var adjustedWorld = anchor.RelativeAnchorTo(
+                            parentDim.Extents(), 
+                            accumulatedScale * localSpace.Scale, 
+                            parentSpace.Translation);
 
                         screenSpace.Translation = adjustedWorld;
                         localSpace.Translation = parentSpace.Translation - adjustedWorld;
@@ -116,9 +122,8 @@ namespace UGUIDOTS.Transforms.Systems {
 
                     if (Children.HasComponent(current)) {
                         var grandChildren = Children[current].AsNativeArray().AsReadOnly();
-                        RecurseChildren(grandChildren, screenSpace, current, rootScale);
+                        RecurseChildren(grandChildren, screenSpace, current, accumulatedScale * localSpace.Scale);
                     }
-                    // CommandBuffer.AddComponent<UpdateSliceTag>(current);
                 }
             }
         }
