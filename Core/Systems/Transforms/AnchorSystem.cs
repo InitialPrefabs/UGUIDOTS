@@ -66,10 +66,11 @@ namespace UGUIDOTS.Transforms.Systems {
                     var localSpace   = LocalSpace[current];
 
                     if (!Stretched.HasComponent(current)) {
+                        var accumulatedScale = root.Scale * localSpace.Scale;
                         var anchor       = Anchors[current];
-                        var newScreenPos = anchor.RelativeAnchorTo(Resolution, root.Scale);
+                        var newScreenPos = anchor.RelativeAnchorTo(Resolution, accumulatedScale);
 
-                        localSpace.Translation = (newScreenPos - (Resolution / 2)) / root.Scale;
+                        localSpace.Translation = (newScreenPos - (Resolution / 2)) / accumulatedScale;
                         screenSpace.Translation = newScreenPos;
                     } else {
                         localSpace.Translation = default;
@@ -81,7 +82,7 @@ namespace UGUIDOTS.Transforms.Systems {
 
                     if (Children.HasComponent(current)) {
                         var grandChildren = Children[current].AsNativeArray().AsReadOnly();
-                        RecurseChildren(grandChildren, screenSpace, current, root.Scale * localSpace.Scale);
+                        RecurseChildren(grandChildren, screenSpace, current, root.Scale);
                     }
                 }
             }
@@ -98,13 +99,15 @@ namespace UGUIDOTS.Transforms.Systems {
                     var screenSpace = ScreenSpace[current];
                     var localSpace  = LocalSpace[current];
 
+                    accumulatedScale *= localSpace.Scale;
+
                     if (Anchors.HasComponent(current)) {
                         var anchor = Anchors[current];
 
                         var parentDim     = Dimensions[parent];
                         var adjustedWorld = anchor.RelativeAnchorTo(
                             parentDim.Extents(), 
-                            accumulatedScale * localSpace.Scale, 
+                            accumulatedScale, 
                             parentSpace.Translation);
 
                         screenSpace.Translation = adjustedWorld;
@@ -122,7 +125,7 @@ namespace UGUIDOTS.Transforms.Systems {
 
                     if (Children.HasComponent(current)) {
                         var grandChildren = Children[current].AsNativeArray().AsReadOnly();
-                        RecurseChildren(grandChildren, screenSpace, current, accumulatedScale * localSpace.Scale);
+                        RecurseChildren(grandChildren, screenSpace, current, accumulatedScale);
                     }
                 }
             }

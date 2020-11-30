@@ -118,7 +118,7 @@ namespace UGUIDOTS.Transforms {
                 case AnchoredState.MiddleRight:
                     return new float2(resolution.x, resolution.y / 2) + anchor.Offset * scale;
                 case AnchoredState.TopRight:
-                    return resolution + anchor.Offset;
+                    return resolution + anchor.Offset * scale;
                 default:
                     throw new System.ArgumentException("Anchored State is invalid!");
             }
