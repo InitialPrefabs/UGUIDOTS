@@ -73,13 +73,17 @@ namespace UGUIDOTS.Conversions.Systems {
             DstEntityManager.AddComponentData(canvasEntity, new SharedMesh { Value = mesh });
         }
 
-        private unsafe void BakeVertexDataToRoot(Entity canvasEntity, List<List<BatchAnalysis.RenderedElement>> batches, 
+        private unsafe void BakeVertexDataToRoot(
+            Entity canvasEntity, 
+            List<List<BatchAnalysis.RenderedElement>> batches, 
             out NativeList<SubmeshSliceElement> submeshSlices) {
+
             var vertexData = new NativeList<Vertex>(Allocator.Temp);
             var indexData  = new NativeList<Index>(Allocator.Temp);
             submeshSlices  = new NativeList<SubmeshSliceElement>(Allocator.Temp);
 
-            foreach (var batch in batches) {
+            for (int i = 0; i < batches.Count; i++) {
+                var batch       = batches[i];
                 var startVertex = vertexData.Length;
                 var startIndex  = indexData.Length;
 
@@ -132,6 +136,9 @@ namespace UGUIDOTS.Conversions.Systems {
                             IndexSpan =  new int2(indexOffset, indexSize)
                         });
                     }
+
+                    // Add the submesh key to the mesh
+                    DstEntityManager.AddComponentData(entity, new SubmeshIndex { Value = i });
                 }
 
                 var submeshSlice = new SubmeshSliceElement {

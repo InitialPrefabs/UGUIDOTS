@@ -1,8 +1,9 @@
 using System.Runtime.CompilerServices;
+using Unity.Burst;
+using Unity.Collections;
 using Unity.Mathematics;
 using UGUIDOTS.Transforms;
 using TMPro;
-using Unity.Collections;
 
 namespace UGUIDOTS.Render {
 
@@ -21,6 +22,7 @@ namespace UGUIDOTS.Render {
             public float LineWidth;
             public int StartIndex;
 
+            [BurstDiscard]
             public override string ToString() {
                 return $"LineWidth: {LineWidth}, StartIndex: {StartIndex}";
             }
@@ -44,7 +46,7 @@ namespace UGUIDOTS.Render {
 
                 // TODO: Add support for \n
                 if (c == ' ') {
-                    diagnostics.WordWidth     = 0;
+                    diagnostics.WordWidth = 0;
                     diagnostics.WordCharCount = -1;
 
                     // We hit a space so there's a new word coming up supposedly
@@ -75,23 +77,23 @@ namespace UGUIDOTS.Render {
                             // We've effectively hit a new line and completed the previous word that 
                             // could fit on that line, also reset the word's width/line since we are scanning
                             // a new word on a new line.
-                            diagnostics.WordCount     = 0;
+                            diagnostics.WordCount = 0;
                             diagnostics.WordCharCount = 0;
-                            diagnostics.LineWidth     = diagnostics.WordWidth = 0f;
+                            diagnostics.LineWidth = diagnostics.WordWidth = 0f;
 
                         } else {
                             // We know that its potentially a giant blob of text so we need to 
                             // split the text - same way as how TMP does it
-                            
+
                             lines.Add(new LineInfo {
-                                LineWidth  = diagnostics.LineWidth - advance,
+                                LineWidth = diagnostics.LineWidth - advance,
                                 StartIndex = diagnostics.CharacterIndex
                             });
 
                             // Reset the widths and character counts of the words
                             diagnostics.LineCharCount = diagnostics.WordCharCount = 0;
-                            diagnostics.LineWidth     = advance;
-                            diagnostics.WordWidth     = 0f;
+                            diagnostics.LineWidth = advance;
+                            diagnostics.WordWidth = 0f;
 
                             // Stoe the last known character index
                             diagnostics.CharacterIndex = i;
@@ -100,19 +102,19 @@ namespace UGUIDOTS.Render {
                     continue;
                 }
                 lines.Add(new LineInfo {
-                    LineWidth  = diagnostics.LineWidth,
+                    LineWidth = diagnostics.LineWidth,
                     StartIndex = diagnostics.CharacterIndex
                 });
 
                 diagnostics.CharacterIndex = i;
-                diagnostics.LineWidth      = diagnostics.WordWidth = 0;
-                diagnostics.WordCount      = 0;
-                diagnostics.WordCharCount  = 0;
+                diagnostics.LineWidth = diagnostics.WordWidth = 0;
+                diagnostics.WordCount = 0;
+                diagnostics.WordCharCount = 0;
             }
 
             // Add the last line
-            lines.Add(new LineInfo  {
-                LineWidth  = diagnostics.LineWidth,
+            lines.Add(new LineInfo {
+                LineWidth = diagnostics.LineWidth,
                 StartIndex = diagnostics.CharacterIndex
             });
         }
@@ -136,7 +138,7 @@ namespace UGUIDOTS.Render {
                         return extents.y - ascentLine;
                     }
                 case var _ when (alignment & AnchoredState.MiddleRow) > 0: {
-                        var avgLineHeight = (lineHeights.x * fontScale) * 0.5f + 
+                        var avgLineHeight = (lineHeights.x * fontScale) * 0.5f +
                             (lineHeights.z * fontScale) + (textBlockHeight * math.select(0f, 0.5f, lines > 1));
                         return -avgLineHeight;
                     }
@@ -178,5 +180,7 @@ namespace UGUIDOTS.Render {
             var isBold = options.Style == FontStyles.Bold;
             return 1.25f + (isBold ? faceInfo.BoldStyle.x / 4.0f : faceInfo.NormalStyle.x / 4.0f);
         }
+
+
     }
 }

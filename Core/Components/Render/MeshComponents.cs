@@ -7,6 +7,13 @@ using UnityEngine.Rendering;
 
 namespace UGUIDOTS.Render {
 
+    /// <summary>
+    /// Stores which submesh the element belongs to.
+    /// </summary>
+    public struct SubmeshIndex : IComponentData {
+        public int Value;
+    }
+
     [Serializable]
     public class SharedMesh : IComponentData, IEquatable<SharedMesh> {
         

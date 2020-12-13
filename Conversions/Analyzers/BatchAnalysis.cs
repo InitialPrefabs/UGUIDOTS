@@ -20,6 +20,9 @@ namespace UGUIDOTS.Conversions.Analyzers {
             internal RenderedType Type;
         }
 
+        /// <summary>
+        /// Creates a 2D collection of each submesh for the Canvas.
+        /// </summary>
         internal static List<List<RenderedElement>> BuildStaticBatch(Canvas root) {
             Assert.IsNull(root.transform.parent, $"The current Canvas: {root.name} is not a root canvas!");
             var batchMap = new Dictionary<int, List<RenderedElement>>();

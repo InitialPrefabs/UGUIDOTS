@@ -13,13 +13,8 @@ namespace UGUIDOTS.Render {
         public Entity Canvas;
     }
 
-    [Serializable]
     public class SharedMaterial : IComponentData, IEquatable<SharedMaterial> {
         public Material Value;
-
-        public override bool Equals(object obj) {
-            return Equals((SharedMaterial)obj);
-        }
 
         public override int GetHashCode() {
             return !ReferenceEquals(null, Value) ? Value.GetHashCode() : 0;
@@ -43,10 +38,6 @@ namespace UGUIDOTS.Render {
     public class MaterialPropertyBatch : IComponentData, IEquatable<MaterialPropertyBatch> {
         public MaterialPropertyBlock[] Value;
         
-        public override bool Equals(object obj) {
-            return Equals((MaterialPropertyBatch)obj);
-        }
-
         public bool Equals(MaterialPropertyBatch other) {
             return other.Value == Value;
         }
