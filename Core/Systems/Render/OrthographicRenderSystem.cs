@@ -12,6 +12,10 @@ namespace UGUIDOTS.Render.Systems {
 
         private CommandBuffer cmd;
 
+        protected override void OnCreate() {
+            RequireSingletonForUpdate<RenderCommand>();
+        }
+
         protected override void OnDestroy() {
             CommandBufferPool.Release(cmd);
         }
