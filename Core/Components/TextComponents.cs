@@ -10,6 +10,11 @@ using UnityEngine.TextCore;
 namespace UGUIDOTS {
 
     /// <summary>
+    /// Marks the the entity as a DynamicText.
+    /// </summary>
+    public struct DynamicTextTag : IComponentData { }
+
+    /// <summary>
     /// Stores a buffer of character values
     /// </summary>
     public struct CharElement : IBufferElementData {

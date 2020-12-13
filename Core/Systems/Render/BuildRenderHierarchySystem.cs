@@ -15,7 +15,7 @@ namespace UGUIDOTS.Render.Systems {
     [UpdateInGroup(typeof(SimulationSystemGroup), OrderLast = true)]
     public unsafe class BuildRenderHierarchySystem : SystemBase {
 
-        struct EntityContainer : IStruct<EntityContainer> {
+        private struct EntityContainer : IStruct<EntityContainer> {
             public Entity Value;
 
             public static implicit operator EntityContainer(Entity value) => new EntityContainer { Value = value };
@@ -23,12 +23,12 @@ namespace UGUIDOTS.Render.Systems {
         }
 
         [BurstCompile]
-        unsafe struct CollectEntitiesJob : IJobChunk {
+        private unsafe struct CollectEntitiesJob : IJobChunk {
 
-            public EntityCommandBuffer.ParallelWriter CommandBuffer;
-
-            [WriteOnly]
-            public NativeHashMap<Entity, IntPtr>.ParallelWriter CanvasVertexMap;
+#pragma warning disable CS0649
+            [NativeSetThreadIndex]
+            public int NativeThreadIndex;
+#pragma warning restore CS0649
 
             [ReadOnly]
             public BufferFromEntity<Child> Children;
@@ -39,6 +39,11 @@ namespace UGUIDOTS.Render.Systems {
             // Canvases
             // -----------------------------------------
             public BufferTypeHandle<Vertex> VertexBufferType;
+
+            // Universal
+            // -----------------------------------------
+            [ReadOnly]
+            public ComponentDataFromEntity<MeshDataSpan> MeshDataSpans;
 
             // Images
             // -----------------------------------------
@@ -51,6 +56,9 @@ namespace UGUIDOTS.Render.Systems {
             // Text
             // -----------------------------------------
             [ReadOnly]
+            public ComponentDataFromEntity<DynamicTextTag> DynamicTexts;
+
+            [ReadOnly]
             public BufferFromEntity<CharElement> CharBuffers;
 
             // Parallel Containers
@@ -59,52 +67,89 @@ namespace UGUIDOTS.Render.Systems {
             public UnsafeList<EntityContainer>* ImageContainer;
 
             [NativeDisableUnsafePtrRestriction]
-            public UnsafeList<EntityContainer>* TextContainer;
+            public UnsafeList<EntityContainer>* StaticTextContainer;
 
-#pragma warning disable 649
-            [NativeSetThreadIndex]
-            public int NativeThreadIndex;
-#pragma warning restore 649
+            [NativeDisableUnsafePtrRestriction]
+            public UnsafeList<EntityContainer>* DynamicTextContainer;
+
+            [WriteOnly]
+            public NativeHashMap<Entity, IntPtr>.ParallelWriter CanvasVertexMap;
+            
+            [WriteOnly]
+            public NativeHashMap<Entity, int2>.ParallelWriter StaticElementCount;
+
+            public EntityCommandBuffer.ParallelWriter CommandBuffer;
 
             public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex) {
                 var entities = chunk.GetNativeArray(EntityType);
                 var vertexBuffers = chunk.GetBufferAccessor(VertexBufferType);
 
+                var index = NativeThreadIndex - 1;
+
                 for (int i = 0; i < chunk.Count; i++) {
-                    var entity = entities[i];
+                    var entity   = entities[i];
                     var children = Children[entity].AsNativeArray().AsReadOnly();
 
-                    var index = NativeThreadIndex - 1;
+                    UnsafeList<EntityContainer>* img        = ImageContainer + index;
+                    UnsafeList<EntityContainer>* staticTxt  = StaticTextContainer + index;
+                    UnsafeList<EntityContainer>* dynamicTxt = DynamicTextContainer + index;
 
-                    UnsafeList<EntityContainer>* img = ImageContainer + index;
-                    UnsafeList<EntityContainer>* txt = TextContainer + index;
-                    RecurseChildrenDetermineType(children, entity, img, txt);
+                    var staticDataSpan = new int2();
+
+                    RecurseChildrenDetermineType(children, entity, img, staticTxt, dynamicTxt, ref staticDataSpan);
 
                     var vertices = vertexBuffers[i];
 
-                    // Add the vertex ptr so we can write to it.
+                    // Add the vertex ptr so we can write to it in a later job.
                     void* vertexPtr = vertices.GetUnsafePtr();
                     CanvasVertexMap.TryAdd(entity, new IntPtr(vertexPtr));
+
+                    // Add the static data span, so when we build dynamic elements, we can batch it together.
+                    StaticElementCount.TryAdd(entity, staticDataSpan);
 
                     CommandBuffer.AddComponent<RebuildMeshTag>(firstEntityIndex + i, entity);
                 }
             }
 
             void RecurseChildrenDetermineType(
-                NativeArray<Child>.ReadOnly children, Entity root, UnsafeList<EntityContainer>* imgContainer, UnsafeList<EntityContainer>* txtContainer) {
+                NativeArray<Child>.ReadOnly children, 
+                Entity root, 
+                UnsafeList<EntityContainer>* imgContainer, 
+                UnsafeList<EntityContainer>* staticTxtContainer,
+                UnsafeList<EntityContainer>* dynamicTxtContainer,
+                ref int2 count) {
+
                 for (int i = 0; i < children.Length; i++) {
                     var entity = children[i].Value;
+                    
+                    var meshSpan = MeshDataSpans[entity];
+
+                    // Add the spans of all static images
                     if (SpriteData.HasComponent(entity)) {
                         imgContainer->Add(entity);
+                        count += new int2(meshSpan.VertexSpan.y, meshSpan.IndexSpan.y);
                     }
 
                     if (CharBuffers.HasComponent(entity)) {
-                        txtContainer->Add(entity);
+                        if (DynamicTexts.HasComponent(entity)) {
+                            // Skip the dynamic text because the # of vertices/indices will change
+                            dynamicTxtContainer->Add(entity);
+                        } else {
+                            // Add the spans of all static text
+                            staticTxtContainer->Add(entity);
+                            count += new int2(meshSpan.VertexSpan.y, meshSpan.IndexSpan.y);
+                        }
                     }
 
                     if (Children.HasComponent(entity)) {
                         var grandChildren = Children[entity].AsNativeArray().AsReadOnly();
-                        RecurseChildrenDetermineType(grandChildren, root, imgContainer, txtContainer);
+                        RecurseChildrenDetermineType(
+                            grandChildren, 
+                            root, 
+                            imgContainer, 
+                            staticTxtContainer, 
+                            dynamicTxtContainer,
+                            ref count);
                     }
                 }
             }
@@ -112,7 +157,7 @@ namespace UGUIDOTS.Render.Systems {
 
         // NOTE: Assume all static
         [BurstCompile]
-        struct BuildImageJob : IJob {
+        private struct BuildImageJob : IJob {
 
             public PerThreadContainer<EntityContainer> ThreadContainer;
 
@@ -183,7 +228,7 @@ namespace UGUIDOTS.Render.Systems {
         }
 
         [BurstCompile]
-        struct BuildTextJob : IJobParallelFor {
+        private struct BuildTextJob : IJobParallelFor {
 
             public PerThreadContainer<EntityContainer> TextEntities;
 
@@ -269,7 +314,7 @@ namespace UGUIDOTS.Render.Systems {
                 }
             }
 
-            void CreateVertexForChars(
+            private void CreateVertexForChars(
                 NativeArray<CharElement> chars, 
                 NativeArray<GlyphElement> glyphs,
                 NativeList<TextUtil.LineInfo> lines,
@@ -301,6 +346,8 @@ namespace UGUIDOTS.Render.Systems {
                     TextUtil.GetVerticalAlignment(heights, fontScale, options.Alignment, extents, totalLineHeight, lines.Length)
                 ) + screenSpace.Translation;
 
+                var normal = new float3(1, 0, 0);
+
                 for (int i = 0, row = 0; i < chars.Length; i++) {
                     var c = chars[i];
                     if (!FindGlyphWithChar(glyphs, c, out GlyphElement glyph)) {
@@ -327,7 +374,6 @@ namespace UGUIDOTS.Render.Systems {
 
                     var canvasScale = rootScale.x * screenSpace.Scale.x / 4 * 3;
                     var uv2         = new float2(glyph.Scale) * math.select(canvasScale, -canvasScale, isBold);
-                    var normal      = new float3(1, 0, 0);
 
                     vertices.Add(new Vertex {
                         Position = new float3(xPos, yPos, 0),
@@ -362,7 +408,7 @@ namespace UGUIDOTS.Render.Systems {
                 }
             }
 
-            bool FindGlyphWithChar(NativeArray<GlyphElement> glyphs, char c, out GlyphElement glyph) {
+            private bool FindGlyphWithChar(NativeArray<GlyphElement> glyphs, char c, out GlyphElement glyph) {
                 var unicode = (ushort)c;
                 for (int i = 0; i < glyphs.Length; i++) {
                     var current = glyphs[i];
@@ -381,8 +427,10 @@ namespace UGUIDOTS.Render.Systems {
         private EntityQuery imageQuery;
         private EntityQuery textQuery;
         private EntityCommandBufferSystem commandBufferSystem;
+
         private PerThreadContainer<EntityContainer> perThreadImageContainer;
-        private PerThreadContainer<EntityContainer> perThreadTextContainer;
+        private PerThreadContainer<EntityContainer> perThreadStaticTextContainer;
+        private PerThreadContainer<EntityContainer> perThreadDynamicTextContainer;
 
         protected override void OnCreate() {
             canvasQuery = GetEntityQuery(new EntityQueryDesc {
@@ -409,7 +457,7 @@ namespace UGUIDOTS.Render.Systems {
                 20, 
                 Allocator.Persistent);
 
-            perThreadTextContainer = new PerThreadContainer<EntityContainer>(
+            perThreadStaticTextContainer = new PerThreadContainer<EntityContainer>(
                 JobsUtility.JobWorkerCount + 1, 
                 20, 
                 Allocator.Persistent);
@@ -417,7 +465,7 @@ namespace UGUIDOTS.Render.Systems {
 
         protected override void OnDestroy() {
             perThreadImageContainer.Dispose();
-            perThreadTextContainer.Dispose();
+            perThreadStaticTextContainer.Dispose();
         }
 
         protected override void OnUpdate() {
@@ -435,21 +483,28 @@ namespace UGUIDOTS.Render.Systems {
             var stretch       = GetComponentDataFromEntity<Stretch>(true);
             var root          = GetComponentDataFromEntity<RootCanvasReference>(true);
 
-            var canvasMap = new NativeHashMap<Entity, IntPtr>(canvasQuery.CalculateEntityCount(), Allocator.TempJob);
-            var commandBuffer = commandBufferSystem.CreateCommandBuffer().AsParallelWriter();
+            var canvasCount = canvasQuery.CalculateEntityCount();
+
+            var canvasMap      = new NativeHashMap<Entity, IntPtr>(canvasCount, Allocator.TempJob);
+            var staticCountMap = new NativeHashMap<Entity, int2>(canvasCount, Allocator.TempJob);
+            var commandBuffer  = commandBufferSystem.CreateCommandBuffer().AsParallelWriter();
 
             // TODO: Collect -> Build Image + Build Text can work here
-            Dependency           = new CollectEntitiesJob {
-                CommandBuffer    = commandBuffer,
-                CharBuffers      = charBuffers,
-                Children         = children,
-                Stretched        = stretch,
-                EntityType       = GetEntityTypeHandle(),
-                SpriteData       = spriteData,
-                VertexBufferType = GetBufferTypeHandle<Vertex>(false),
-                ImageContainer   = perThreadImageContainer.Ptr,
-                TextContainer    = perThreadTextContainer.Ptr,
-                CanvasVertexMap  = canvasMap.AsParallelWriter()
+            Dependency               = new CollectEntitiesJob {
+                CommandBuffer        = commandBuffer,
+                CharBuffers          = charBuffers,
+                Children             = children,
+                Stretched            = stretch,
+                EntityType           = GetEntityTypeHandle(),
+                SpriteData           = spriteData,
+                VertexBufferType     = GetBufferTypeHandle<Vertex>(false),
+                DynamicTexts         = GetComponentDataFromEntity<DynamicTextTag>(true),
+                MeshDataSpans        = GetComponentDataFromEntity<MeshDataSpan>(true),
+                ImageContainer       = perThreadImageContainer.Ptr,
+                StaticTextContainer  = perThreadStaticTextContainer.Ptr,
+                DynamicTextContainer = perThreadDynamicTextContainer.Ptr,
+                CanvasVertexMap      = canvasMap.AsParallelWriter(),
+                StaticElementCount   = staticCountMap.AsParallelWriter()
             }.ScheduleParallel(canvasQuery, Dependency);
 
             var imgDeps           = new BuildImageJob {
@@ -470,7 +525,7 @@ namespace UGUIDOTS.Render.Systems {
             var linkedFonts = GetComponentDataFromEntity<LinkedTextFontEntity>(true);
             var textOptions = GetComponentDataFromEntity<TextOptions>(true);
 
-            var textDeps        = new BuildTextJob {
+            var staticTextDeps  = new BuildTextJob {
                 AppliedColors   = colors,
                 CharBuffers     = charBuffers,
                 Dimensions      = dimensions,
@@ -481,11 +536,17 @@ namespace UGUIDOTS.Render.Systems {
                 Spans           = spans,
                 TextOptions     = textOptions,
                 Roots           = root,
-                TextEntities    = perThreadTextContainer,
+                TextEntities    = perThreadStaticTextContainer,
                 CanvasMap       = canvasMap
             }.Schedule(perThreadImageContainer.Length, 1, Dependency);
+            
+            // TODO: Build the dynamic text.
+            // TODO: Ideally only dynamic text needs to be rebuilt if nothing else changes.
+            var dynamicTextDeps = new BuildTextJob {
 
-            var combinedDeps = JobHandle.CombineDependencies(imgDeps, textDeps);
+            }.Schedule(perThreadDynamicTextContainer.Length, 1, Dependency);
+
+            var combinedDeps = JobHandle.CombineDependencies(imgDeps, staticTextDeps, dynamicTextDeps);
             Dependency = canvasMap.Dispose(combinedDeps);
 
             commandBufferSystem.AddJobHandleForProducer(Dependency);

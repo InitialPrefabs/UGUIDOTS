@@ -94,7 +94,7 @@ namespace UGUIDOTS.Conversions.Analyzers {
                     var type = RenderedType.Text;
 
                     // Separate dynamic text from static text
-                    if (child.TryGetComponent(out DynamicTextAuthoring dynamic)) {
+                    if (child.TryGetComponent(out IAuthorableText dynamic)) {
                         hash ^= dynamic.GetHashCode();
                         type = RenderedType.TextDynamic;
                     }

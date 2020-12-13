@@ -44,8 +44,8 @@ namespace UGUIDOTS.Render {
 
                 // TODO: Add support for \n
                 if (c == ' ') {
-                    diagnostics.WordWidth      = 0;
-                    diagnostics.WordCharCount  = -1;
+                    diagnostics.WordWidth     = 0;
+                    diagnostics.WordCharCount = -1;
 
                     // We hit a space so there's a new word coming up supposedly
                     diagnostics.WordCount++;

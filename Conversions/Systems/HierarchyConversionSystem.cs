@@ -82,6 +82,7 @@ namespace UGUIDOTS.Conversions.Systems {
             foreach (var batch in batches) {
                 var startVertex = vertexData.Length;
                 var startIndex  = indexData.Length;
+
                 foreach (var renderedElement in batch) {
                     var gameObject = renderedElement.GameObject;
                     
