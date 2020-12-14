@@ -16,7 +16,6 @@ namespace UGUIDOTS.Render.Systems {
     [UpdateInGroup(typeof(SimulationSystemGroup), OrderLast = true)]
     public unsafe class BuildRenderHierarchySystem : SystemBase {
 
-
         private struct EntityContainer : IStruct<EntityContainer> {
             public Entity Value;
 
@@ -529,8 +528,10 @@ namespace UGUIDOTS.Render.Systems {
                 var lines          = new NativeList<TextUtil.LineInfo>(10, Allocator.Temp);
                 var comparer       = new CompareSubmeshIndex();
 
+                var vertices = new NativeList<Vertex>(100, Allocator.Temp);
+                var indices  = new NativeList<Index>(600, Allocator.Temp);
+
                 for (int i = 0; i < keys.Length; i++) {
-                    toSort.Clear();
                     var canvasEntity = keys[i];
 
                     CollectedEntities.TryGetFirstValue(canvasEntity, 
@@ -553,9 +554,13 @@ namespace UGUIDOTS.Render.Systems {
 
                     toSort.Sort(comparer);
 
+                    var staticSpan = AccumulatedStaticSpans[canvasEntity];
+                    var copiedSpan = staticSpan;
+
                     // Do the actual text building
                     for (int j = 0; j < toSort.Length; j++) {
                         var dynamicTextEntity = toSort[j].Entity;
+                        var spans = Spans[dynamicTextEntity];
                         var linked = LinkedTextFonts[dynamicTextEntity].Value;
 
                         var glyphs   = Glyphs[linked].AsNativeArray();
@@ -569,9 +574,27 @@ namespace UGUIDOTS.Render.Systems {
                         var rootScreen  = ScreenSpace[canvasEntity];
 
                         // TODO: Rebuild the vertices and rebuild the indices
+                        CreateVertexForChars(
+                            dynamicTextEntity,
+                            chars, 
+                            glyphs, 
+                            lines, 
+                            ref vertices, 
+                            ref indices, 
+                            fontFace, 
+                            dimension, 
+                            screenSpace, 
+                            rootScreen.Scale, 
+                            textOptions, 
+                            color, 
+                            ref copiedSpan);
                     }
 
-                    // TODO: After finishing the canvas, copy the slices that intersect and add the remaining
+                    var canvasVertices = VertexBuffers[canvasEntity];
+                    var canvasIndices = IndexBuffers[canvasEntity];
+
+                    // TODO: After finishing the build, copy the slices that intersect and add the remaining
+                    CopyIntersectionToBuffer(vertices, canvasVertices, indices, canvasIndices);
 
                     // Clear the sorted entities so we can reuse it for the next iteration
                     toSort.Clear();
@@ -580,6 +603,7 @@ namespace UGUIDOTS.Render.Systems {
             }
 
             void CreateVertexForChars(
+                Entity textEntity,
                 NativeArray<CharElement> chars,
                 NativeArray<GlyphElement> glyphs,
                 NativeList<TextUtil.LineInfo> lines,
@@ -592,6 +616,10 @@ namespace UGUIDOTS.Render.Systems {
                 TextOptions options,
                 float4 color,
                 ref int2 staticSpan) {
+
+                var span = Spans[textEntity];
+                var origVertexCount = vertices.Length;
+                var origIndexCount = indices.Length;
 
                 var bl = (ushort)staticSpan.x;
 
@@ -689,10 +717,19 @@ namespace UGUIDOTS.Render.Systems {
     
                     start.x += glyph.Advance * padding * screenSpace.Scale.x * rootScale.x;
                 }
+
+                var diffVert = vertices.Length - origVertexCount;
+                var diffInd = indices.Length - origIndexCount;
+
+                span.VertexSpan = new int2(staticSpan.x, diffVert);
+                span.IndexSpan = new int2(staticSpan.y, diffInd);
+                
+                // Update the span for the entity.
+                Spans[textEntity] = span;
                 
                 // Update the static span because we want to ensure that the next set of
                 // text will be at an offset of the previous.
-                staticSpan = new int2(vertices.Length, staticSpan.y);
+                staticSpan = new int2(staticSpan.x + diffVert, staticSpan.y + diffInd);
             }
 
             bool FindGlyphWithChar(NativeArray<GlyphElement> glyphs, char c, out GlyphElement glyph) {
@@ -707,6 +744,15 @@ namespace UGUIDOTS.Render.Systems {
 
                 glyph = default;
                 return false;
+            }
+
+            void CopyIntersectionToBuffer(
+                NativeList<Vertex> srcVertices, 
+                DynamicBuffer<Vertex> dstVertices, 
+                NativeList<Index> srcIndices, 
+                DynamicBuffer<Index> dstIndices) {
+
+                throw new System.NotImplementedException();
             }
         }
 
