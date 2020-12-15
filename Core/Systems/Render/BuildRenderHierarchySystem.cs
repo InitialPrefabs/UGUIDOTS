@@ -123,34 +123,35 @@ namespace UGUIDOTS.Render.Systems {
                 for (int i = 0; i < children.Length; i++) {
                     var entity = children[i].Value;
                     
-                    var meshSpan = MeshDataSpans[entity];
-
-                    // Add the spans of all static images
-                    if (SpriteData.HasComponent(entity)) {
-                        imgContainer->Add(entity);
-                        count += new int2(meshSpan.VertexSpan.y, meshSpan.IndexSpan.y);
-                    }
-
-                    if (CharBuffers.HasComponent(entity)) {
-                        if (DynamicTexts.HasComponent(entity)) {
-                            // Skip the dynamic text because the # of vertices/indices will change
-                            dynamicTxtContainer->Add(entity);
-                        } else {
-                            // Add the spans of all static text
-                            staticTxtContainer->Add(entity);
+                    if (MeshDataSpans.HasComponent(entity)) {
+                        var meshSpan = MeshDataSpans[entity];
+                        // Add the spans of all static images
+                        if (SpriteData.HasComponent(entity)) {
+                            imgContainer->Add(entity);
                             count += new int2(meshSpan.VertexSpan.y, meshSpan.IndexSpan.y);
                         }
-                    }
 
-                    if (Children.HasComponent(entity)) {
-                        var grandChildren = Children[entity].AsNativeArray().AsReadOnly();
-                        RecurseChildrenDetermineType(
-                            grandChildren, 
-                            root, 
-                            imgContainer, 
-                            staticTxtContainer, 
-                            dynamicTxtContainer,
-                            ref count);
+                        if (CharBuffers.HasComponent(entity)) {
+                            if (DynamicTexts.HasComponent(entity)) {
+                                // Skip the dynamic text because the # of vertices/indices will change
+                                dynamicTxtContainer->Add(entity);
+                            } else {
+                                // Add the spans of all static text
+                                staticTxtContainer->Add(entity);
+                                count += new int2(meshSpan.VertexSpan.y, meshSpan.IndexSpan.y);
+                            }
+                        }
+
+                        if (Children.HasComponent(entity)) {
+                            var grandChildren = Children[entity].AsNativeArray().AsReadOnly();
+                            RecurseChildrenDetermineType(
+                                grandChildren, 
+                                root, 
+                                imgContainer, 
+                                staticTxtContainer, 
+                                dynamicTxtContainer,
+                                ref count);
+                        }
                     }
                 }
             }
@@ -430,8 +431,10 @@ namespace UGUIDOTS.Render.Systems {
             [ReadOnly]
             public ComponentDataFromEntity<RootCanvasReference> RootCanvasReferences;
             
+            [ReadOnly]
             public PerThreadContainer<EntityContainer> TextEntities;
-
+            
+            [WriteOnly]
             public NativeMultiHashMap<Entity, Entity> SortedCanvasEntities;
 
             public void Execute() {
@@ -471,8 +474,11 @@ namespace UGUIDOTS.Render.Systems {
                 }
             }
 
+            public EntityCommandBuffer CommandBuffer;
+
             public PerThreadContainer<EntityContainer> TextEntities;
 
+            [ReadOnly]
             public NativeHashMap<Entity, int2> AccumulatedStaticSpans;
 
             public BufferFromEntity<Vertex> VertexBuffers;
@@ -498,6 +504,7 @@ namespace UGUIDOTS.Render.Systems {
 
             // Text info
             // ------------------------------------------------------------------
+            [ReadOnly]
             public ComponentDataFromEntity<MeshDataSpan> Spans;
 
             [ReadOnly]
@@ -560,7 +567,6 @@ namespace UGUIDOTS.Render.Systems {
                     // Do the actual text building
                     for (int j = 0; j < toSort.Length; j++) {
                         var dynamicTextEntity = toSort[j].Entity;
-                        var spans = Spans[dynamicTextEntity];
                         var linked = LinkedTextFonts[dynamicTextEntity].Value;
 
                         var glyphs   = Glyphs[linked].AsNativeArray();
@@ -594,7 +600,7 @@ namespace UGUIDOTS.Render.Systems {
                     var canvasIndices = IndexBuffers[canvasEntity];
 
                     // TODO: After finishing the build, copy the slices that intersect and add the remaining
-                    CopyIntersectionToBuffer(vertices, canvasVertices, indices, canvasIndices);
+                    CopyIntersectionToBuffer(vertices, canvasVertices, indices, canvasIndices, staticSpan);
 
                     // Clear the sorted entities so we can reuse it for the next iteration
                     toSort.Clear();
@@ -725,7 +731,7 @@ namespace UGUIDOTS.Render.Systems {
                 span.IndexSpan = new int2(staticSpan.y, diffInd);
                 
                 // Update the span for the entity.
-                Spans[textEntity] = span;
+                CommandBuffer.SetComponent(textEntity, span);
                 
                 // Update the static span because we want to ensure that the next set of
                 // text will be at an offset of the previous.
@@ -750,9 +756,33 @@ namespace UGUIDOTS.Render.Systems {
                 NativeList<Vertex> srcVertices, 
                 DynamicBuffer<Vertex> dstVertices, 
                 NativeList<Index> srcIndices, 
-                DynamicBuffer<Index> dstIndices) {
+                DynamicBuffer<Index> dstIndices,
+                int2 staticSpan) {
 
-                throw new System.NotImplementedException();
+                var vertexStart = staticSpan.x;
+                var indexStart = staticSpan.y;
+
+                var vertexSliceSize = dstVertices.Length - vertexStart;
+                var indexSliceSize  = dstIndices.Length - indexStart;
+
+                // Copy over the intersection
+                for (int i = 0; i < vertexSliceSize; i++) {
+                    dstVertices[i + vertexStart] = srcVertices[i];
+                }
+
+                // Add the remaining
+                for (int i = vertexSliceSize; i < srcVertices.Length; i++) {
+                    dstVertices.Add(srcVertices[i]);
+                }
+
+                // Copy over the intersection
+                for (int i = 0; i < indexSliceSize; i++) {
+                    dstIndices[i + indexStart] = srcIndices[i];
+                }
+
+                for (int i = indexSliceSize; i < srcIndices.Length; i++) {
+                    dstIndices.Add(srcIndices[i]);
+                }
             }
         }
 
@@ -784,16 +814,24 @@ namespace UGUIDOTS.Render.Systems {
             commandBufferSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
 
             RequireForUpdate(canvasQuery);
+            
+            var threadContainerSize = JobsUtility.JobWorkerCount + 1;
 
             perThreadImageContainer = new PerThreadContainer<EntityContainer>(
-                JobsUtility.JobWorkerCount + 1, 
+                threadContainerSize,
                 20, 
                 Allocator.Persistent);
 
             perThreadStaticTextContainer = new PerThreadContainer<EntityContainer>(
-                JobsUtility.JobWorkerCount + 1, 
+                threadContainerSize,
                 20, 
                 Allocator.Persistent);
+
+            perThreadDynamicTextContainer = new PerThreadContainer<EntityContainer>(
+                threadContainerSize,
+                20,
+                Allocator.Persistent
+            );
         }
 
         protected override void OnDestroy() {
@@ -821,13 +859,14 @@ namespace UGUIDOTS.Render.Systems {
 
             var canvasCount = canvasQuery.CalculateEntityCount();
 
-            var canvasMap      = new NativeHashMap<Entity, IntPtr>(canvasCount, Allocator.TempJob);
-            var staticCountMap = new NativeHashMap<Entity, int2>(canvasCount, Allocator.TempJob);
-            var commandBuffer  = commandBufferSystem.CreateCommandBuffer().AsParallelWriter();
+            var canvasMap         = new NativeHashMap<Entity, IntPtr>(canvasCount, Allocator.TempJob);
+            var staticCountMap    = new NativeHashMap<Entity, int2>(canvasCount, Allocator.TempJob);
+            var collectedEntities = new NativeMultiHashMap<Entity, Entity>(canvasQuery.CalculateEntityCount(), Allocator.TempJob);
+            var commandBuffer     = commandBufferSystem.CreateCommandBuffer();
 
             // TODO: Collect -> Build Image + Build Text can work here
-            Dependency               = new CollectEntitiesJob {
-                CommandBuffer        = commandBuffer,
+            var collectEntityDeps     = new CollectEntitiesJob {
+                CommandBuffer        = commandBuffer.AsParallelWriter(),
                 CharBuffers          = charBuffers,
                 Children             = children,
                 Stretched            = stretch,
@@ -843,6 +882,12 @@ namespace UGUIDOTS.Render.Systems {
                 StaticElementCount   = staticCountMap.AsParallelWriter()
             }.ScheduleParallel(canvasQuery, Dependency);
 
+            var collectDynamicDeps = new CollectAndSeparateEntityJob {
+                RootCanvasReferences = root,
+                TextEntities         = perThreadDynamicTextContainer,
+                SortedCanvasEntities = collectedEntities
+            }.Schedule(collectEntityDeps);
+
             var imgDeps           = new BuildImageJob {
                 Root              = root,
                 Colors            = colors,
@@ -854,7 +899,7 @@ namespace UGUIDOTS.Render.Systems {
                 Stretched         = stretch,
                 ThreadContainer   = perThreadImageContainer,
                 CanvasMap         = canvasMap
-            }.Schedule(Dependency);
+            }.Schedule(collectEntityDeps);
 
             var fontFaces   = GetComponentDataFromEntity<FontFaceInfo>(true);
             var glyphs      = GetBufferFromEntity<GlyphElement>(true);
@@ -874,19 +919,37 @@ namespace UGUIDOTS.Render.Systems {
                 Roots           = root,
                 TextEntities    = perThreadStaticTextContainer,
                 CanvasMap       = canvasMap
-            }.Schedule(perThreadImageContainer.Length, 1, Dependency);
+            }.Schedule(perThreadImageContainer.Length, 1, collectEntityDeps);
+
+            var staticBuildDeps = JobHandle.CombineDependencies(staticTextDeps, imgDeps, collectDynamicDeps);
 
             // TODO: Build the dynamic text.
             // TODO: Ideally only dynamic text needs to be rebuilt if nothing else changes.
-            var dynamicTextDeps = new BuildDynamicTextJob {
-                
-            }.Schedule(Dependency);
+            var dynamicTextDeps        = new BuildDynamicTextJob {
+                AccumulatedStaticSpans = staticCountMap,
+                AppliedColors          = colors,
+                CharBuffers            = charBuffers,
+                CollectedEntities      = collectedEntities,
+                Dimensions             = dimensions,
+                FontFace               = fontFaces,
+                Glyphs                 = glyphs,
+                LinkedTextFonts        = linkedFonts,
+                Roots                  = root,
+                ScreenSpace            = screenSpaces,
+                Spans                  = spans,
+                TextEntities           = perThreadDynamicTextContainer,
+                TextOptions            = textOptions,
+                SubmeshIndices         = GetComponentDataFromEntity<SubmeshIndex>(true),
+                IndexBuffers           = GetBufferFromEntity<Index>(false),
+                VertexBuffers          = GetBufferFromEntity<Vertex>(false),
+                CommandBuffer          = commandBuffer
+            }.Schedule(staticBuildDeps);
 
-            var combinedDeps       = JobHandle.CombineDependencies(imgDeps, staticTextDeps, dynamicTextDeps);
-            var canvasDisposalDeps = canvasMap.Dispose(combinedDeps);
-            var staticCountMapDeps = staticCountMap.Dispose(combinedDeps);
+            var canvasDisposalDeps = canvasMap.Dispose(dynamicTextDeps);
+            var staticCountMapDeps = staticCountMap.Dispose(dynamicTextDeps);
+            var collectedDeps      = collectedEntities.Dispose(dynamicTextDeps);
 
-            Dependency = JobHandle.CombineDependencies(canvasDisposalDeps, staticCountMapDeps);
+            Dependency = JobHandle.CombineDependencies(canvasDisposalDeps, staticCountMapDeps, collectedDeps);
             commandBufferSystem.AddJobHandleForProducer(Dependency);
         }
     }
