@@ -3,17 +3,53 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 
 namespace UGUIDOTS.Collections {
-
+    
+    /// <summary>
+    /// Identifier to state that a struct is a struct.
+    /// </summary>
     public interface IStruct<T> where T : struct { }
 
-    public unsafe struct PerThreadContainer<T> : IDisposable where T : unmanaged, IStruct<T> {
+    /// <summary>
+    /// Defines that a struct has a priority and can be ordered.
+    /// </summary>
+    public interface IPrioritize<T> where T : struct {
+        public int Priority();
+    }
 
+    public struct UnsafePriorityQueue<T> : IDisposable where T : unmanaged, IStruct<T>, IPrioritize<T> {
+
+        public int Length {
+            get {
+                return Collection.Length;
+            }
+        }
+        
+        internal UnsafeList<T> Collection;
+
+        public void Add(in T value) {
+            for (int i = 0; i < Length; i++) {
+                
+            }
+        }
+
+        public void Dispose() {
+            if (Collection.IsCreated) {
+                Collection.Dispose();
+            }
+        }
+    }
+
+    public unsafe struct PerThreadContainer<T> : IDisposable where T : unmanaged, IStruct<T> {
+    
         [NativeDisableUnsafePtrRestriction]
         public UnsafeList<T>* Ptr;
 
         public int Length { get; private set; }
 
+        private Allocator allocator;
+
         public PerThreadContainer(int threadCount, int capacity, Allocator allocator) {
+            this.allocator = allocator;
             Length = threadCount;
             var size = UnsafeUtility.SizeOf<UnsafeList<T>>() * threadCount;
 
@@ -36,7 +72,8 @@ namespace UGUIDOTS.Collections {
                     }
                 }
 
-                Ptr->Dispose();
+                UnsafeUtility.Free(Ptr, allocator);
+                Ptr = null;
             }
         }
 
