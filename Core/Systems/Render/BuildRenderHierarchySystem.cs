@@ -53,13 +53,19 @@ namespace UGUIDOTS.Render.Systems {
             [ReadOnly]
             public BufferFromEntity<CharElement> CharBuffers;
 
+            [ReadOnly]
+            public ComponentDataFromEntity<DynamicTextTag> DynamicTexts;
+
             // Parallel Containers
             // -----------------------------------------
             [NativeDisableUnsafePtrRestriction]
             public UnsafeList<EntityContainer>* ImageContainer;
 
             [NativeDisableUnsafePtrRestriction]
-            public UnsafeList<EntityContainer>* TextContainer;
+            public UnsafeList<EntityContainer>* StaticTextContainer;
+
+            [NativeDisableUnsafePtrRestriction]
+            public UnsafeList<EntityContainer>* DynamicTextContainer;
 
 #pragma warning disable 649
             [NativeSetThreadIndex]
@@ -76,9 +82,11 @@ namespace UGUIDOTS.Render.Systems {
 
                     var index = NativeThreadIndex - 1;
 
-                    UnsafeList<EntityContainer>* img = ImageContainer + index;
-                    UnsafeList<EntityContainer>* txt = TextContainer + index;
-                    RecurseChildrenDetermineType(children, entity, img, txt);
+                    UnsafeList<EntityContainer>* img        = ImageContainer + index;
+                    UnsafeList<EntityContainer>* staticTxt  = StaticTextContainer + index;
+                    UnsafeList<EntityContainer>* dynamicTxt = DynamicTextContainer + index;
+
+                    RecurseChildrenDetermineType(children, entity, img, staticTxt, dynamicTxt);
 
                     var vertices = vertexBuffers[i];
 
@@ -92,8 +100,10 @@ namespace UGUIDOTS.Render.Systems {
 
             void RecurseChildrenDetermineType(
                 NativeArray<Child>.ReadOnly children, 
-                Entity root, UnsafeList<EntityContainer>* imgContainer, 
-                UnsafeList<EntityContainer>* txtContainer) {
+                Entity root, 
+                UnsafeList<EntityContainer>* imgContainer, 
+                UnsafeList<EntityContainer>* staticTxtContainer,
+                UnsafeList<EntityContainer>* dynamicTxtContainer) {
 
                 for (int i = 0; i < children.Length; i++) {
                     var entity = children[i].Value;
@@ -102,12 +112,21 @@ namespace UGUIDOTS.Render.Systems {
                     }
 
                     if (CharBuffers.HasComponent(entity)) {
-                        txtContainer->Add(entity);
+                        if (DynamicTexts.HasComponent(entity)) {
+                            dynamicTxtContainer->Add(entity);
+                        } else {
+                            staticTxtContainer->Add(entity);
+                        }
                     }
 
                     if (Children.HasComponent(entity)) {
                         var grandChildren = Children[entity].AsNativeArray().AsReadOnly();
-                        RecurseChildrenDetermineType(grandChildren, root, imgContainer, txtContainer);
+                        RecurseChildrenDetermineType(
+                            grandChildren, 
+                            root, 
+                            imgContainer, 
+                            staticTxtContainer, 
+                            dynamicTxtContainer);
                     }
                 }
             }
@@ -385,7 +404,8 @@ namespace UGUIDOTS.Render.Systems {
         private EntityQuery textQuery;
         private EntityCommandBufferSystem commandBufferSystem;
         private PerThreadContainer<EntityContainer> perThreadImageContainer;
-        private PerThreadContainer<EntityContainer> perThreadTextContainer;
+        private PerThreadContainer<EntityContainer> perThreadStaticTextContainer;
+        private PerThreadContainer<EntityContainer> perThreadDynamicTextContainer;
 
         protected override void OnCreate() {
             canvasQuery = GetEntityQuery(new EntityQueryDesc {
@@ -407,54 +427,72 @@ namespace UGUIDOTS.Render.Systems {
 
             RequireForUpdate(canvasQuery);
 
+            int threadCount = JobsUtility.JobWorkerCount + 1;
+
             perThreadImageContainer = new PerThreadContainer<EntityContainer>(
-                JobsUtility.JobWorkerCount + 1, 
+                threadCount,
                 20, 
                 Allocator.Persistent);
 
-            perThreadTextContainer = new PerThreadContainer<EntityContainer>(
-                JobsUtility.JobWorkerCount + 1, 
+            perThreadDynamicTextContainer = new PerThreadContainer<EntityContainer>(
+                threadCount,
                 20, 
+                Allocator.Persistent);
+
+            perThreadStaticTextContainer = new PerThreadContainer<EntityContainer>(
+                threadCount,
+                20,
                 Allocator.Persistent);
         }
 
         protected override void OnDestroy() {
             perThreadImageContainer.Dispose();
-            perThreadTextContainer.Dispose();
+            perThreadDynamicTextContainer.Dispose();
+            perThreadStaticTextContainer.Dispose();
         }
 
         protected override void OnUpdate() {
+            // Clear out all threaded containers
             perThreadImageContainer.Reset();
+            perThreadDynamicTextContainer.Reset();
+            perThreadStaticTextContainer.Reset();
 
             var charBuffers = GetBufferFromEntity<CharElement>();
             var spriteData  = GetComponentDataFromEntity<SpriteData>(true);
             var children    = GetBufferFromEntity<Child>(true);
 
-            var dimensions    = GetComponentDataFromEntity<Dimension>(true);
-            var colors        = GetComponentDataFromEntity<AppliedColor>(true);
-            var spans         = GetComponentDataFromEntity<MeshDataSpan>(true);
-            var screenSpaces  = GetComponentDataFromEntity<ScreenSpace>(true);
-            var resolutions   = GetComponentDataFromEntity<DefaultSpriteResolution>(true);
-            var stretch       = GetComponentDataFromEntity<Stretch>(true);
-            var root          = GetComponentDataFromEntity<RootCanvasReference>(true);
+            var dimensions   = GetComponentDataFromEntity<Dimension>(true);
+            var colors       = GetComponentDataFromEntity<AppliedColor>(true);
+            var spans        = GetComponentDataFromEntity<MeshDataSpan>(true);
+            var screenSpaces = GetComponentDataFromEntity<ScreenSpace>(true);
+            var resolutions  = GetComponentDataFromEntity<DefaultSpriteResolution>(true);
+            var stretch      = GetComponentDataFromEntity<Stretch>(true);
+            var root         = GetComponentDataFromEntity<RootCanvasReference>(true);
+            var dynamicTexts = GetComponentDataFromEntity<DynamicTextTag>(true);
+
+            var vertexTypeHandle = GetBufferTypeHandle<Vertex>(false);
 
             var canvasMap = new NativeHashMap<Entity, IntPtr>(canvasQuery.CalculateEntityCount(), Allocator.TempJob);
             var commandBuffer = commandBufferSystem.CreateCommandBuffer().AsParallelWriter();
 
             // TODO: Collect -> Build Image + Build Text can work here
-            Dependency           = new CollectEntitiesJob {
-                CommandBuffer    = commandBuffer,
-                CharBuffers      = charBuffers,
-                Children         = children,
-                Stretched        = stretch,
-                EntityType       = GetEntityTypeHandle(),
-                SpriteData       = spriteData,
-                VertexBufferType = GetBufferTypeHandle<Vertex>(false),
-                ImageContainer   = perThreadImageContainer.Ptr,
-                TextContainer    = perThreadTextContainer.Ptr,
-                CanvasVertexMap  = canvasMap.AsParallelWriter()
+            var collectDeps          = new CollectEntitiesJob {
+                CommandBuffer        = commandBuffer,
+                CharBuffers          = charBuffers,
+                Children             = children,
+                Stretched            = stretch,
+                EntityType           = GetEntityTypeHandle(),
+                SpriteData           = spriteData,
+                VertexBufferType     = vertexTypeHandle,
+                DynamicTexts         = dynamicTexts,
+                ImageContainer       = perThreadImageContainer.Ptr,
+                StaticTextContainer  = perThreadStaticTextContainer.Ptr,
+                DynamicTextContainer = perThreadDynamicTextContainer.Ptr,
+                CanvasVertexMap      = canvasMap.AsParallelWriter()
             }.ScheduleParallel(canvasQuery, Dependency);
 
+            // Rebuild all the static images
+            // ------------------------------------------------------------------------------
             var imgDeps           = new BuildImageJob {
                 Root              = root,
                 Colors            = colors,
@@ -466,13 +504,15 @@ namespace UGUIDOTS.Render.Systems {
                 Stretched         = stretch,
                 ThreadContainer   = perThreadImageContainer,
                 CanvasMap         = canvasMap
-            }.Schedule(Dependency);
+            }.Schedule(collectDeps);
 
             var fontFaces   = GetComponentDataFromEntity<FontFaceInfo>(true);
             var glyphs      = GetBufferFromEntity<GlyphElement>(true);
             var linkedFonts = GetComponentDataFromEntity<LinkedTextFontEntity>(true);
             var textOptions = GetComponentDataFromEntity<TextOptions>(true);
 
+            // Rebuild all the static text first
+            // ------------------------------------------------------------------------------
             var textDeps        = new BuildTextJob {
                 AppliedColors   = colors,
                 CharBuffers     = charBuffers,
@@ -484,9 +524,11 @@ namespace UGUIDOTS.Render.Systems {
                 Spans           = spans,
                 TextOptions     = textOptions,
                 Roots           = root,
-                TextEntities    = perThreadTextContainer,
+                TextEntities    = perThreadDynamicTextContainer,
                 CanvasMap       = canvasMap
-            }.Schedule(perThreadImageContainer.Length, 1, Dependency);
+            }.Schedule(perThreadImageContainer.Length, 1, collectDeps);
+
+            // TODO: Now to organize and create dynamic bins for each canvas we want to add dynamic text to.
 
             var combinedDeps = JobHandle.CombineDependencies(imgDeps, textDeps);
             Dependency = canvasMap.Dispose(combinedDeps);
