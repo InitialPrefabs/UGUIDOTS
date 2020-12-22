@@ -17,7 +17,10 @@ namespace UGUIDOTS.Render.Systems {
         }
 
         protected override void OnDestroy() {
-            CommandBufferPool.Release(cmd);
+            if (cmd != null) {
+                CommandBufferPool.Release(cmd);
+                cmd.Dispose();
+            }
         }
 
         protected override void OnStartRunning() {

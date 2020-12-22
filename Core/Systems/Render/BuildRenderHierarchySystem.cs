@@ -25,7 +25,6 @@ namespace UGUIDOTS.Render.Systems {
         [BurstCompile]
         unsafe struct CollectEntitiesJob : IJobChunk {
 
-
             [ReadOnly]
             public BufferFromEntity<Child> Children;
 
