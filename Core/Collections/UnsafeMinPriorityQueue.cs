@@ -1,4 +1,5 @@
 using System;
+using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 
@@ -22,6 +23,10 @@ namespace UGUIDOTS.Collections {
         }
 
         internal UnsafeList<T> Collection;
+
+        public UnsafeMinPriorityQueue(Allocator allocator, int capacity) {
+            Collection = new UnsafeList<T>(capacity, allocator);
+        }
 
         public void Add(in T value) {
             Collection.Add(value);
