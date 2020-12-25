@@ -538,7 +538,7 @@ namespace UGUIDOTS.Render.Systems {
                 Spans           = spans,
                 TextOptions     = textOptions,
                 Roots           = root,
-                TextEntities    = perThreadDynamicTextContainer,
+                TextEntities    = perThreadStaticTextContainer,
                 CanvasMap       = canvasMap
             }.Schedule(perThreadImageContainer.Length, 1, collectDeps);
 
@@ -548,9 +548,9 @@ namespace UGUIDOTS.Render.Systems {
 
             // Clean up the temporary maps
             var canvasPtrMapDisposal = canvasMap.Dispose(combinedDeps);
-            var canvasSpanMapDisposal = canvasMap.Dispose(combinedDeps);
+            var canvasSpanMapDisposal = staticMeshDataMap.Dispose(combinedDeps);
 
-            Dependency = JobHandle.CombineDependencies(canvasPtrMapDisposal, canvasSpanMapDisposal);
+            Dependency = JobHandle.CombineDependencies(canvasPtrMapDisposal, canvasSpanMapDisposal, combinedDeps);
 
             commandBufferSystem.AddJobHandleForProducer(Dependency);
         }
