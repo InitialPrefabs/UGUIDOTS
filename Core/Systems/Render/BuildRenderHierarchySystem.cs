@@ -34,6 +34,11 @@ namespace UGUIDOTS.Render.Systems {
             // Canvases
             // -----------------------------------------
             public BufferTypeHandle<Vertex> VertexBufferType;
+            
+            // Universal
+            // -----------------------------------------
+            [ReadOnly]
+            public ComponentDataFromEntity<MeshDataSpan> Spans;
 
             // Images
             // -----------------------------------------
@@ -118,15 +123,23 @@ namespace UGUIDOTS.Render.Systems {
 
                 for (int i = 0; i < children.Length; i++) {
                     var entity = children[i].Value;
-                    if (SpriteData.HasComponent(entity)) {
+                    
+                    var hasSpan = Spans.HasComponent(entity);
+
+                    if (SpriteData.HasComponent(entity) && hasSpan) {
                         imgContainer->Add(entity);
+
+                        var span = Spans[entity];
+                        spans += new int2(span.VertexSpan.y, span.IndexSpan.y);
                     }
 
-                    if (CharBuffers.HasComponent(entity)) {
+                    if (CharBuffers.HasComponent(entity) && hasSpan) {
                         if (DynamicTexts.HasComponent(entity)) {
                             dynamicTxtContainer->Add(entity);
                         } else {
                             staticTxtContainer->Add(entity);
+                            var span = Spans[entity];
+                            spans += new int2(span.VertexSpan.y, span.IndexSpan.y);
                         }
                     }
 
@@ -494,6 +507,7 @@ namespace UGUIDOTS.Render.Systems {
                 CharBuffers          = charBuffers,
                 Children             = children,
                 Stretched            = stretch,
+                Spans                = spans,
                 EntityType           = GetEntityTypeHandle(),
                 SpriteData           = spriteData,
                 VertexBufferType     = vertexTypeHandle,
