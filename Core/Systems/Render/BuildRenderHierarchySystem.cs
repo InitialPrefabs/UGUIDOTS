@@ -156,12 +156,12 @@ namespace UGUIDOTS.Render.Systems {
                     if (Children.HasComponent(entity)) {
                         var grandChildren = Children[entity].AsNativeArray().AsReadOnly();
                         RecurseChildrenDetermineType(
-                                grandChildren, 
-                                root, 
-                                imgContainer, 
-                                staticTxtContainer, 
-                                dynamicTxtContainer,
-                                ref spans);
+                            grandChildren, 
+                            root, 
+                            imgContainer, 
+                            staticTxtContainer, 
+                            dynamicTxtContainer,
+                            ref spans);
                     }
                 }
             }
@@ -369,9 +369,9 @@ namespace UGUIDOTS.Render.Systems {
                             math.select(0, 1f, row > 0);
                         start.y -= height;
                         start.x = TextUtil.GetHorizontalAlignment(
-                                options.Alignment, 
-                                extents, 
-                                lines[row].LineWidth * screenSpace.Scale.x * rootScale.x) + screenSpace.Translation.x;
+                            options.Alignment, 
+                            extents, 
+                            lines[row].LineWidth * screenSpace.Scale.x * rootScale.x) + screenSpace.Translation.x;
                         row++;
                     }
 
