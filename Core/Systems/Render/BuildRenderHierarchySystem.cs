@@ -22,6 +22,16 @@ namespace UGUIDOTS.Render.Systems {
             public static implicit operator Entity(EntityContainer value) => value.Value;
         }
 
+        struct EntityPriority : IStruct<EntityPriority>, IPrioritize<EntityPriority> {
+
+            public Entity Entity;
+            public int SubmeshIndex;
+
+            public int Priority() {
+                return SubmeshIndex;
+            }
+        }
+
         [BurstCompile]
         unsafe struct CollectEntitiesJob : IJobChunk {
 
@@ -557,6 +567,7 @@ namespace UGUIDOTS.Render.Systems {
             }.Schedule(perThreadImageContainer.Length, 1, collectDeps);
 
             // TODO: Now to organize and create dynamic bins for each canvas we want to add dynamic text to.
+            // TODO: Figure out how to have self contained priority queues based on the Canvas entity.
 
             var combinedDeps = JobHandle.CombineDependencies(imgDeps, textDeps);
 

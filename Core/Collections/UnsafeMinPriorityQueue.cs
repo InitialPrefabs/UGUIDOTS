@@ -1,5 +1,6 @@
 using System;
 using Unity.Collections.LowLevel.Unsafe;
+using Unity.Jobs;
 
 namespace UGUIDOTS.Collections {
 
@@ -19,7 +20,7 @@ namespace UGUIDOTS.Collections {
         public int Length {
             get => Collection.Length;
         }
-        
+
         internal UnsafeList<T> Collection;
 
         public void Add(in T value) {
@@ -50,6 +51,10 @@ namespace UGUIDOTS.Collections {
             if (Collection.IsCreated) {
                 Collection.Dispose();
             }
+        }
+
+        public JobHandle Dispose(JobHandle inputDeps) {
+            return Collection.Dispose(inputDeps);
         }
     }
 }
