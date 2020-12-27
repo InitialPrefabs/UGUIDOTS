@@ -869,7 +869,7 @@ namespace UGUIDOTS.Render.Systems {
 
             var sortedEntities = new NativeMultiHashMap<Entity, Entity>(canvasCount, Allocator.TempJob);
 
-            var indices = GetBufferFromEntity<Index>();
+            var indices  = GetBufferFromEntity<Index>();
             var vertices = GetBufferFromEntity<Vertex>();
 
             var combinedDeps = JobHandle.CombineDependencies(imgDeps, textDeps, collectDeps);

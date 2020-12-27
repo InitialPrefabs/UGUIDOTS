@@ -98,7 +98,6 @@ namespace UGUIDOTS.Conversions {
                     UV1 = uv1.c0,
                     UV2 = uv2
                 });
-
                 vertexData.Add(new Vertex {
                     Position = new float3(xPos, yPos + size.y, 0) + offset,
                     Normal = right,
@@ -106,7 +105,6 @@ namespace UGUIDOTS.Conversions {
                     UV1 = uv1.c1,
                     UV2 = uv2
                 });
-
                 vertexData.Add(new Vertex {
                     Position = new float3(xPos + size.x, yPos + size.y, 0) + offset,
                     Normal = right,

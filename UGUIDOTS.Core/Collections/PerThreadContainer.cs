@@ -8,7 +8,10 @@ namespace UGUIDOTS.Collections {
     /// Identifier to state that a struct is a struct.
     /// </summary>
     public interface IStruct<T> where T : struct { }
-
+    
+    /// <summary>
+    /// Allocates containers based on the number of threads, you want to support.
+    /// </summary>
     public unsafe struct PerThreadContainer<T> : IDisposable where T : unmanaged, IStruct<T> {
     
         [NativeDisableUnsafePtrRestriction]
