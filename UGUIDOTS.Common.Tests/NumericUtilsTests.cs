@@ -1,8 +1,29 @@
-﻿using NUnit.Framework;
+using NUnit.Framework;
 
 namespace UGUIDOTS.Common.Tests {
 
     public unsafe class NumericUtilTests {
+
+        [Test]
+        public void CountIntegerDigits() {
+            var value = 123456789;
+            var actual = NumericUtils.CountDigits(value);
+            Assert.AreEqual(9, actual, "Digit count mismatch");
+        }
+
+        [Test]
+        public void CountPositiveFloatDigits() {
+            var value = 3.14f;
+
+            char* buffer = stackalloc char[4];
+            value.ToCharArray(buffer, 2);
+
+            var stringValue = $"{value}";
+
+            for (int i = 0; i < stringValue.Length; i++) {
+                Assert.AreEqual(stringValue[i], buffer[i], "Mismatched char!");
+            }
+        }
 
         [Test]
         public void CharEqualsPositiveDigit() {
