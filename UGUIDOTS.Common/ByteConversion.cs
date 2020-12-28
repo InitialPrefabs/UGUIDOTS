@@ -8,6 +8,7 @@ namespace UGUIDOTS.Common {
         public static void FillPointerWithBytes(this float value, byte* ptr) {
             uint cast = *(uint*)(&value);
 
+            // TODO: Check the sign for with endianness.
             for (int i = 0; i < sizeof(float); i++) {
                 ptr[i] = (byte)((cast >> i * 8) & 0xff);
             }

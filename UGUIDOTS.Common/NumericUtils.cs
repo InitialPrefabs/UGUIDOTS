@@ -69,8 +69,40 @@ namespace UGUIDOTS.Common {
         }
 
         // TODO: Figure out how to count the number of digits in a floating point #.
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ToCharArray(this float value, char* ptr, int digits) {
-            throw new System.NotImplementedException();
+            int base10 = math.abs((int)value);
+            var base10Digits = CountDigits(base10);
+            var exponent = base10Digits - 1;
+
+            var totalDigits = base10Digits + 1;
+
+            // We want to store the negative sign
+            if (value < 0) {
+                totalDigits++;
+            }
+
+            var collection = new NativeList<char>(totalDigits, Allocator.Temp);
+
+            while (exponent > 0) {
+                var powerRaised = (int)math.pow(10, exponent);
+                var digit = base10 / powerRaised;
+                base10 = base10 % powerRaised;
+
+                collection.Add((char)(digit + CharOffset));
+                exponent--;
+            }
+
+            collection.Add(DecimalDelimiter);
+
+            var fraction = math.abs(value) - base10;
+
+            for (int i = 0; i < digits; i++) {
+                fraction *= math.pow(10, (i + 1));
+
+                var digit = (int)fraction;
+                collection.Add((char)(digit + CharOffset));
+            }
         }
     }
 
