@@ -5,14 +5,35 @@ namespace UGUIDOTS.Common.Tests {
     public unsafe class NumericUtilTests {
 
         [Test]
-        public void CountIntegerDigits() {
+        public void CountPositiveIntegerDigits() {
             var value = 123456789;
             var actual = NumericUtils.CountDigits(value);
             Assert.AreEqual(9, actual, "Digit count mismatch");
         }
 
         [Test]
+        public void CountNegativeIntegerDigits() {
+            var value = -291038;
+            var actual = NumericUtils.CountDigits(value);
+            Assert.AreEqual(7, actual, "Digit count mismatch");
+        }
+
+        [Test]
         public void CountPositiveFloatDigits() {
+            var value = 38.2013f;
+            var actual = NumericUtils.CountDigits(value, 4);
+            Assert.AreEqual(7, actual, "Digit count mismatch!");
+        }
+
+        [Test]
+        public void CountNegativeFloatDigits() {
+            var value = -38.21938f;
+            var actual = NumericUtils.CountDigits(value, 5);
+            Assert.AreEqual(9, actual, "Digit count mismatch");
+        }
+
+        [Test]
+        public void ConvertPositiveFloatDigits() {
             var value = 3.14f;
 
             char* buffer = stackalloc char[4];
@@ -26,7 +47,7 @@ namespace UGUIDOTS.Common.Tests {
         }
 
         [Test]
-        public void CountNegativeFloatDigits() {
+        public void ConvertNegativeFloatDigits() {
             var value = -25.12938f;
 
             char* buffer = stackalloc char[9];

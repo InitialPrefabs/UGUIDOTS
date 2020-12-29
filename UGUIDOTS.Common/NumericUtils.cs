@@ -24,11 +24,33 @@ namespace UGUIDOTS.Common {
         /// <param name="value">The integer to count digits</param>
         /// <returns>The total number of digits the integer occupies.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static int CountDigits(int value) {
-            var count = 0;
+        public static int CountDigits(int value) {
+            var count = math.select(0, 1, value < 0);
+
+            value = math.abs(value);
             while (value > 0) {
                 value /= 10;
                 count++;
+            }
+
+            return count;
+        }
+
+        /// <summary>
+        /// Extracts the total digits the float value occupies.
+        /// </summary>
+        /// <param name="value">The float value to count</param>
+        /// <param name="decimalPlaces">The # of decimal places to consider</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int CountDigits(float value, int decimalPlaces) {
+            var absValue = math.abs(value);
+            var base10 = (int)value;
+
+            var count = CountDigits((int)value);
+            var fraction = absValue - base10;
+
+            if (fraction * math.pow(10, decimalPlaces) > 0) {
+                count = count + decimalPlaces + 1;
             }
 
             return count;
