@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
@@ -60,6 +61,11 @@ namespace UGUIDOTS.Collections {
 
         public JobHandle Dispose(JobHandle inputDeps) {
             return Collection.Dispose(inputDeps);
+        }
+
+        public T this[int index] {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get { return Collection[index]; }
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -98,7 +98,7 @@ namespace UGUIDOTS.Conversions.Analyzers {
 
                     // Separate dynamic text from static text
                     if (child.TryGetComponent(out IAuthorableText dynamic)) {
-                        hash ^= dynamic.GetHashCode();
+                        hash ^= typeof(IAuthorableText).GetHashCode();
                         type = RenderedType.TextDynamic;
                     }
 

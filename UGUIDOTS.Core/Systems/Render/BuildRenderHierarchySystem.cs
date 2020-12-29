@@ -110,11 +110,11 @@ namespace UGUIDOTS.Render.Systems {
                 var entities = chunk.GetNativeArray(EntityType);
                 var vertexBuffers = chunk.GetBufferAccessor(VertexBufferType);
 
+                var index = NativeThreadIndex - 1;
+
                 for (int i = 0; i < chunk.Count; i++) {
                     var entity = entities[i];
                     var children = Children[entity].AsNativeArray().AsReadOnly();
-
-                    var index = NativeThreadIndex - 1;
 
                     UnsafeList<EntityContainer>* img        = ImageContainer + index;
                     UnsafeList<EntityContainer>* staticTxt  = StaticTextContainer + index;
@@ -528,8 +528,7 @@ namespace UGUIDOTS.Render.Systems {
                 var lines        = new NativeList<TextUtil.LineInfo>(10, Allocator.Temp);
 
                 for (int i = 0; i < minPriorityQueue.Length; i++) {
-
-                    var entityPriority = minPriorityQueue.Pull();
+                    var entityPriority = minPriorityQueue[i];
                     var textEntity     = entityPriority.Entity;
 
                     // Get the canvas data
@@ -592,8 +591,6 @@ namespace UGUIDOTS.Render.Systems {
                 int2 origStaticSpan) {
 
                 var vertexLength = math.min(dstVertices.Length - origStaticSpan.x, srcVertices.Length);
-
-                // UnityEngine.Debug.Log($"Vertex Length: {vertexLength}, Src Length: {srcVertices.Length}");
 
                 for (int i = 0; i < vertexLength; i++) {
                     dstVertices[i + origStaticSpan.x] = srcVertices[i];

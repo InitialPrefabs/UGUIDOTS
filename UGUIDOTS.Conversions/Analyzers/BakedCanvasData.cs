@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -15,6 +15,8 @@ namespace UGUIDOTS.Analyzers {
             public Vector2 LPosition => LocalPosition;
             public Vector2 LScale    => LocalScale;
 
+            public string Name;
+
             // Store the LocalToWorld info
             public Vector3 WorldPosition;
             public Vector3 WorldScale;
@@ -29,13 +31,18 @@ namespace UGUIDOTS.Analyzers {
                 Children = new List<CanvasTransform>();
             }
 
-            public CanvasTransform(Vector3 worldPos, Vector3 worldScale, 
-                Vector3 localPos, Vector3 localScale) {
+            public CanvasTransform(
+                Vector3 worldPos, 
+                Vector3 worldScale, 
+                Vector3 localPos, 
+                Vector3 localScale,
+                string name) {
 
                 WorldPosition = worldPos;
                 WorldScale    = worldScale;
                 LocalPosition = localPos;
                 LocalScale    = localScale;
+                Name          = name;
 
                 Children = new List<CanvasTransform>();
             }

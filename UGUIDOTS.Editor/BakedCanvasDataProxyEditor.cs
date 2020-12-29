@@ -62,6 +62,8 @@ namespace UGUIDOTS.EditorTools {
                 }
 
                 UpdateIndexButton();
+
+                ResetButton();
                 
                 if (changeCheck.changed) {
                     serializedObject.ApplyModifiedProperties();
@@ -116,14 +118,24 @@ namespace UGUIDOTS.EditorTools {
             }
         }
 
+        private void ResetButton() {
+            var idxProp = serializedObject.FindProperty("Index");
+            if (GUILayout.Button("Reset Index")) {
+                idxProp.intValue = -1;
+            }
+        }
+
         private CanvasTransform BuildHierarchy(Transform transform) {
             if (transform.parent != null) {
                 throw new NotSupportedException($"The transform: {transform.name} is not a root element to scan!");
             }
 
             var root = new CanvasTransform(
-                transform.position, transform.lossyScale, 
-                transform.localPosition, transform.localScale);
+                transform.position, 
+                transform.lossyScale, 
+                transform.localPosition, 
+                transform.localScale,
+                transform.name);
 
             RecurseBuildHierarchy(transform, root);
 
@@ -142,7 +154,7 @@ namespace UGUIDOTS.EditorTools {
                 var localPos   = childRect.localPosition;
                 var localScale = childRect.localScale;
 
-                var canvasTransform = new CanvasTransform(worldPos, worldScale, localPos, localScale);
+                var canvasTransform = new CanvasTransform(worldPos, worldScale, localPos, localScale, child.name);
                 parent.Children.Add(canvasTransform);
 
                 if (child.childCount > 0) {
