@@ -42,6 +42,7 @@ namespace UGUIDOTS.Collections {
                     UnsafeList<T>* current = Ptr + i;
                     if (current->IsCreated) {
                         current->Dispose();
+                        current = null;
                     }
                 }
 

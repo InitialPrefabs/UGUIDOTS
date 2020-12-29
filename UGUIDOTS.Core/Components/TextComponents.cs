@@ -22,6 +22,10 @@ namespace UGUIDOTS {
 
         public static implicit operator CharElement(char value) => new CharElement { Value = value };
         public static implicit operator char(CharElement value) => value.Value;
+
+        public override int GetHashCode() {
+            return Value.GetHashCode();
+        }
     }
 
     /// <summary>
