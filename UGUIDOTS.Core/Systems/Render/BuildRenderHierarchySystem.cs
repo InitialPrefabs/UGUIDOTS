@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 using TMPro;
 using UGUIDOTS.Collections;
 using UGUIDOTS.Transforms;
@@ -29,6 +30,21 @@ namespace UGUIDOTS.Render.Systems {
 
             public int Priority() {
                 return SubmeshIndex;
+            }
+        }
+
+        struct Slice {
+            public int2 VertexSpan;
+            public int2 IndexSpan;
+            public Entity Canvas;
+            public int SubmeshIndex;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public SubmeshSliceElement ToSubmeshSlice() {
+                return new SubmeshSliceElement {
+                    IndexSpan = IndexSpan,
+                    VertexSpan = VertexSpan
+                };
             }
         }
 
@@ -441,6 +457,8 @@ namespace UGUIDOTS.Render.Systems {
 
             public NativeHashMap<Entity, int2> StaticSpans;
 
+            public NativeHashMap<int, Slice> SubmeshSliceMap;
+
             // ReadOnly Containers 
             // --------------------------------------------------------------
             [ReadOnly]
@@ -532,9 +550,11 @@ namespace UGUIDOTS.Render.Systems {
                     var fontFace = FontFaces[linked];
                     var glyphs   = GlyphBuffers[linked].AsNativeArray();
 
+                    var submeshIndex = entityPriority.SubmeshIndex;
                     var originalSpan = staticSpan;
 
                     CreateVertexForChars(
+                        rootEntity,
                         textEntity,
                         chars, 
                         glyphs, 
@@ -547,6 +567,7 @@ namespace UGUIDOTS.Render.Systems {
                         rootSpace.Scale, 
                         textOptions, 
                         color,
+                        submeshIndex,
                         ref staticSpan);
 
                     // Update the hashmap with the new spans so the next entities can batch.
@@ -572,6 +593,8 @@ namespace UGUIDOTS.Render.Systems {
 
                 var vertexLength = dstVertices.Length - origStaticSpan.x;
 
+                UnityEngine.Debug.Log($"Vertex Length: {vertexLength}, Src Length: {srcVertices.Length}");
+
                 for (int i = 0; i < vertexLength; i++) {
                     dstVertices[i + origStaticSpan.x] = srcVertices[i];
                 }
@@ -592,6 +615,7 @@ namespace UGUIDOTS.Render.Systems {
             }
 
             void CreateVertexForChars(
+                Entity canvasEntity,
                 Entity textEntity,
                 NativeArray<CharElement> chars, 
                 NativeArray<GlyphElement> glyphs,
@@ -604,6 +628,7 @@ namespace UGUIDOTS.Render.Systems {
                 float2 rootScale,
                 TextOptions options,
                 float4 color,
+                int submeshIndex,
                 ref int2 spans) {
 
                 var bl = (ushort)spans.x;
@@ -710,8 +735,24 @@ namespace UGUIDOTS.Render.Systems {
                     VertexSpan = new int2(spans.x, vertices.Length)
                 });
 
+                var key = submeshIndex.GetHashCode() ^ canvasEntity.GetHashCode();
+                var currentSpan = new int2(vertices.Length, indices.Length);
+
+                if (SubmeshSliceMap.TryGetValue(key, out Slice slice)) {
+                    slice.VertexSpan     = new int2(slice.VertexSpan.x, slice.VertexSpan.y + currentSpan.x);
+                    slice.IndexSpan      = new int2(slice.IndexSpan.x, slice.IndexSpan.y + currentSpan.y);
+                    SubmeshSliceMap[key] = slice;
+                } else {
+                    SubmeshSliceMap.Add(key, new Slice {
+                        IndexSpan    = new int2(spans.y, currentSpan.y),
+                        VertexSpan   = new int2(spans.x, currentSpan.x),
+                        Canvas       = canvasEntity,
+                        SubmeshIndex = submeshIndex
+                    });
+                }
+
                 // Update the new offset.
-                spans += new int2(vertices.Length, indices.Length);
+                spans += currentSpan;
             }
 
             bool FindGlyphWithChar(NativeArray<GlyphElement> glyphs, char c, out GlyphElement glyph) {
@@ -726,6 +767,29 @@ namespace UGUIDOTS.Render.Systems {
 
                 glyph = default;
                 return false;
+            }
+        }
+
+        [BurstCompile]
+        struct UpdateCanvasSliceJob : IJob {
+ 
+            public BufferFromEntity<SubmeshSliceElement> SubmeshSlices;
+
+            [ReadOnly]
+            public NativeHashMap<int, Slice> SubmeshSliceMap;
+
+            public void Execute() {
+                var values = SubmeshSliceMap.GetValueArray(Allocator.Temp);
+
+                for (int i = 0; i < values.Length; i++) {
+                    var slice = values[i];
+
+                    var index = slice.SubmeshIndex;
+                    var submeshBuffer = SubmeshSlices[slice.Canvas];
+                    submeshBuffer[slice.SubmeshIndex] = slice.ToSubmeshSlice();
+                }
+
+                values.Dispose();
             }
         }
 
@@ -874,22 +938,27 @@ namespace UGUIDOTS.Render.Systems {
 
             var combinedDeps = JobHandle.CombineDependencies(imgDeps, textDeps, collectDeps);
 
+            var submeshSliceMap = new NativeHashMap<int, Slice>(
+                textQuery.CalculateEntityCount() + imageQuery.CalculateEntityCount(), 
+                Allocator.TempJob);
+
             var buildDynamicTextDeps = new BuildDynamicTextJob {
-                AppliedColors  = colors,
-                CharBuffers    = charBuffers,
-                CommandBuffer  = commandBuffer,
-                Dimensions     = dimensions,
-                DynamicText    = perThreadDynamicTextContainer,
-                FontFaces      = fontFaces,
-                GlyphBuffers   = glyphs,
-                Indices        = indices,
-                LinkedTextFont = linkedFonts,
-                Roots          = root,
-                ScreenSpaces   = screenSpaces,
-                StaticSpans    = staticMeshDataMap,
-                SubmeshIndices = submeshIndices,
-                Textoptions    = textOptions,
-                Vertices       = vertices
+                SubmeshSliceMap = submeshSliceMap,
+                AppliedColors   = colors,
+                CharBuffers     = charBuffers,
+                CommandBuffer   = commandBuffer,
+                Dimensions      = dimensions,
+                DynamicText     = perThreadDynamicTextContainer,
+                FontFaces       = fontFaces,
+                GlyphBuffers    = glyphs,
+                Indices         = indices,
+                LinkedTextFont  = linkedFonts,
+                Roots           = root,
+                ScreenSpaces    = screenSpaces,
+                StaticSpans     = staticMeshDataMap,
+                SubmeshIndices  = submeshIndices,
+                Textoptions     = textOptions,
+                Vertices        = vertices
             }.Schedule(combinedDeps);
 
             // Clean up the temporary maps
@@ -897,7 +966,17 @@ namespace UGUIDOTS.Render.Systems {
             var canvasSpanMapDisposal = staticMeshDataMap.Dispose(buildDynamicTextDeps);
             var sortedMapDisposal     = sortedEntities.Dispose(buildDynamicTextDeps);
 
-            Dependency = JobHandle.CombineDependencies(canvasPtrMapDisposal, canvasSpanMapDisposal, sortedMapDisposal);
+            var mapDisposals = JobHandle.CombineDependencies(canvasPtrMapDisposal, canvasSpanMapDisposal, sortedMapDisposal);
+
+            var updateSliceDeps = new UpdateCanvasSliceJob {
+                SubmeshSliceMap = submeshSliceMap,
+                SubmeshSlices   = GetBufferFromEntity<SubmeshSliceElement>(false)
+            }.Schedule(buildDynamicTextDeps);
+
+            // Clean up the submesh slice
+            var submeshSliceDisposal = submeshSliceMap.Dispose(updateSliceDeps);
+
+            Dependency = JobHandle.CombineDependencies(submeshSliceDisposal, mapDisposals);
             commandBufferSystem.AddJobHandleForProducer(Dependency);
         }
     }
