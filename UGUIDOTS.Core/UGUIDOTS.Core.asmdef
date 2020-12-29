@@ -2,6 +2,7 @@
     "name": "UGUIDOTS.Core",
     "rootNamespace": "UGUIDOTS.Core",
     "references": [
+        "GUID:5f36bc0aeb435984fb19ecbd27b87a1f",
         "GUID:2665a8d13d1b3f18800f46e256720795",
         "GUID:734d92eba21c94caba915361bd5ac177",
         "GUID:8819f35a0fc84499b990e90a4ca1911f",
