@@ -54,7 +54,7 @@ half4 UnlitPassFragment(Varyings input) : SV_TARGET
     half4 baseMap   = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv);
     half4 base      = baseMap * input.color;
 
-    float axis = UNITY_ACCESS_INSTANCED_PROP(float, _Axis);
+    float axis = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Axis);
 
 #if defined (_FILL)
     half fillType = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _FillType);
