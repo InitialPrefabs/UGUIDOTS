@@ -591,9 +591,9 @@ namespace UGUIDOTS.Render.Systems {
                 NativeList<Index> srcIndices,
                 int2 origStaticSpan) {
 
-                var vertexLength = dstVertices.Length - origStaticSpan.x;
+                var vertexLength = math.min(dstVertices.Length - origStaticSpan.x, srcVertices.Length);
 
-                UnityEngine.Debug.Log($"Vertex Length: {vertexLength}, Src Length: {srcVertices.Length}");
+                // UnityEngine.Debug.Log($"Vertex Length: {vertexLength}, Src Length: {srcVertices.Length}");
 
                 for (int i = 0; i < vertexLength; i++) {
                     dstVertices[i + origStaticSpan.x] = srcVertices[i];
@@ -603,7 +603,7 @@ namespace UGUIDOTS.Render.Systems {
                     dstVertices.Add(srcVertices[i]);
                 }
 
-                var indexLength = dstIndices.Length - origStaticSpan.y;
+                var indexLength = math.min(dstIndices.Length - origStaticSpan.y, srcIndices.Length);
 
                 for (int i = 0; i < indexLength; i++) {
                     dstIndices[i + origStaticSpan.y] = srcIndices[i];
