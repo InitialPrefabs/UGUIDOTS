@@ -14,6 +14,18 @@ namespace UGUIDOTS.Render {
         public int Value;
     }
 
+    /// <summary>
+    /// Stores the static mesh vertex and index count.
+    /// </summary>
+    public struct StaticDataCount : IComponentData {
+        public int VertexCount;
+        public int IndexCount;
+
+        public int2 AsInt2() {
+            return new int2(VertexCount, IndexCount);
+        }
+    }
+
     [Serializable]
     public class SharedMesh : IComponentData, IEquatable<SharedMesh> {
         

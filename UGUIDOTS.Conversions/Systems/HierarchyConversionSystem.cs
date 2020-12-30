@@ -10,6 +10,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.UI;
 using TMPro;
+using UGUIDOTS.Render.Authoring;
 
 namespace UGUIDOTS.Conversions.Systems {
 
@@ -82,6 +83,9 @@ namespace UGUIDOTS.Conversions.Systems {
             var indexData  = new NativeList<Index>(Allocator.Temp);
             submeshSlices  = new NativeList<SubmeshSliceElement>(Allocator.Temp);
 
+            // x -> Vertex, y -> Index
+            var staticSpan = new int2();
+
             for (int i = 0; i < batches.Count; i++) {
                 var batch       = batches[i];
                 var startVertex = vertexData.Length;
@@ -104,7 +108,7 @@ namespace UGUIDOTS.Conversions.Systems {
                         var color      = DstEntityManager.GetComponentData<AppliedColor>(entity);
 
                         var minMax = ImageUtils.CreateImagePositionData(resolution, spriteData, dim, screenSpace);
-                        
+
                         // Add 4 vertices for simple images
                         // TODO: Support 9 slicing images - which will generate 16 vertices
                         vertexData.AddImageVertices(minMax, spriteData, color.Value, !gameObject.activeInHierarchy);
@@ -119,6 +123,8 @@ namespace UGUIDOTS.Conversions.Systems {
                             IndexSpan  = new int2(indexOffset, indexSize),
                             VertexSpan = new int2(vertexOffset, vertexSize)
                         });
+
+                        staticSpan += new int2(vertexSize, indexSize);
                     }
 
                     if (gameObject.TryGetComponent(out TextMeshProUGUI text)) {
@@ -135,6 +141,10 @@ namespace UGUIDOTS.Conversions.Systems {
                             VertexSpan = new int2(vertexOffset, vertexSize),
                             IndexSpan =  new int2(indexOffset, indexSize)
                         });
+
+                        if (!gameObject.TryGetComponent(out IAuthorableText dynamic)) {
+                            staticSpan += new int2(vertexSize, indexSize);
+                        }
                     }
 
                     // Add the submesh key to the mesh
@@ -147,6 +157,11 @@ namespace UGUIDOTS.Conversions.Systems {
                 };
 
                 submeshSlices.Add(submeshSlice);
+
+                DstEntityManager.AddComponentData(canvasEntity, new StaticDataCount {
+                    VertexCount = staticSpan.x,
+                    IndexCount  = staticSpan.y
+                });
             }
 
             var vertexBuffer = DstEntityManager.AddBuffer<Vertex>(canvasEntity);

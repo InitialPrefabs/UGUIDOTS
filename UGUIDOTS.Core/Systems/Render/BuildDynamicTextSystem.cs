@@ -6,6 +6,7 @@ namespace UGUIDOTS.Render.Systems {
     [UpdateBefore(typeof(BuildRenderHierarchySystem))]
     [DisableAutoCreation]
     public unsafe class BuildDynamicTextSystem : SystemBase {
+
         protected override void OnUpdate() {
             // TODO: Collect the entities
             // TODO: Figure out the static spans

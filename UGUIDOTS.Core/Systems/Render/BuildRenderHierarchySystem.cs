@@ -24,14 +24,17 @@ namespace UGUIDOTS.Render.Systems {
             [ReadOnly]
             public EntityTypeHandle EntityType;
 
+            [ReadOnly]
+            public ComponentTypeHandle<StaticDataCount> StaticDataType;
+
             // Canvases
             // -----------------------------------------
             public BufferTypeHandle<Vertex> VertexBufferType;
 
             // Universal
             // -----------------------------------------
-            [ReadOnly]
-            public ComponentDataFromEntity<MeshDataSpan> Spans;
+            // [ReadOnly]
+            // public ComponentDataFromEntity<MeshDataSpan> Spans;
 
             // Images
             // -----------------------------------------
@@ -74,7 +77,8 @@ namespace UGUIDOTS.Render.Systems {
 #pragma warning restore CS0649
 
             public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex) {
-                var entities = chunk.GetNativeArray(EntityType);
+                var entities      = chunk.GetNativeArray(EntityType);
+                var staticSpans   = chunk.GetNativeArray(StaticDataType);
                 var vertexBuffers = chunk.GetBufferAccessor(VertexBufferType);
 
                 var index = NativeThreadIndex - 1;
@@ -87,11 +91,7 @@ namespace UGUIDOTS.Render.Systems {
                     UnsafeList<EntityContainer>* staticTxt  = StaticTextContainer + index;
                     UnsafeList<EntityContainer>* dynamicTxt = DynamicTextContainer + index;
 
-                    // Declare x as the vertex span of all static elements
-                    // Declare y as the index span of all static elements
-                    var spans = new int2();
-
-                    RecurseChildrenDetermineType(children, entity, img, staticTxt, dynamicTxt, ref spans);
+                    RecurseChildrenDetermineType(children, entity, img, staticTxt, dynamicTxt);
 
                     var vertices = vertexBuffers[i];
 
@@ -100,39 +100,31 @@ namespace UGUIDOTS.Render.Systems {
                     CanvasVertexMap.TryAdd(entity, new IntPtr(vertexPtr));
 
                     // Add the static span.
-                    StaticMeshDataMap.TryAdd(entity, spans);
+                    StaticMeshDataMap.TryAdd(entity, staticSpans[i].AsInt2());
 
                     CommandBuffer.AddComponent<RebuildMeshTag>(firstEntityIndex + i, entity);
                 }
             }
 
             void RecurseChildrenDetermineType(
-                    NativeArray<Child>.ReadOnly children, 
-                    Entity root, 
-                    UnsafeList<EntityContainer>* imgContainer, 
-                    UnsafeList<EntityContainer>* staticTxtContainer,
-                    UnsafeList<EntityContainer>* dynamicTxtContainer,
-                    ref int2 spans) {
+                NativeArray<Child>.ReadOnly children, 
+                Entity root, 
+                UnsafeList<EntityContainer>* imgContainer, 
+                UnsafeList<EntityContainer>* staticTxtContainer,
+                UnsafeList<EntityContainer>* dynamicTxtContainer) {
 
                 for (int i = 0; i < children.Length; i++) {
                     var entity = children[i].Value;
 
-                    var hasSpan = Spans.HasComponent(entity);
-
-                    if (SpriteData.HasComponent(entity) && hasSpan) {
+                    if (SpriteData.HasComponent(entity)) {
                         imgContainer->Add(entity);
-
-                        var span = Spans[entity];
-                        spans += new int2(span.VertexSpan.y, span.IndexSpan.y);
                     }
 
-                    if (CharBuffers.HasComponent(entity) && hasSpan) {
+                    if (CharBuffers.HasComponent(entity)) {
                         if (DynamicTexts.HasComponent(entity)) {
                             dynamicTxtContainer->Add(entity);
                         } else {
                             staticTxtContainer->Add(entity);
-                            var span = Spans[entity];
-                            spans += new int2(span.VertexSpan.y, span.IndexSpan.y);
                         }
                     }
 
@@ -143,8 +135,7 @@ namespace UGUIDOTS.Render.Systems {
                             root, 
                             imgContainer, 
                             staticTxtContainer, 
-                            dynamicTxtContainer,
-                            ref spans);
+                            dynamicTxtContainer);
                     }
                 }
             }
@@ -452,7 +443,7 @@ namespace UGUIDOTS.Render.Systems {
             canvasQuery = GetEntityQuery(new EntityQueryDesc {
                 All = new [] { 
                     ComponentType.ReadOnly<ReferenceResolution>(), ComponentType.ReadOnly<Child>(),
-                    ComponentType.ReadOnly<OnResolutionChangeTag>()
+                    ComponentType.ReadOnly<OnResolutionChangeTag>(), ComponentType.ReadOnly<StaticDataCount>()
                 }
             });
 
@@ -513,6 +504,7 @@ namespace UGUIDOTS.Render.Systems {
             var submeshIndices = GetComponentDataFromEntity<SubmeshIndex>(true);
 
             var vertexTypeHandle = GetBufferTypeHandle<Vertex>(false);
+            var staticTypeHandle = GetComponentTypeHandle<StaticDataCount>(true);
 
             var canvasCount = canvasQuery.CalculateEntityCount();
 
@@ -523,10 +515,10 @@ namespace UGUIDOTS.Render.Systems {
             // TODO: Collect -> Build Image + Build Text can work here
             var collectDeps          = new CollectEntitiesJob {
                 CommandBuffer        = commandBuffer.AsParallelWriter(),
+                StaticDataType       = staticTypeHandle,
                 CharBuffers          = charBuffers,
                 Children             = children,
                 Stretched            = stretch,
-                Spans                = spans,
                 EntityType           = GetEntityTypeHandle(),
                 SpriteData           = spriteData,
                 VertexBufferType     = vertexTypeHandle,
