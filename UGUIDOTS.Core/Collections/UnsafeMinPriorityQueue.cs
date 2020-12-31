@@ -1,5 +1,4 @@
 using System;
-using System.Runtime.CompilerServices;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
@@ -37,20 +36,20 @@ namespace UGUIDOTS.Collections {
         /// Dequeues the first lowest priority element in the queue. O(n) time to perform this operation.
         /// </summary>
         public T Pull() {
-            var index = 0;
-            var priority = Collection[index].Priority();
-            for (int i = 1; i < Length; i++) {
-                var current = Collection[i].Priority();
+            var index = Collection.Length - 1;
+            var first = Collection[index];
 
-                if (current > priority) {
-                    priority = current;
+            for (int i = index - 1; i >= 0; i--) {
+                var current = Collection[i];
+
+                if (current.Priority() < first.Priority()) {
+                    first = current;
                     index = i;
                 }
             }
 
-            var pulledValue = Collection[index];
             Collection.RemoveAt(index);
-            return pulledValue;
+            return first;
         }
 
         public void Dispose() {
@@ -61,11 +60,6 @@ namespace UGUIDOTS.Collections {
 
         public JobHandle Dispose(JobHandle inputDeps) {
             return Collection.Dispose(inputDeps);
-        }
-
-        public T this[int index] {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get { return Collection[index]; }
         }
     }
 }

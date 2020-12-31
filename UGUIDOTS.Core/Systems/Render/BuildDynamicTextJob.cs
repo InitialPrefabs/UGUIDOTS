@@ -11,155 +11,8 @@ using Unity.Mathematics;
 
 namespace UGUIDOTS.Render.Systems {
 
-    internal struct Slice {
-        internal int2 VertexSpan;
-        internal int2 IndexSpan;
-        internal Entity Canvas;
-        internal int SubmeshIndex;
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public SubmeshSliceElement ToSubmeshSlice() {
-            return new SubmeshSliceElement {
-                IndexSpan = IndexSpan,
-                VertexSpan = VertexSpan
-            };
-        }
-    }
-
-    [BurstCompile]
-    internal unsafe struct BuildDynamicTextJob : IJob {
-
-        public EntityCommandBuffer CommandBuffer;
-
-        public NativeHashMap<Entity, int2> StaticSpans;
-
-        public NativeHashMap<int, Slice> SubmeshSliceMap;
-
-        // ReadOnly Containers 
-        // --------------------------------------------------------------
-        [ReadOnly]
-        public PerThreadContainer<EntityContainer> DynamicText;
-
-        // Canvas Data
-        // --------------------------------------------------------------
-        [ReadOnly]
-        public ComponentDataFromEntity<ScreenSpace> ScreenSpaces;
-
-        // Font Data
-        // --------------------------------------------------------------
-        [ReadOnly]
-        public BufferFromEntity<GlyphElement> GlyphBuffers;
-
-        [ReadOnly]
-        public ComponentDataFromEntity<LinkedTextFontEntity> LinkedTextFont;
-
-        [ReadOnly]
-        public ComponentDataFromEntity<FontFaceInfo> FontFaces;
-
-        // Text Data
-        // --------------------------------------------------------------
-        [ReadOnly]
-        public BufferFromEntity<CharElement> CharBuffers;
-
-        [ReadOnly]
-        public ComponentDataFromEntity<RootCanvasReference> Roots;
-
-        [ReadOnly]
-        public ComponentDataFromEntity<SubmeshIndex> SubmeshIndices;
-
-        [ReadOnly]
-        public ComponentDataFromEntity<AppliedColor> AppliedColors;
-
-        [ReadOnly]
-        public ComponentDataFromEntity<TextOptions> Textoptions;
-
-        [ReadOnly]
-        public ComponentDataFromEntity<Dimension> Dimensions;
-
-        // Mesh Data
-        // --------------------------------------------------------------
-        public BufferFromEntity<Vertex> Vertices;
-
-        public BufferFromEntity<Index> Indices;
-
-        public void Execute() {
-            var minPriorityQueue = new UnsafeMinPriorityQueue<EntityPriority>(Allocator.Temp, 100);
-
-            for (int i = 0; i < DynamicText.Length; i++) {
-                UnsafeList<EntityContainer>* texts = DynamicText.Ptr + i;
-
-                for (int j = 0; j < texts->Length; j++) {
-                    var entity = texts->ElementAt(j);
-                    var submeshIndex = SubmeshIndices[entity].Value;
-
-                    minPriorityQueue.Add(new EntityPriority {
-                        Entity       = entity,
-                        SubmeshIndex = submeshIndex
-                    });
-                }
-            }
-
-            var tempVertices = new NativeList<Vertex>(500, Allocator.Temp);
-            var tempIndices  = new NativeList<Index>(1500, Allocator.Temp);
-            var lines        = new NativeList<TextUtil.LineInfo>(10, Allocator.Temp);
-
-            for (int i = 0; i < minPriorityQueue.Length; i++) {
-                var entityPriority = minPriorityQueue[i];
-                var textEntity     = entityPriority.Entity;
-
-                // Get the canvas data
-                var rootEntity = Roots[textEntity].Value;
-                var staticSpan = StaticSpans[rootEntity];
-                var vertices   = Vertices[rootEntity];
-                var indices    = Indices[rootEntity];
-                var rootSpace  = ScreenSpaces[rootEntity];
-
-                // Get all of the text data we need
-                var chars       = CharBuffers[textEntity].AsNativeArray();
-                var dimension   = Dimensions[textEntity];
-                var screenSpace = ScreenSpaces[textEntity];
-                var textOptions = Textoptions[textEntity];
-                var color       = AppliedColors[textEntity].Value.ToNormalizedFloat4();
-
-                var linked   = LinkedTextFont[textEntity].Value;
-                var fontFace = FontFaces[linked];
-                var glyphs   = GlyphBuffers[linked].AsNativeArray();
-
-                var submeshIndex = entityPriority.SubmeshIndex;
-                var originalSpan = staticSpan;
-
-                CreateVertexForChars(
-                    rootEntity,
-                    textEntity,
-                    chars, 
-                    glyphs, 
-                    lines, 
-                    tempVertices, 
-                    tempIndices,
-                    fontFace, 
-                    dimension, 
-                    screenSpace, 
-                    rootSpace.Scale, 
-                    textOptions, 
-                    color,
-                    submeshIndex,
-                    ref staticSpan);
-
-                // Update the hashmap with the new spans so the next entities can batch.
-                StaticSpans[rootEntity] = staticSpan;
-
-                CopyToBuffer(vertices, indices, tempVertices, tempIndices, originalSpan);
-
-                tempVertices.Clear();
-                tempIndices.Clear();
-                lines.Clear();
-                // TODO: Canvas needs to rebuild itself because of the dynamic elements.
-            }
-
-            minPriorityQueue.Dispose();
-        }
-
-        void CopyToBuffer(
+    internal static class TextBuildUtility {
+        internal static void CopyToBuffer(
             DynamicBuffer<Vertex> dstVertices, 
             DynamicBuffer<Index> dstIndices, 
             NativeList<Vertex> srcVertices, 
@@ -187,7 +40,21 @@ namespace UGUIDOTS.Render.Systems {
             }
         }
 
-        void CreateVertexForChars(
+        internal static bool FindGlyphWithChar(NativeArray<GlyphElement> glyphs, char c, out GlyphElement glyph) {
+            var unicode = (ushort)c;
+            for (int i = 0; i < glyphs.Length; i++) {
+                var current = glyphs[i];
+                if (current.Unicode == unicode) {
+                    glyph = current;
+                    return true;
+                }
+            }
+
+            glyph = default;
+            return false;
+        }
+
+        internal static void CreateVertexForChars(
             Entity canvasEntity,
             Entity textEntity,
             NativeArray<CharElement> chars, 
@@ -202,6 +69,8 @@ namespace UGUIDOTS.Render.Systems {
             TextOptions options,
             float4 color,
             int submeshIndex,
+            EntityCommandBuffer commandBuffer,
+            NativeHashMap<int, Slice> submeshSliceMap,
             ref int2 spans) {
 
             var bl = (ushort)spans.x;
@@ -304,7 +173,7 @@ namespace UGUIDOTS.Render.Systems {
             }
 
             // Update the spans of the indices and vertices
-            CommandBuffer.SetComponent(textEntity, new MeshDataSpan {
+            commandBuffer.SetComponent(textEntity, new MeshDataSpan {
                 IndexSpan = new int2(spans.y, indices.Length),
                 VertexSpan = new int2(spans.x, vertices.Length)
             });
@@ -312,12 +181,12 @@ namespace UGUIDOTS.Render.Systems {
             var key = submeshIndex.GetHashCode() ^ canvasEntity.GetHashCode();
             var currentSpan = new int2(vertices.Length, indices.Length);
 
-            if (SubmeshSliceMap.TryGetValue(key, out Slice slice)) {
+            if (submeshSliceMap.TryGetValue(key, out Slice slice)) {
                 slice.VertexSpan     = new int2(slice.VertexSpan.x, slice.VertexSpan.y + currentSpan.x);
                 slice.IndexSpan      = new int2(slice.IndexSpan.x, slice.IndexSpan.y + currentSpan.y);
-                SubmeshSliceMap[key] = slice;
+                submeshSliceMap[key] = slice;
             } else {
-                SubmeshSliceMap.Add(key, new Slice {
+                submeshSliceMap.Add(key, new Slice {
                     IndexSpan    = new int2(spans.y, currentSpan.y),
                     VertexSpan   = new int2(spans.x, currentSpan.x),
                     Canvas       = canvasEntity,
@@ -329,19 +198,280 @@ namespace UGUIDOTS.Render.Systems {
             spans += currentSpan;
         }
 
-        bool FindGlyphWithChar(NativeArray<GlyphElement> glyphs, char c, out GlyphElement glyph) {
-            var unicode = (ushort)c;
-            for (int i = 0; i < glyphs.Length; i++) {
-                var current = glyphs[i];
-                if (current.Unicode == unicode) {
-                    glyph = current;
-                    return true;
+    }
+
+    internal struct Slice {
+        internal int2 VertexSpan;
+        internal int2 IndexSpan;
+        internal Entity Canvas;
+        internal int SubmeshIndex;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public SubmeshSliceElement ToSubmeshSlice() {
+            return new SubmeshSliceElement {
+                IndexSpan = IndexSpan,
+                VertexSpan = VertexSpan
+            };
+        }
+    }
+
+    [BurstCompile]
+    internal unsafe struct ConsolidateAndBuildDynamicTextJob : IJob {
+
+        public EntityCommandBuffer CommandBuffer;
+
+        public NativeHashMap<Entity, int2> StaticSpans;
+
+        public NativeHashMap<int, Slice> SubmeshSliceMap;
+
+        // ReadOnly Containers 
+        // --------------------------------------------------------------
+        [ReadOnly]
+        public PerThreadContainer<EntityContainer> DynamicText;
+
+        // Canvas Data
+        // --------------------------------------------------------------
+        [ReadOnly]
+        public ComponentDataFromEntity<ScreenSpace> ScreenSpaces;
+
+        // Font Data
+        // --------------------------------------------------------------
+        [ReadOnly]
+        public BufferFromEntity<GlyphElement> GlyphBuffers;
+
+        [ReadOnly]
+        public ComponentDataFromEntity<LinkedTextFontEntity> LinkedTextFont;
+
+        [ReadOnly]
+        public ComponentDataFromEntity<FontFaceInfo> FontFaces;
+
+        // Text Data
+        // --------------------------------------------------------------
+        [ReadOnly]
+        public BufferFromEntity<CharElement> CharBuffers;
+
+        [ReadOnly]
+        public ComponentDataFromEntity<RootCanvasReference> Roots;
+
+        [ReadOnly]
+        public ComponentDataFromEntity<SubmeshIndex> SubmeshIndices;
+
+        [ReadOnly]
+        public ComponentDataFromEntity<AppliedColor> AppliedColors;
+
+        [ReadOnly]
+        public ComponentDataFromEntity<TextOptions> TextOptions;
+
+        [ReadOnly]
+        public ComponentDataFromEntity<Dimension> Dimensions;
+
+        // Mesh Data
+        // --------------------------------------------------------------
+        public BufferFromEntity<Vertex> Vertices;
+
+        public BufferFromEntity<Index> Indices;
+
+        public void Execute() {
+            var minPriorityQueue = new UnsafeMinPriorityQueue<EntityPriority>(Allocator.Temp, 100);
+
+            for (int i = 0; i < DynamicText.Length; i++) {
+                UnsafeList<EntityContainer>* texts = DynamicText.Ptr + i;
+
+                for (int j = 0; j < texts->Length; j++) {
+                    var entity = texts->ElementAt(j);
+                    var submeshIndex = SubmeshIndices[entity].Value;
+
+                    minPriorityQueue.Add(new EntityPriority {
+                        Entity       = entity,
+                        SubmeshIndex = submeshIndex
+                    });
                 }
             }
 
-            glyph = default;
-            return false;
+            var tempVertices = new NativeList<Vertex>(500, Allocator.Temp);
+            var tempIndices  = new NativeList<Index>(1500, Allocator.Temp);
+            var lines        = new NativeList<TextUtil.LineInfo>(10, Allocator.Temp);
+
+            while (minPriorityQueue.Length > 0) {
+
+            // for (int i = 0; i < minPriorityQueue.Length; i++) {
+                var entityPriority = minPriorityQueue.Pull();
+                var textEntity     = entityPriority.Entity;
+
+                // Get the canvas data
+                var rootEntity = Roots[textEntity].Value;
+                var staticSpan = StaticSpans[rootEntity];
+                var vertices   = Vertices[rootEntity];
+                var indices    = Indices[rootEntity];
+                var rootSpace  = ScreenSpaces[rootEntity];
+
+                // Get all of the text data we need
+                var chars       = CharBuffers[textEntity].AsNativeArray();
+                var dimension   = Dimensions[textEntity];
+                var screenSpace = ScreenSpaces[textEntity];
+                var textOptions = TextOptions[textEntity];
+                var color       = AppliedColors[textEntity].Value.ToNormalizedFloat4();
+
+                var linked   = LinkedTextFont[textEntity].Value;
+                var fontFace = FontFaces[linked];
+                var glyphs   = GlyphBuffers[linked].AsNativeArray();
+
+                var submeshIndex = entityPriority.SubmeshIndex;
+                var originalSpan = staticSpan;
+
+                TextBuildUtility.CreateVertexForChars(
+                    rootEntity,
+                    textEntity,
+                    chars, 
+                    glyphs, 
+                    lines, 
+                    tempVertices, 
+                    tempIndices,
+                    fontFace, 
+                    dimension, 
+                    screenSpace, 
+                    rootSpace.Scale, 
+                    textOptions, 
+                    color,
+                    submeshIndex,
+                    CommandBuffer,
+                    SubmeshSliceMap,
+                    ref staticSpan);
+
+                // Update the hashmap with the new spans so the next entities can batch.
+                StaticSpans[rootEntity] = staticSpan;
+
+                TextBuildUtility.CopyToBuffer(vertices, indices, tempVertices, tempIndices, originalSpan);
+
+                tempVertices.Clear();
+                tempIndices.Clear();
+                lines.Clear();
+                // TODO: Canvas needs to rebuild itself because of the dynamic elements.
+            }
+
+            minPriorityQueue.Dispose();
+        }
+    }
+
+    [BurstCompile]
+    internal unsafe struct BuildDynamicTextJob : IJob {
+
+        public EntityCommandBuffer CommandBuffer;
+
+        public NativeHashMap<Entity, int2> StaticSpans;
+
+        public NativeHashMap<int, Slice> SubmeshSliceMap;
+
+        // ReadOnly Containers 
+        // --------------------------------------------------------------
+        [ReadOnly]
+        public UnsafeMinPriorityQueue<EntityPriority> PriorityQueue;
+
+        // Canvas Data
+        // --------------------------------------------------------------
+        [ReadOnly]
+        public ComponentDataFromEntity<ScreenSpace> ScreenSpaces;
+
+        // Font Data
+        // --------------------------------------------------------------
+        [ReadOnly]
+        public BufferFromEntity<GlyphElement> GlyphBuffers;
+
+        [ReadOnly]
+        public ComponentDataFromEntity<LinkedTextFontEntity> LinkedTextFont;
+
+        [ReadOnly]
+        public ComponentDataFromEntity<FontFaceInfo> FontFaces;
+
+        // Text Data
+        // --------------------------------------------------------------
+        [ReadOnly]
+        public BufferFromEntity<CharElement> CharBuffers;
+
+        [ReadOnly]
+        public ComponentDataFromEntity<RootCanvasReference> Roots;
+
+        [ReadOnly]
+        public ComponentDataFromEntity<SubmeshIndex> SubmeshIndices;
+
+        [ReadOnly]
+        public ComponentDataFromEntity<AppliedColor> AppliedColors;
+
+        [ReadOnly]
+        public ComponentDataFromEntity<TextOptions> TextOptions;
+
+        [ReadOnly]
+        public ComponentDataFromEntity<Dimension> Dimensions;
+
+        // Mesh Data
+        // --------------------------------------------------------------
+        public BufferFromEntity<Vertex> Vertices;
+
+        public BufferFromEntity<Index> Indices;
+
+        public void Execute() {
+            var tempVertices = new NativeList<Vertex>(500, Allocator.Temp);
+            var tempIndices  = new NativeList<Index>(1500, Allocator.Temp);
+            var lines        = new NativeList<TextUtil.LineInfo>(10, Allocator.Temp);
+
+            UnityEngine.Debug.Log($"Build Text Priority Queue Length: {PriorityQueue.Length}");
+
+            while (PriorityQueue.Length > 0) {
+
+            // for (int i = 0; i < minPriorityQueue.Length; i++) {
+                var entityPriority = PriorityQueue.Pull();
+                var textEntity     = entityPriority.Entity;
+
+                // Get the canvas data
+                var rootEntity = Roots[textEntity].Value;
+                var staticSpan = StaticSpans[rootEntity];
+                var vertices   = Vertices[rootEntity];
+                var indices    = Indices[rootEntity];
+                var rootSpace  = ScreenSpaces[rootEntity];
+
+                // Get all of the text data we need
+                var chars       = CharBuffers[textEntity].AsNativeArray();
+                var dimension   = Dimensions[textEntity];
+                var screenSpace = ScreenSpaces[textEntity];
+                var textOptions = TextOptions[textEntity];
+                var color       = AppliedColors[textEntity].Value.ToNormalizedFloat4();
+
+                var linked   = LinkedTextFont[textEntity].Value;
+                var fontFace = FontFaces[linked];
+                var glyphs   = GlyphBuffers[linked].AsNativeArray();
+
+                var submeshIndex = entityPriority.SubmeshIndex;
+                var originalSpan = staticSpan;
+
+                TextBuildUtility.CreateVertexForChars(
+                    rootEntity,
+                    textEntity,
+                    chars, 
+                    glyphs, 
+                    lines, 
+                    tempVertices, 
+                    tempIndices,
+                    fontFace, 
+                    dimension, 
+                    screenSpace, 
+                    rootSpace.Scale, 
+                    textOptions, 
+                    color,
+                    submeshIndex,
+                    CommandBuffer,
+                    SubmeshSliceMap,
+                    ref staticSpan);
+
+                // Update the hashmap with the new spans so the next entities can batch.
+                StaticSpans[rootEntity] = staticSpan;
+
+                TextBuildUtility.CopyToBuffer(vertices, indices, tempVertices, tempIndices, originalSpan);
+
+                tempVertices.Clear();
+                tempIndices.Clear();
+                lines.Clear();
+                // TODO: Canvas needs to rebuild itself because of the dynamic elements.
+            }
         }
     }
 }
-

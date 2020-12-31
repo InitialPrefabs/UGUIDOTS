@@ -444,7 +444,11 @@ namespace UGUIDOTS.Render.Systems {
                 All = new [] { 
                     ComponentType.ReadOnly<ReferenceResolution>(), ComponentType.ReadOnly<Child>(),
                     ComponentType.ReadOnly<OnResolutionChangeTag>(), ComponentType.ReadOnly<StaticDataCount>()
-                }
+                },
+                // TODO: Check if the DynamicTextChangeTag exists
+                // Any = new [] {
+                //     ComponentType.ReadOnly<OnDynamicTextChangeTag>()
+                // }
             });
 
             imageQuery = GetEntityQuery(new EntityQueryDesc {
@@ -581,7 +585,7 @@ namespace UGUIDOTS.Render.Systems {
                 textQuery.CalculateEntityCount() + imageQuery.CalculateEntityCount(), 
                 Allocator.TempJob);
 
-            var buildDynamicTextDeps = new BuildDynamicTextJob {
+            var buildDynamicTextDeps = new ConsolidateAndBuildDynamicTextJob {
                 SubmeshSliceMap = submeshSliceMap,
                 AppliedColors   = colors,
                 CharBuffers     = charBuffers,
@@ -596,7 +600,7 @@ namespace UGUIDOTS.Render.Systems {
                 ScreenSpaces    = screenSpaces,
                 StaticSpans     = staticMeshDataMap,
                 SubmeshIndices  = submeshIndices,
-                Textoptions     = textOptions,
+                TextOptions     = textOptions,
                 Vertices        = vertices
             }.Schedule(combinedDeps);
 
