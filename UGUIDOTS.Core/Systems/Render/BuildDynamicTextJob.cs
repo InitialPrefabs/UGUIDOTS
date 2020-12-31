@@ -418,7 +418,7 @@ namespace UGUIDOTS.Render.Systems {
             var tempIndices  = new NativeList<Index>(1500, Allocator.Temp);
             var lines        = new NativeList<TextUtil.LineInfo>(10, Allocator.Temp);
 
-            var queue = DynamicTexts.AsArray().AsPriorityQueue(new MinifyComparer<EntityPriority>());
+            var queue = DynamicTexts.AsPriorityQueue(new MinifyComparer<EntityPriority>());
 
             while (!queue.IsEmpty()) {
                 var entityPriority = queue.Pull();

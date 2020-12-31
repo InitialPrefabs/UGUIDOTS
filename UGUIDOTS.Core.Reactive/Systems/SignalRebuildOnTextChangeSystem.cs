@@ -5,7 +5,8 @@ using Unity.Entities;
 
 namespace UGUIDOTS.Core.Reactive.Systems {
 
-    [UpdateInGroup(typeof(InitializationSystemGroup))]
+    // TODO: Figure out when this should Signal.
+    [UpdateInGroup(typeof(SimulationSystemGroup), OrderFirst = true)]
     internal class SignalRebuildOnTextChangeSystem : SystemBase {
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -27,7 +28,7 @@ namespace UGUIDOTS.Core.Reactive.Systems {
                 All = new [] { ComponentType.ReadOnly<CharElement>(), ComponentType.ReadOnly<DynamicTextTag>() }
             });
 
-            commandBufferSystem = World.GetOrCreateSystem<EndInitializationEntityCommandBufferSystem>();
+            commandBufferSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
         }
 
         protected override void OnDestroy() {
@@ -57,11 +58,11 @@ namespace UGUIDOTS.Core.Reactive.Systems {
                 var hash  = HashChars(chars);
 
                 if (hashesMap.TryGetValue(entity, out int textHash)) {
+
                     if (textHash != hash) {
                         if (!resolutionChanges.HasComponent(c0.Value)) {
+                            commandBuffer.AddComponent(c0.Value, new OnDynamicTextChangeTag());
                         }
-
-                        commandBuffer.AddComponent(c0.Value, new OnDynamicTextChangeTag());
                         hashesMap[entity] = hash;
                     }
                 } else {

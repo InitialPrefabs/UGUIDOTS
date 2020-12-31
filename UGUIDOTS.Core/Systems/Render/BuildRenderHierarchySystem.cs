@@ -12,7 +12,7 @@ using Unity.Mathematics;
 
 namespace UGUIDOTS.Render.Systems {
 
-    [UpdateInGroup(typeof(SimulationSystemGroup), OrderLast = true)]
+    [UpdateInGroup(typeof(PresentationSystemGroup), OrderLast = true)]
     public unsafe class BuildRenderHierarchySystem : SystemBase {
 
         [BurstCompile]
@@ -451,10 +451,6 @@ namespace UGUIDOTS.Render.Systems {
                     ComponentType.ReadOnly<ReferenceResolution>(), ComponentType.ReadOnly<Child>(),
                     ComponentType.ReadOnly<OnResolutionChangeTag>(), ComponentType.ReadOnly<StaticDataCount>()
                 },
-                // TODO: Check if the DynamicTextChangeTag exists
-                // Any = new [] {
-                //     ComponentType.ReadOnly<OnDynamicTextChangeTag>()
-                // }
             });
 
             imageQuery = GetEntityQuery(new EntityQueryDesc {
@@ -465,7 +461,7 @@ namespace UGUIDOTS.Render.Systems {
                 All = new [] { ComponentType.ReadOnly<CharElement>() }
             });
 
-            commandBufferSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
+            commandBufferSystem = World.GetOrCreateSystem<BeginInitializationEntityCommandBufferSystem>();
 
             RequireForUpdate(canvasQuery);
 

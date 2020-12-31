@@ -8,7 +8,9 @@ using Unity.Mathematics;
 
 namespace UGUIDOTS.Render.Systems {
 
-    [UpdateInGroup(typeof(SimulationSystemGroup), OrderLast = true)]
+    // TODO: Check if I can get away without having to use this, rebuilding the entire hierarchy 
+    // does make more sense truthfully.
+    [UpdateInGroup(typeof(PresentationSystemGroup), OrderLast = true)]
     [UpdateBefore(typeof(BuildRenderHierarchySystem))]
     public unsafe class UpdateDynamicTextDataSystem : SystemBase {
 
@@ -95,7 +97,7 @@ namespace UGUIDOTS.Render.Systems {
                 All = new [] { ComponentType.ReadOnly<CharElement>(), ComponentType.ReadOnly<DynamicTextTag>() }
             });
 
-            commandBufferSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
+            commandBufferSystem = World.GetOrCreateSystem<BeginInitializationEntityCommandBufferSystem>();
         }
 
         protected override void OnUpdate() {
