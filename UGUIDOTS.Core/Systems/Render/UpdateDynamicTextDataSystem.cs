@@ -10,7 +10,7 @@ namespace UGUIDOTS.Render.Systems {
 
     [UpdateInGroup(typeof(SimulationSystemGroup), OrderLast = true)]
     [UpdateBefore(typeof(BuildRenderHierarchySystem))]
-    public unsafe class BuildDynamicTextSystem : SystemBase {
+    public unsafe class UpdateDynamicTextDataSystem : SystemBase {
 
         // NOTE: Must run off a single thread
         [BurstCompile]
@@ -18,7 +18,7 @@ namespace UGUIDOTS.Render.Systems {
 
             public EntityCommandBuffer CommandBuffer;
 
-            public UnsafeMinPriorityQueue<EntityPriority> PriorityQueue;
+            public NativeList<EntityPriority> PriorityQueue;
 
             [ReadOnly]
             public ComponentTypeHandle<StaticDataCount> StaticDataType;
@@ -51,11 +51,9 @@ namespace UGUIDOTS.Render.Systems {
                     StaticSpans.Add(entity, staticSpan.AsInt2());
 
                     CommandBuffer.AddComponent<RebuildMeshTag>(entity);
-                    // CommandBuffer.RemoveComponent<OnDynamicTextChangeTag>(entity);
+                    CommandBuffer.RemoveComponent<OnDynamicTextChangeTag>(entity);
                     RecurseCollectDynamicText(children);
                 }
-
-                UnityEngine.Debug.Log($"Priority Queue Len: {PriorityQueue.Length}");
             }
 
             void RecurseCollectDynamicText(NativeArray<Child> children) {
@@ -101,19 +99,12 @@ namespace UGUIDOTS.Render.Systems {
         }
 
         protected override void OnUpdate() {
-            // TODO: Collect the entities
-            // TODO: Figure out the static spans
-            // TODO: Apply the mesh slice update to dynamic text.
-            
             var children       = GetBufferFromEntity<Child>(true);
             var dynamicText    = GetComponentDataFromEntity<DynamicTextTag>(true);
             var submeshIndices = GetComponentDataFromEntity<SubmeshIndex>(true);
             var entityType     = GetEntityTypeHandle();
 
-            var priorityQueue = new UnsafeMinPriorityQueue<EntityPriority>(
-                Allocator.TempJob, 
-                dynamicTextQuery.CalculateEntityCount());
-
+            var priorityQueue = new NativeList<EntityPriority>(dynamicTextQuery.CalculateEntityCount(), Allocator.TempJob);
             var staticSpanMap = new NativeHashMap<Entity, int2>(canvasQuery.CalculateEntityCount(), Allocator.TempJob);
             var submeshSliceMap = new NativeHashMap<int, Slice>(dynamicTextQuery.CalculateEntityCount(), Allocator.TempJob);
 
@@ -139,7 +130,7 @@ namespace UGUIDOTS.Render.Systems {
                 Indices         = GetBufferFromEntity<Index>(false),
                 Vertices        = GetBufferFromEntity<Vertex>(false),
                 LinkedTextFont  = GetComponentDataFromEntity<LinkedTextFontEntity>(true),
-                PriorityQueue   = priorityQueue,
+                DynamicTexts   = priorityQueue,
                 Roots           = GetComponentDataFromEntity<RootCanvasReference>(true),
                 ScreenSpaces    = GetComponentDataFromEntity<ScreenSpace>(true),
                 SubmeshIndices  = GetComponentDataFromEntity<SubmeshIndex>(true),

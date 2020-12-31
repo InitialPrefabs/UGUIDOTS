@@ -272,30 +272,15 @@ namespace UGUIDOTS.Render.Systems {
         public BufferFromEntity<Index> Indices;
 
         public void Execute() {
-            var minPriorityQueue = new UnsafeMinPriorityQueue<EntityPriority>(Allocator.Temp, 100);
-
-            for (int i = 0; i < DynamicText.Length; i++) {
-                UnsafeList<EntityContainer>* texts = DynamicText.Ptr + i;
-
-                for (int j = 0; j < texts->Length; j++) {
-                    var entity = texts->ElementAt(j);
-                    var submeshIndex = SubmeshIndices[entity].Value;
-
-                    minPriorityQueue.Add(new EntityPriority {
-                        Entity       = entity,
-                        SubmeshIndex = submeshIndex
-                    });
-                }
-            }
+            var entityPriorities = Consolidate();
+            var priorityQueue = entityPriorities.AsPriorityQueue(new MinifyComparer<EntityPriority>());
 
             var tempVertices = new NativeList<Vertex>(500, Allocator.Temp);
             var tempIndices  = new NativeList<Index>(1500, Allocator.Temp);
             var lines        = new NativeList<TextUtil.LineInfo>(10, Allocator.Temp);
 
-            while (minPriorityQueue.Length > 0) {
-
-            // for (int i = 0; i < minPriorityQueue.Length; i++) {
-                var entityPriority = minPriorityQueue.Pull();
+            while (!priorityQueue.IsEmpty()) {
+                var entityPriority = priorityQueue.Pull();
                 var textEntity     = entityPriority.Entity;
 
                 // Get the canvas data
@@ -346,10 +331,32 @@ namespace UGUIDOTS.Render.Systems {
                 tempVertices.Clear();
                 tempIndices.Clear();
                 lines.Clear();
-                // TODO: Canvas needs to rebuild itself because of the dynamic elements.
+            }
+        }
+
+        NativeArray<EntityPriority> Consolidate() {
+            var length = 0;
+            for (int i = 0; i < DynamicText.Length; i++) {
+                length += (DynamicText.Ptr + i)->Length;
             }
 
-            minPriorityQueue.Dispose();
+            var collection = new NativeArray<EntityPriority>(length, Allocator.Temp);
+            var offset = 0;
+
+            for (int i = 0; i < DynamicText.Length; i++) {
+                UnsafeList<EntityContainer>* current = (UnsafeList<EntityContainer>*)(DynamicText.Ptr + i);
+
+                for (int j = 0; j < current->Length; j++) {
+                    var entity = current->ElementAt(j);
+                    collection[j + offset] = new EntityPriority {
+                        Entity       = entity,
+                        SubmeshIndex = SubmeshIndices[entity].Value
+                    };
+                }
+                offset += current->Length;
+            }
+
+            return collection;
         }
     }
 
@@ -362,10 +369,7 @@ namespace UGUIDOTS.Render.Systems {
 
         public NativeHashMap<int, Slice> SubmeshSliceMap;
 
-        // ReadOnly Containers 
-        // --------------------------------------------------------------
-        [ReadOnly]
-        public UnsafeMinPriorityQueue<EntityPriority> PriorityQueue;
+        public NativeList<EntityPriority> DynamicTexts;
 
         // Canvas Data
         // --------------------------------------------------------------
@@ -414,12 +418,10 @@ namespace UGUIDOTS.Render.Systems {
             var tempIndices  = new NativeList<Index>(1500, Allocator.Temp);
             var lines        = new NativeList<TextUtil.LineInfo>(10, Allocator.Temp);
 
-            UnityEngine.Debug.Log($"Build Text Priority Queue Length: {PriorityQueue.Length}");
+            var queue = DynamicTexts.AsArray().AsPriorityQueue(new MinifyComparer<EntityPriority>());
 
-            while (PriorityQueue.Length > 0) {
-
-            // for (int i = 0; i < minPriorityQueue.Length; i++) {
-                var entityPriority = PriorityQueue.Pull();
+            while (!queue.IsEmpty()) {
+                var entityPriority = queue.Pull();
                 var textEntity     = entityPriority.Entity;
 
                 // Get the canvas data

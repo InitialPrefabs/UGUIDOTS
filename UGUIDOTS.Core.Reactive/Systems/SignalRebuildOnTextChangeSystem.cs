@@ -6,7 +6,6 @@ using Unity.Entities;
 namespace UGUIDOTS.Core.Reactive.Systems {
 
     [UpdateInGroup(typeof(InitializationSystemGroup))]
-    // TODO: For now signal using the OnResolutionChangeTag component.
     internal class SignalRebuildOnTextChangeSystem : SystemBase {
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -25,7 +24,7 @@ namespace UGUIDOTS.Core.Reactive.Systems {
         
         protected override void OnCreate() {
             dynamicTextQuery = GetEntityQuery(new EntityQueryDesc {
-                All = new [] { ComponentType.ReadOnly<CharElement>() }
+                All = new [] { ComponentType.ReadOnly<CharElement>(), ComponentType.ReadOnly<DynamicTextTag>() }
             });
 
             commandBufferSystem = World.GetOrCreateSystem<EndInitializationEntityCommandBufferSystem>();
@@ -46,26 +45,29 @@ namespace UGUIDOTS.Core.Reactive.Systems {
                 hashes = new NativeHashMap<Entity, int>(size * 2, Allocator.Persistent);
             }
 
-            var hashesMap = hashes;
-            var commandBuffer = commandBufferSystem.CreateCommandBuffer();
+            var hashesMap           = hashes;
+            var commandBuffer       = commandBufferSystem.CreateCommandBuffer();
+            var resolutionChanges = GetComponentDataFromEntity<OnResolutionChangeTag>(true);
 
             // TODO: Add a system state component so that we can remove the entity from the hash map.
             Dependency = Entities.ForEach((
                 Entity entity, in DynamicBuffer<CharElement> b0, in RootCanvasReference c0) => {
 
                 var chars = b0.AsNativeArray();
-                var hash = HashChars(chars);
+                var hash  = HashChars(chars);
 
                 if (hashesMap.TryGetValue(entity, out int textHash)) {
                     if (textHash != hash) {
-                        // TODO: Replace this with a system that only rebuilds dynamic text.
-                        commandBuffer.AddComponent(c0.Value, new OnResolutionChangeTag());
+                        if (!resolutionChanges.HasComponent(c0.Value)) {
+                        }
+
+                        commandBuffer.AddComponent(c0.Value, new OnDynamicTextChangeTag());
+                        hashesMap[entity] = hash;
                     }
-                    hashesMap[entity] = hash;
                 } else {
                     hashesMap.Add(entity, hash);
                 }
-            }).Schedule(Dependency);
+            }).WithReadOnly(resolutionChanges).Schedule(Dependency);
 
             commandBufferSystem.AddJobHandleForProducer(Dependency);
         }

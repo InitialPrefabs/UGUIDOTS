@@ -20,6 +20,10 @@ namespace UGUIDOTS.Collections {
         internal Entity Entity;
         internal int SubmeshIndex;
 
+        public int CompareTo(EntityPriority other) {
+            return SubmeshIndex.CompareTo(other.SubmeshIndex);
+        }
+
         public int Priority() {
             return SubmeshIndex;
         }

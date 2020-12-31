@@ -25,16 +25,14 @@ namespace UGUIDOTS.Render.Systems {
             public EntityTypeHandle EntityType;
 
             [ReadOnly]
+            public ComponentTypeHandle<OnDynamicTextChangeTag> DynamicTextChangeType;
+
+            [ReadOnly]
             public ComponentTypeHandle<StaticDataCount> StaticDataType;
 
             // Canvases
             // -----------------------------------------
             public BufferTypeHandle<Vertex> VertexBufferType;
-
-            // Universal
-            // -----------------------------------------
-            // [ReadOnly]
-            // public ComponentDataFromEntity<MeshDataSpan> Spans;
 
             // Images
             // -----------------------------------------
@@ -78,6 +76,13 @@ namespace UGUIDOTS.Render.Systems {
 
             public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex) {
                 var entities      = chunk.GetNativeArray(EntityType);
+
+                if (chunk.Has(DynamicTextChangeType)) {
+                    for (int i = 0; i < chunk.Count; i++) {
+                        CommandBuffer.RemoveComponent<OnDynamicTextChangeTag>(firstEntityIndex + i, entities[i]);
+                    }
+                }
+
                 var staticSpans   = chunk.GetNativeArray(StaticDataType);
                 var vertexBuffers = chunk.GetBufferAccessor(VertexBufferType);
 
@@ -103,6 +108,7 @@ namespace UGUIDOTS.Render.Systems {
                     StaticMeshDataMap.TryAdd(entity, staticSpans[i].AsInt2());
 
                     CommandBuffer.AddComponent<RebuildMeshTag>(firstEntityIndex + i, entity);
+                    CommandBuffer.RemoveComponent<OnResolutionChangeTag>(firstEntityIndex + i, entity);
                 }
             }
 
@@ -509,6 +515,7 @@ namespace UGUIDOTS.Render.Systems {
 
             var vertexTypeHandle = GetBufferTypeHandle<Vertex>(false);
             var staticTypeHandle = GetComponentTypeHandle<StaticDataCount>(true);
+            var dynamicTextChangeHandle = GetComponentTypeHandle<OnDynamicTextChangeTag>(true);
 
             var canvasCount = canvasQuery.CalculateEntityCount();
 
@@ -517,21 +524,22 @@ namespace UGUIDOTS.Render.Systems {
             var commandBuffer     = commandBufferSystem.CreateCommandBuffer();
 
             // TODO: Collect -> Build Image + Build Text can work here
-            var collectDeps          = new CollectEntitiesJob {
-                CommandBuffer        = commandBuffer.AsParallelWriter(),
-                StaticDataType       = staticTypeHandle,
-                CharBuffers          = charBuffers,
-                Children             = children,
-                Stretched            = stretch,
-                EntityType           = GetEntityTypeHandle(),
-                SpriteData           = spriteData,
-                VertexBufferType     = vertexTypeHandle,
-                DynamicTexts         = dynamicTexts,
-                ImageContainer       = perThreadImageContainer.Ptr,
-                StaticTextContainer  = perThreadStaticTextContainer.Ptr,
-                DynamicTextContainer = perThreadDynamicTextContainer.Ptr,
-                CanvasVertexMap      = canvasMap.AsParallelWriter(),
-                StaticMeshDataMap    = staticMeshDataMap.AsParallelWriter()
+            var collectDeps           = new CollectEntitiesJob {
+                DynamicTextChangeType = dynamicTextChangeHandle,
+                CommandBuffer         = commandBuffer.AsParallelWriter(),
+                StaticDataType        = staticTypeHandle,
+                CharBuffers           = charBuffers,
+                Children              = children,
+                Stretched             = stretch,
+                EntityType            = GetEntityTypeHandle(),
+                SpriteData            = spriteData,
+                VertexBufferType      = vertexTypeHandle,
+                DynamicTexts          = dynamicTexts,
+                ImageContainer        = perThreadImageContainer.Ptr,
+                StaticTextContainer   = perThreadStaticTextContainer.Ptr,
+                DynamicTextContainer  = perThreadDynamicTextContainer.Ptr,
+                CanvasVertexMap       = canvasMap.AsParallelWriter(),
+                StaticMeshDataMap     = staticMeshDataMap.AsParallelWriter()
             }.ScheduleParallel(canvasQuery, Dependency);
 
             // Rebuild all the static images
