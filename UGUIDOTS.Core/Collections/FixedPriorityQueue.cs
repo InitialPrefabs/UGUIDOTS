@@ -11,19 +11,19 @@ namespace UGUIDOTS.Collections {
         /// <summary>
         /// Extension function which generates a priority queue from the NativeArray.
         /// </summary>
-        public static unsafe FixedPriorityQueue<T> AsPriorityQueue<T, U>(this NativeArray<T> values, U comparer) 
+        public static unsafe FixedPriorityQueue<T, U> AsPriorityQueue<T, U>(this NativeArray<T> values, U comparer) 
             where T : unmanaged, IStruct<T>, IPrioritize<T>, IComparable<T>
-            where U : struct, IComparer<T> {
-            return new FixedPriorityQueue<T>(values.GetUnsafePtr(), values.Length, comparer);
+            where U : unmanaged, IComparer<T> {
+            return new FixedPriorityQueue<T, U>(values.GetUnsafePtr(), values.Length, comparer);
         }
 
         /// <summary>
         /// Extension function which generates a priority queue from a NativeList.
         /// </summary>
-        public static unsafe FixedPriorityQueue<T> AsPriorityQueue<T, U>(this NativeList<T> values, U comparer) 
+        public static unsafe FixedPriorityQueue<T, U> AsPriorityQueue<T, U>(this NativeList<T> values, U comparer) 
             where T : unmanaged, IStruct<T>, IPrioritize<T>, IComparable<T>
             where U : unmanaged, IComparer<T> {
-            return new FixedPriorityQueue<T>(values.GetUnsafePtr(), values.Length, comparer);
+            return new FixedPriorityQueue<T, U>(values.GetUnsafePtr(), values.Length, comparer);
         }
 
     }
@@ -52,7 +52,9 @@ namespace UGUIDOTS.Collections {
     /// <summary>
     /// Stores a pointer to a collection and treats the collection as a min priority queue.
     /// </summary>
-    public unsafe struct FixedPriorityQueue<T> where T : unmanaged, IStruct<T>, IPrioritize<T>, IComparable<T> {
+    public unsafe struct FixedPriorityQueue<T, U> 
+        where T : unmanaged, IStruct<T>, IPrioritize<T>, IComparable<T>
+        where U : unmanaged, IComparer<T> {
         internal T* Ptr;
 
         /// <summary>
@@ -73,17 +75,10 @@ namespace UGUIDOTS.Collections {
             return Index >= Length;
         }
 
-        public FixedPriorityQueue(NativeArray<T> array, IComparer<T> comparer) {
-            NativeSortExtension.Sort(array, comparer);
-            Ptr = (T*)array.GetUnsafePtr();
-            Length = array.Length;
-            Index = 0;
-        }
-
         /// <summary>
         /// Generic constructor to support any pointer with a defined collection size.
         /// </summary>
-        public FixedPriorityQueue(void* ptr, int length, IComparer<T> comparer) {
+        public FixedPriorityQueue(void* ptr, int length, U comparer) {
             NativeSortExtension.Sort<T>((T*)ptr, length);
 
             Ptr = (T*)ptr;
