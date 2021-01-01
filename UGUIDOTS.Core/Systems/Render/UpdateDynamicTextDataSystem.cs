@@ -10,7 +10,7 @@ namespace UGUIDOTS.Render.Systems {
 
     // TODO: Check if I can get away without having to use this, rebuilding the entire hierarchy 
     // does make more sense truthfully.
-    [UpdateInGroup(typeof(PresentationSystemGroup), OrderLast = true)]
+    [UpdateInGroup(typeof(SimulationSystemGroup), OrderLast = false)]
     [UpdateBefore(typeof(BuildRenderHierarchySystem))]
     public unsafe class UpdateDynamicTextDataSystem : SystemBase {
 
@@ -20,10 +20,13 @@ namespace UGUIDOTS.Render.Systems {
 
             public EntityCommandBuffer CommandBuffer;
 
-            public NativeList<EntityPriority> PriorityQueue;
+            public NativeList<EntityPriority> DynamicText;
 
             [ReadOnly]
             public ComponentTypeHandle<StaticDataCount> StaticDataType;
+
+            [ReadOnly]
+            public ComponentTypeHandle<Dimension> DimensionType;
 
             [ReadOnly]
             public EntityTypeHandle EntityTypeHandle;
@@ -43,8 +46,11 @@ namespace UGUIDOTS.Render.Systems {
             public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex) {
                 var staticCount = chunk.GetNativeArray(StaticDataType);
                 var entities = chunk.GetNativeArray(EntityTypeHandle);
+                var dimensions = chunk.GetNativeArray(DimensionType);
 
                 for (int i = 0; i < chunk.Count; i++) {
+                    var currentDim = dimensions[i].Value;
+
                     var staticSpan = staticCount[i];
                     var entity = entities[i];
 
@@ -63,7 +69,7 @@ namespace UGUIDOTS.Render.Systems {
                     var child = children[i].Value;
 
                     if (DynamicTexts.HasComponent(child) && SubmeshIndices.HasComponent(child)) {
-                        PriorityQueue.Add(new EntityPriority {
+                        DynamicText.Add(new EntityPriority {
                             Entity       = child,
                             SubmeshIndex = SubmeshIndices[child].Value
                         });
@@ -78,9 +84,12 @@ namespace UGUIDOTS.Render.Systems {
             }
         }
 
+        private const float DelayTime = 0.25f;
+
         private EntityQuery canvasQuery;
         private EntityQuery dynamicTextQuery;
         private EntityCommandBufferSystem commandBufferSystem;
+        private int2 resolution;
 
         protected override void OnCreate() {
             canvasQuery = GetEntityQuery(new EntityQueryDesc {
@@ -97,10 +106,14 @@ namespace UGUIDOTS.Render.Systems {
                 All = new [] { ComponentType.ReadOnly<CharElement>(), ComponentType.ReadOnly<DynamicTextTag>() }
             });
 
-            commandBufferSystem = World.GetOrCreateSystem<BeginInitializationEntityCommandBufferSystem>();
+            commandBufferSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
         }
 
         protected override void OnUpdate() {
+            if (Time.ElapsedTime <= DelayTime) {
+                return;
+            }
+
             var children       = GetBufferFromEntity<Child>(true);
             var dynamicText    = GetComponentDataFromEntity<DynamicTextTag>(true);
             var submeshIndices = GetComponentDataFromEntity<SubmeshIndex>(true);
@@ -112,15 +125,16 @@ namespace UGUIDOTS.Render.Systems {
 
             var commandBuffer = commandBufferSystem.CreateCommandBuffer();
 
-            Dependency           = new CollectDynamicTextJob {
-                ChildBuffers     = children,
-                DynamicTexts     = dynamicText,
-                EntityTypeHandle = entityType,
-                PriorityQueue    = priorityQueue,
-                StaticDataType   = GetComponentTypeHandle<StaticDataCount>(),
-                StaticSpans      = staticSpanMap,
-                SubmeshIndices   = submeshIndices,
-                CommandBuffer    = commandBuffer
+            Dependency            = new CollectDynamicTextJob {
+                DimensionType     = GetComponentTypeHandle<Dimension>(),
+                ChildBuffers      = children,
+                DynamicTexts      = dynamicText,
+                EntityTypeHandle  = entityType,
+                DynamicText     = priorityQueue,
+                StaticDataType    = GetComponentTypeHandle<StaticDataCount>(),
+                StaticSpans       = staticSpanMap,
+                SubmeshIndices    = submeshIndices,
+                CommandBuffer     = commandBuffer
             }.ScheduleSingle(canvasQuery, Dependency);
 
             Dependency          = new BuildDynamicTextJob {

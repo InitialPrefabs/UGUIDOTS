@@ -12,7 +12,7 @@ using Unity.Mathematics;
 
 namespace UGUIDOTS.Render.Systems {
 
-    [UpdateInGroup(typeof(PresentationSystemGroup), OrderLast = true)]
+    [UpdateInGroup(typeof(SimulationSystemGroup), OrderLast = true)]
     public unsafe class BuildRenderHierarchySystem : SystemBase {
 
         [BurstCompile]
