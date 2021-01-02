@@ -1,140 +1,147 @@
 using System;
 using UGUIDOTS.Analyzers;
 using UnityEditor;
+using UnityEditor.UIElements;
 using UnityEngine;
-
-using static UGUIDOTS.Analyzers.BakedCanvasData;
+using UnityEngine.UIElements;
 
 namespace UGUIDOTS.EditorTools {
 
-    [CustomEditor(typeof(BakedCanvasData))]
-    public class BakedCanvasDataEditor : Editor {
-
-        public override void OnInspectorGUI() {
-            HelpMessage();
-
-            DrawDefaultInspector();
-        }
-
-        private void HelpMessage() {
-            EditorGUILayout.HelpBox("Baked Canvas Data will store the transform data of all elements in the canvas. " + 
-                "This is due to that baked data in subscenes are not reliable with Unity's Legacy UI.", 
-                MessageType.Info);
-
-            EditorGUILayout.HelpBox("Manipulating data directly on this Scriptable Object is not recommended!", 
-                MessageType.Warning);
-        }
-    }
-
     [CustomEditor(typeof(BakedCanvasDataProxy))]
-    public class BakedCanvasRunnerEditor : Editor {
+    public class BakedCanvasDataProxyEditor : Editor {
 
-        private enum ButtonState {
-            Fail = -1,
-            None = 0,
-            Success = 1,
-        }
+        const string BakeWarningMessage = "The Canvas's transform hierarchy has not yet been baked.";
 
-        private BakedCanvasDataProxy canvasRunner;
+        private BakedCanvasDataProxy proxy;
+        private SerializedProperty instanceIDProp;
+        private SerializedProperty bakedCanvasDataProp;
+        private VisualElement container;
+
+        private bool exists;
 
         private void OnEnable() {
-            canvasRunner = target as BakedCanvasDataProxy;
+            proxy = target as BakedCanvasDataProxy;
+            instanceIDProp = serializedObject.FindProperty("instanceID");
+            bakedCanvasDataProp = serializedObject.FindProperty("BakedCanvasData");
+
+            container = new VisualElement();
+
+            AssetDatabaseUtility.FindStyleSheet("Labels.uss", out var labelStyle);
+            container.styleSheets.Add(labelStyle);
         }
 
-        public override void OnInspectorGUI() {
-            using (var changeCheck = new EditorGUI.ChangeCheckScope()) {
+        public override VisualElement CreateInspectorGUI() {
+            container.Clear();
+
+            serializedObject.Update();
+            exists = Exists(out int instanceID);
+
+            // TODO: Add a note about baking the information with the reference resolution.
+            // TODO: Add an update button.
+            DrawBakedCanvasDataField(container);
+            DrawDisabledInstanceID(container, exists, instanceID);
+            DrawBakeButton(container, exists, instanceID);
+            RemoveBakedCanvasButton(container, instanceID);
+
+            return container;
+        }
+
+        private void DrawDisabledInstanceID(VisualElement root, bool exists, int instanceID) {
+            var prop = new PropertyField(instanceIDProp);
+            prop.Bind(serializedObject);
+            prop.schedule.Execute(() => {
+                prop.ElementAt(0).Query<Label>().First().AddToClassList(StylesReference.LimitWidth40);
+            });
+            prop.SetEnabled(false);
+            root.Add(prop);
+
+            var helpBox = new HelpBox(BakeWarningMessage, HelpBoxMessageType.Warning) { name = "warning-msg" };
+            if (exists) {
+                helpBox.AddToClassList(StylesReference.Hidden);
+            }
+
+            root.Add(helpBox);
+        }
+
+        private void DrawBakedCanvasDataField(VisualElement root) {
+            var canvasField = new PropertyField(bakedCanvasDataProp);
+            container.schedule.Execute(() => {
+                var helpBox = canvasField.ElementAt(0).Query<Label>().First();
+                helpBox.AddToClassList(StylesReference.LimitWidth40);
+            });
+            root.Add(canvasField);
+        }
+
+        private void DrawBakeButton(VisualElement root, bool exists, int instanceID) {
+            var bakeButton = new Button() {
+                text = "Bake Canvas Hierarchy",
+                name = "bake-button"
+            };
+
+            bakeButton.clicked += () => {
+                serializedObject.Update();
+                var canvasRoot = BuildHierarchy(proxy.transform, instanceID);
+                instanceIDProp.intValue = instanceID;
+
+                var canvasData = proxy.BakedCanvasData;
+                // NOTE: Mark the BakedCanvasData as dirty so we  can apply and save changes to it.
+                EditorUtility.SetDirty(canvasData);
+                canvasData.Hierarchy.Add(canvasRoot);
+                serializedObject.ApplyModifiedProperties();
+
+                bakeButton.SetEnabled(false);
+                CleanUp();
+            };
+
+            bakeButton.SetEnabled(!exists);
+            root.Add(bakeButton);
+        }
+
+        private void RemoveBakedCanvasButton(VisualElement root, int instanceID) {
+            var removeButton = new Button() {
+                text = "Remove Baked Canvas",
+                name = "remove-button"
+            };
+
+            removeButton.clicked += () => {
                 serializedObject.Update();
 
-                DefaultInspector();
-                DrawBakeButton(out var state);
+                var canvasData = proxy.BakedCanvasData;
+                EditorUtility.SetDirty(canvasData);
+                canvasData.Hierarchy.RemoveAll((element) => {
+                    return element.InstanceID == instanceID;
+                });
 
-                if ((int)state > 0) {
-                    EditorGUILayout.HelpBox("The element was successfully cached into the Baked Canvas Data", MessageType.Info);
-                }
+                instanceIDProp.intValue = 0;
 
-                if ((int)state < 0) {
-                    EditorGUILayout.HelpBox("The element was not cached into the Baked Canvas Data!", MessageType.Error);
-                }
+                root.Query<HelpBox>().ForEach(helpbox => {
+                    helpbox.RemoveFromClassList(StylesReference.Hidden);
+                });
 
-                if ((int)state == 0) {
-                    EditorGUILayout.HelpBox("Please ensure the element was cached into the Baked Canvas Data! " +
-                        "Any structural changes will need to be rebaked.", MessageType.Warning);
-                }
+                root.Query<Button>("bake-button").First().SetEnabled(true);
 
-                UpdateIndexButton();
+                exists = false;
+                serializedObject.ApplyModifiedProperties();
+            };
 
-                ResetButton();
-                
-                if (changeCheck.changed) {
-                    serializedObject.ApplyModifiedProperties();
-                }
-            }
+            root.Add(removeButton);
         }
 
-        private void DefaultInspector() {
-            var it = serializedObject.GetIterator();
-            it.Next(true);
-
-            while (it.NextVisible(true)) {
-                var enabled = !(it.name == "m_Script" || it.name == "Index");
-
-                GUI.enabled = enabled;
-                EditorGUILayout.PropertyField(it, new GUIContent(it.displayName));
-                GUI.enabled = true;
-            }
+        private void CleanUp() {
+            container.Query<HelpBox>().ForEach(helpbox => helpbox.AddToClassList(StylesReference.Hidden));
         }
 
-        private void DrawBakeButton(out ButtonState state) {
-            if (GUILayout.Button("Bake Canvas Info")) {
-                var canvasRoot = BuildHierarchy(canvasRunner.transform);
-
-                var idxProp = serializedObject.FindProperty("Index");
-
-                if (idxProp.intValue > -1) {
-                    state = ButtonState.Fail;
-                    return;
-                }
-
-                EditorUtility.SetDirty(canvasRunner.BakedCanvasData);
-
-                canvasRunner.BakedCanvasData.Transforms.Add(canvasRoot);
-                var idx = canvasRunner.BakedCanvasData.Transforms.Count - 1;
-
-                idxProp.intValue = idx;
-                state = ButtonState.None;
-
-                return;
-            }
-
-            state = ButtonState.None;
-        }
-
-        private void UpdateIndexButton() {
-            var idxProp = serializedObject.FindProperty("Index");
-            if (GUILayout.Button("Update Baked Canvas Info") && idxProp.intValue > -1) {
-                var canvasRoot = BuildHierarchy(canvasRunner.transform);
-                EditorUtility.SetDirty(canvasRunner.BakedCanvasData);
-                canvasRunner.BakedCanvasData.Transforms[idxProp.intValue] = canvasRoot;
-            }
-        }
-
-        private void ResetButton() {
-            var idxProp = serializedObject.FindProperty("Index");
-            if (GUILayout.Button("Reset Index")) {
-                idxProp.intValue = -1;
-            }
-        }
-
-        private CanvasTransform BuildHierarchy(Transform transform) {
+        private RootCanvasTransform BuildHierarchy(Transform transform, int instanceID) {
             if (transform.parent != null) {
                 throw new NotSupportedException($"The transform: {transform.name} is not a root element to scan!");
             }
 
-            var root = new CanvasTransform(
+            var root = new RootCanvasTransform(
                 transform.position, 
                 transform.lossyScale, 
                 transform.localPosition, 
                 transform.localScale,
+                instanceID,
                 transform.name);
 
             RecurseBuildHierarchy(transform, root);
@@ -160,6 +167,25 @@ namespace UGUIDOTS.EditorTools {
                 if (child.childCount > 0) {
                     RecurseBuildHierarchy(child, canvasTransform);
                 }
+            }
+        }
+
+        private bool InstanceIDExists() {
+            var instanceID = instanceIDProp.intValue;
+            var bakedCanvasData = proxy.BakedCanvasData;
+
+            return bakedCanvasData.Hierarchy.Exists((element) => {
+                return element.InstanceID == instanceID && element.InstanceID != 0;
+            });
+        }
+
+        private bool Exists(out int instanceID) {
+            if (InstanceIDExists()) {
+                instanceID = instanceIDProp.intValue;
+                return true;
+            } else {
+                instanceID = proxy.GetInstanceID();
+                return false;
             }
         }
     }

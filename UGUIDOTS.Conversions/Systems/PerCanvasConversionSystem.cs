@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UGUIDOTS.Analyzers;
 using UGUIDOTS.Transforms;
 using Unity.Collections.LowLevel.Unsafe;
@@ -6,8 +6,6 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.UI;
-
-using static UGUIDOTS.Analyzers.BakedCanvasData;
 
 namespace UGUIDOTS.Conversions.Systems {
 
@@ -25,12 +23,16 @@ namespace UGUIDOTS.Conversions.Systems {
                 CanvasConversionUtils.CleanCanvas(canvasEntity, DstEntityManager);
                 CanvasConversionUtils.SetScaleMode(canvasEntity, canvas, DstEntityManager, canvasScaler);
 
-                if (canvas.TryGetComponent(out BakedCanvasDataProxy runner)) {
-                    var bakedData = runner.BakedCanvasData;
-                    var idx = runner.Index;
+                if (canvas.TryGetComponent(out BakedCanvasDataProxy proxy)) {
+                    var exists = proxy.BakedCanvasData.ElementAt(proxy.InstanceID, out RootCanvasTransform hierarchy);
+                    var root   = canvas.transform;
 
-                    var hierarchy = bakedData.Transforms[idx];
-                    var root = canvas.transform;
+#if UNITY_EDITOR
+                    if (!exists) {
+                        Debug.LogWarning($"<b>{canvas.name}</b> is not baked, skipping for now...");
+                        return;
+                    }
+#endif
 
                     DstEntityManager.AddComponentData(canvasEntity, new ScreenSpace {
                         Scale       = hierarchy.WScale,

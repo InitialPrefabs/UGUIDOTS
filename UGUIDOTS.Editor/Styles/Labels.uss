@@ -1,0 +1,8 @@
+.limit-width-40
+{
+    width: 40%
+}
+
+.hidden {
+    display: none
+}
