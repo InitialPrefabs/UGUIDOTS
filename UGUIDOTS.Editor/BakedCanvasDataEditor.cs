@@ -1,23 +1,58 @@
 using UGUIDOTS.Analyzers;
 using UnityEditor;
+using UnityEditor.UIElements;
+using UnityEngine.UIElements;
 
 namespace UGUIDOTS.EditorTools {
+
     [CustomEditor(typeof(BakedCanvasData))]
     public class BakedCanvasDataEditor : Editor {
 
-        public override void OnInspectorGUI() {
-            HelpMessage();
+        private SerializedProperty hierarchyProp;
+        private bool editState;
 
-            DrawDefaultInspector();
+        private void OnEnable() {
+            hierarchyProp = serializedObject.FindProperty("Hierarchy");
         }
 
-        private void HelpMessage() {
-            EditorGUILayout.HelpBox("Baked Canvas Data will store the transform data of all elements in the canvas. " + 
-                "This is due to that baked data in subscenes are not reliable with Unity's Legacy UI.", 
-                MessageType.Info);
+        public override VisualElement CreateInspectorGUI() {
+            var container = new VisualElement();
 
-            EditorGUILayout.HelpBox("Manipulating data directly on this Scriptable Object is not recommended!", 
-                MessageType.Warning);
+            DrawHelpMessageBox(container);
+            DrawEditToggleButton(container);
+            DrawHierarchyField(container);
+
+            return container;
+        }
+
+        private void DrawHelpMessageBox(VisualElement root) {
+            var helpbox = new HelpBox("It's generally not recommended to manipulate this data directly.", 
+                HelpBoxMessageType.Warning);
+
+            root.Add(helpbox);
+        }
+
+        private void DrawEditToggleButton(VisualElement root) {
+            var editButton = new Button() {
+                text = "Edit Data [Off]",
+                name = "edit-data"
+            };
+
+            editButton.clicked += () => {
+                editState = !editState;
+                root.Query<PropertyField>("hierarchy-field").First().SetEnabled(editState);
+                editButton.text = $"Edit Data [{(editState ? "On" : "Off")}]";
+            };
+
+            root.Add(editButton);
+        }
+
+        private void DrawHierarchyField(VisualElement root) {
+            var hierarchyField = new PropertyField(hierarchyProp);
+            hierarchyField.name = "hierarchy-field";
+            hierarchyField.BindProperty(hierarchyProp);
+            hierarchyField.SetEnabled(false);
+            root.Add(hierarchyField);
         }
     }
 }

@@ -41,7 +41,13 @@ namespace UGUIDOTS.EditorTools {
             DrawBakedCanvasDataField(container);
             DrawDisabledInstanceID(container, exists, instanceID);
             DrawBakeButton(container, exists, instanceID);
+            UpdateCanvasButton(container, instanceID);
             RemoveBakedCanvasButton(container, instanceID);
+
+            container.schedule.Execute(() => {
+                container.Query<Button>("remove-button").First().SetEnabled(exists);
+                container.Query<Button>("update-button").First().SetEnabled(exists);
+            });
 
             return container;
         }
@@ -91,7 +97,15 @@ namespace UGUIDOTS.EditorTools {
 
                 bakeButton.SetEnabled(false);
                 CleanUp();
+
+                container.Query<Button>("remove-button").First().SetEnabled(true);
+                container.Query<Button>("update-button").First().SetEnabled(true);
             };
+
+            bakeButton.schedule.Execute(() => {
+                container.Query<Button>("remove-button").First().SetEnabled(true);
+                container.Query<Button>("update-button").First().SetEnabled(true);
+            });
 
             bakeButton.SetEnabled(!exists);
             root.Add(bakeButton);
@@ -122,9 +136,34 @@ namespace UGUIDOTS.EditorTools {
 
                 exists = false;
                 serializedObject.ApplyModifiedProperties();
+
+                container.Query<Button>("remove-button").First().SetEnabled(false);
+                container.Query<Button>("update-button").First().SetEnabled(false);
             };
 
+            removeButton.schedule.Execute(() => {
+
+            });
+
             root.Add(removeButton);
+        }
+
+        private void UpdateCanvasButton(VisualElement root, int instanceID) {
+            var updateButton = new Button() {
+                text = "Update Baked Canvas",
+                name = "update-button"
+            };
+
+            updateButton.clicked += () => {
+                serializedObject.Update();
+
+                var canvasRoot = BuildHierarchy(proxy.transform, instanceID);
+                var index = proxy.BakedCanvasData.Hierarchy.FindIndex(element => element.InstanceID == instanceID);
+
+                proxy.BakedCanvasData.Hierarchy[index] = canvasRoot;
+            };
+
+            root.Add(updateButton);
         }
 
         private void CleanUp() {
